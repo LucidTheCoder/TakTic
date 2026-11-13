@@ -1,0 +1,445 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowLeft, Check, Sparkles, Wand2 } from 'lucide-react';
+import type { AdaptationRecord, FeedbackType, Task, TaskDraft } from '../../types';
+import { FEEDBACK_OPTIONS } from '../../data/feedback';
+import { useTakTic } from '../../store/TakTicProvider';
+import { Modal } from '../ui/Modal';
+import { Button } from '../ui/Button';
+import { Textarea } from '../ui/Form';
+import { InlineNote, Skeleton } from '../ui/Feedback';
+import { cn } from '../../utils/cn';
+import { uid } from '../../utils/id';
+import { describeAiError, isAiConfigured } from '../../services/ai/client';
+import { adaptTask } from '../../services/ai';
+import { templateAdaptation } from '../../services/ai/templates';
+import { childrenOf } from '../../utils/tasks';
+
+interface TroubleModalProps {
+  open: boolean;
+  task: Task | null;
+  onClose: () => void;
+}
+
+interface AdaptationPreview {
+  reasoning: string;
+  subtasks: TaskDraft[];
+  revisedEstimateMinutes?: number;
+  suggestedFocusMinutes?: number;
+  reframedTask?: { title: string; description: string };
+  source: 'ai' | 'template';
+  strategy?: string;
+}
+
+export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
+  const { state, dispatch, captureSnapshot, offerUndo } = useTakTic();
+  const [feedback, setFeedback] = useState<FeedbackType | null>(null);
+  const [explanation, setExplanation] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<AdaptationPreview | null>(null);
+  const [selected, setSelected] = useState<boolean[]>([]);
+  const [applyError, setApplyError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setFeedback(null);
+    setExplanation('');
+    setLoading(false);
+    setError(null);
+    setPreview(null);
+    setSelected([]);
+    setApplyError(null);
+  }, [open, task?.id]);
+
+  const completedSubtasks = useMemo(
+    () => (task ? childrenOf(state.tasks, task.id).filter((child) => child.status === 'completed') : []),
+    [state.tasks, task],
+  );
+  const projectTitle = state.projects.find((project) => project.id === task?.projectId)?.title ?? '';
+
+  const aiReady = isAiConfigured(state.settings.ai);
+
+  const generateWithAi = async () => {
+    if (!task || !feedback) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const sessions = state.focusSessions
+        .filter((session) => session.taskId === task.id)
+        .slice(-4)
+        .map((session) => ({
+          plannedSeconds: session.plannedSeconds,
+          actualSeconds: session.actualSeconds,
+        }));
+      const result = await adaptTask({
+        task,
+        projectTitle,
+        feedback,
+        explanation,
+        completedSubtasks: completedSubtasks.map((child) => child.title),
+        recentSessions: sessions,
+        config: state.settings.ai,
+      });
+      setPreview({
+        reasoning: result.reasoning,
+        subtasks: result.subtasks,
+        revisedEstimateMinutes: result.revisedEstimateMinutes,
+        suggestedFocusMinutes: result.suggestedFocusMinutes,
+        reframedTask: result.reframedTask,
+        source: 'ai',
+        strategy: result.strategy,
+      });
+      setSelected(result.subtasks.map(() => true));
+    } catch (caught) {
+      setError(describeAiError(caught));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateTemplate = () => {
+    if (!task || !feedback) return;
+    const result = templateAdaptation(task, feedback);
+    setPreview({
+      ...result,
+      source: 'template',
+      reasoning: `${result.reasoning} This is a fixed structural template, not an AI response.`,
+    });
+    setSelected(result.subtasks.map(() => true));
+    setError(null);
+  };
+
+  const apply = () => {
+    if (!task || !preview) return;
+    const chosen = preview.subtasks.filter((_, index) => selected[index]);
+    if (chosen.length === 0) {
+      setApplyError('Select at least one step to add.');
+      return;
+    }
+    const snapshot = captureSnapshot();
+    const record: AdaptationRecord = {
+      id: uid('adapt'),
+      taskId: task.id,
+      feedbackType: feedback ?? 'other',
+      userExplanation: explanation.trim(),
+      generatedTasks: chosen.map((draft) => draft.title),
+      reasoning: preview.reasoning,
+      createdAt: new Date().toISOString(),
+    };
+    dispatch({
+      type: 'APPLY_ADAPTATION',
+      taskId: task.id,
+      record,
+      subtasks: chosen,
+      revisedEstimateMinutes: preview.revisedEstimateMinutes,
+      reframedTask: preview.reframedTask,
+    });
+    onClose();
+    offerUndo(
+      'Task broken into smaller steps',
+      snapshot,
+      `${chosen.length} step${chosen.length === 1 ? '' : 's'} added. Completed work and the original task were preserved.`,
+    );
+  };
+
+  const totalMinutes = preview
+    ? preview.subtasks.reduce(
+        (sum, draft, index) => (selected[index] ? sum + draft.estimatedMinutes : sum),
+        0,
+      )
+    : 0;
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={preview ? 'Review the new shape' : 'Having trouble?'}
+      eyebrow={task ? 'Adaptive task decomposition' : 'Task'}
+      description={
+        preview
+          ? 'Nothing changes until you apply it. Uncheck anything that does not help.'
+          : task
+            ? `“${task.title}” — tell TakTic what is actually making this hard.`
+            : undefined
+      }
+      width="lg"
+      footer={
+        preview ? (
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setPreview(null);
+                setError(null);
+              }}
+              className="mr-auto"
+            >
+              <ArrowLeft size={13} aria-hidden />
+              Change feedback
+            </Button>
+            <Button variant="ghost" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={apply}>
+              Add {selected.filter(Boolean).length} step
+              {selected.filter(Boolean).length === 1 ? '' : 's'}
+            </Button>
+          </>
+        ) : loading ? null : (
+          <>
+            <Button variant="ghost" onClick={onClose} className="mr-auto">
+              Not now
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={generateTemplate}
+              disabled={!feedback}
+              title="Use a fixed structure template instead of AI"
+            >
+              Use a template
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => void generateWithAi()}
+              disabled={!feedback || !aiReady}
+            >
+              <Sparkles size={13} aria-hidden />
+              Rework with AI
+            </Button>
+          </>
+        )
+      }
+    >
+      {loading ? (
+        <div className="space-y-5 py-2">
+          <div className="flex items-center gap-2 text-[12px] text-muted">
+            <span className="h-1.5 w-1.5 animate-soft-pulse rounded-full bg-accent" aria-hidden />
+            Reworking the task around the difficulty you described…
+          </div>
+          <Skeleton className="h-3 w-3/4" />
+          <Skeleton className="h-3 w-1/2" />
+          <div className="space-y-2 pt-2">
+            {[0, 1, 2, 3].map((index) => (
+              <Skeleton key={index} className="h-11 w-full" />
+            ))}
+          </div>
+        </div>
+      ) : preview ? (
+        <div className="space-y-5">
+          {preview.source === 'template' ? (
+            <InlineNote tone="accent">
+              This structure came from a fixed template, not from AI. Edit anything once it is
+              applied.
+            </InlineNote>
+          ) : null}
+          <div className="border-l-2 border-accent/50 pl-3">
+            <p className="eyebrow mb-1">Why this shape</p>
+            <p className="text-[12.5px] leading-6 text-ink/85">{preview.reasoning}</p>
+          </div>
+
+          {completedSubtasks.length > 0 ? (
+            <InlineNote tone="sage">
+              {completedSubtasks.length} completed subtask
+              {completedSubtasks.length === 1 ? '' : 's'} will be preserved exactly as they are.
+            </InlineNote>
+          ) : null}
+
+          {preview.reframedTask && preview.reframedTask.title !== task?.title ? (
+            <div className="border border-line bg-surface2/40 px-3 py-2.5">
+              <p className="eyebrow mb-1">Proposed reframe</p>
+              <p className="text-[13px] font-medium text-ink">{preview.reframedTask.title}</p>
+              {preview.reframedTask.description ? (
+                <p className="mt-1 text-[11.5px] leading-5 text-muted">
+                  {preview.reframedTask.description}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <p className="eyebrow">Proposed steps</p>
+              <span className="font-mono text-[9.5px] text-muted">
+                {selected.filter(Boolean).length} selected · {totalMinutes} min
+              </span>
+            </div>
+            <ul className="divide-y divide-line border border-line">
+              {preview.subtasks.map((draft, index) => {
+                const isSelected = selected[index];
+                return (
+                  <li key={`${draft.title}-${index}`}>
+                    <label
+                      className={cn(
+                        'flex cursor-pointer items-start gap-3 px-3 py-2.5 transition-colors',
+                        isSelected ? 'bg-paper' : 'bg-surface2/40 text-muted',
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() =>
+                          setSelected((current) =>
+                            current.map((value, itemIndex) =>
+                              itemIndex === index ? !value : value,
+                            ),
+                          )
+                        }
+                        className="mt-0.5 h-3.5 w-3.5 accent-[rgb(var(--accent))]"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[12.5px] leading-5">{draft.title}</span>
+                        {draft.description ? (
+                          <span className="mt-0.5 block text-[11px] leading-5 text-muted">
+                            {draft.description}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="shrink-0 pt-0.5 font-mono text-[9.5px] text-muted">
+                        {draft.estimatedMinutes} min
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+
+          <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-3 text-[11px] text-muted">
+            {preview.revisedEstimateMinutes ? (
+              <span>
+                Revised estimate:{' '}
+                <span className="font-mono text-ink">{preview.revisedEstimateMinutes} min</span>
+              </span>
+            ) : null}
+            {preview.suggestedFocusMinutes ? (
+              <span>
+                Suggested focus:{' '}
+                <span className="font-mono text-ink">{preview.suggestedFocusMinutes} min</span>
+              </span>
+            ) : null}
+            {preview.strategy ? (
+              <span className="font-mono text-[9.5px] uppercase tracking-[0.08em]">
+                {preview.strategy.replace('_', ' ')}
+              </span>
+            ) : null}
+          </div>
+          {applyError ? <p className="text-[12px] text-accent">{applyError}</p> : null}
+        </div>
+      ) : (
+        <div className="space-y-5">
+          {!aiReady ? (
+            <div className="border border-line bg-surface2/40 px-4 py-3">
+              <p className="text-[12px] font-medium text-ink">AI adaptation is not configured</p>
+              <p className="mt-1 text-[11.5px] leading-5 text-muted">
+                Add an OpenRouter API key in Settings to let the companion restructure this task.
+                You can still use a fixed structural template, clearly labelled as such.{' '}
+                <Link
+                  to="/settings#ai"
+                  className="text-accent underline decoration-accent/40 underline-offset-2"
+                >
+                  Open AI settings
+                </Link>
+              </p>
+            </div>
+          ) : null}
+
+          <fieldset>
+            <legend className="eyebrow mb-2.5">What is making this difficult?</legend>
+            <div className="grid gap-px border border-line bg-line sm:grid-cols-2">
+              {FEEDBACK_OPTIONS.map((option) => {
+                const Icon = option.icon;
+                const active = feedback === option.id;
+                return (
+                  <label
+                    key={option.id}
+                    className={cn(
+                      'flex cursor-pointer items-start gap-2.5 bg-paper px-3 py-3 transition-colors',
+                      active ? 'bg-accent-soft/70' : 'hover:bg-surface2/50',
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="trouble-feedback"
+                      value={option.id}
+                      checked={active}
+                      onChange={() => setFeedback(option.id)}
+                      className="sr-only"
+                    />
+                    <span
+                      className={cn(
+                        'mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center border',
+                        active
+                          ? 'border-accent bg-accent text-paper'
+                          : 'border-line text-muted',
+                      )}
+                    >
+                      <Icon size={13} aria-hidden />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[12px] leading-5 text-ink">{option.label}</span>
+                      <span className="mt-0.5 block text-[10.5px] leading-4 text-muted">
+                        {option.description}
+                      </span>
+                    </span>
+                    {active ? (
+                      <Check size={13} className="mt-0.5 shrink-0 text-accent" aria-hidden />
+                    ) : null}
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          <div>
+            <label
+              htmlFor="trouble-explanation"
+              className="mb-1.5 block text-[11.5px] font-medium text-ink/80"
+            >
+              Anything else? <span className="font-normal text-muted">(optional)</span>
+            </label>
+            <Textarea
+              id="trouble-explanation"
+              value={explanation}
+              onChange={(event) => setExplanation(event.target.value)}
+              rows={3}
+              maxLength={800}
+              placeholder={
+                feedback === 'resources'
+                  ? 'e.g. I cannot access the textbook chapter the task refers to.'
+                  : feedback === 'time'
+                    ? 'e.g. I thought it would take 20 minutes but I am still going after an hour.'
+                    : 'e.g. Every time I open the document I freeze.'
+              }
+            />
+            {feedback === 'time' ? (
+              <p className="mt-1.5 text-[11px] leading-5 text-muted">
+                If you do not say whether the estimate was too short or too long, TakTic will make
+                a cautious revision and explain the assumption.
+              </p>
+            ) : null}
+          </div>
+
+          {error ? (
+            <div className="border-l-2 border-accent pl-3">
+              <p className="text-[12px] leading-5 text-ink">{error}</p>
+              <button
+                type="button"
+                onClick={() => void generateWithAi()}
+                className="mt-1 text-[11.5px] text-accent underline decoration-accent/40 underline-offset-2"
+              >
+                Try again
+              </button>
+            </div>
+          ) : null}
+
+          <p className="border-t border-line pt-3 text-[10.5px] leading-5 text-muted">
+            <Wand2 size={11} className="mr-1 inline" aria-hidden />
+            Your completed work and the original task are preserved. Nothing is applied until you
+            review the proposal.
+          </p>
+        </div>
+      )}
+    </Modal>
+  );
+}

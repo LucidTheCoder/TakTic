@@ -1,0 +1,163 @@
+import { useState } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  FolderOpen,
+  LayoutGrid,
+  ListChecks,
+  Menu,
+  MessageCircle,
+  Search,
+  Timer,
+  X,
+} from 'lucide-react';
+import { NAV_ITEMS } from '../../data/navigation';
+import { cn } from '../../utils/cn';
+
+const primary = [
+  { path: '/', label: 'Home', icon: LayoutGrid },
+  { path: '/tasks', label: 'Tasks', icon: ListChecks },
+  { path: '/focus', label: 'Focus', icon: Timer },
+  { path: '/companion', label: 'Companion', icon: MessageCircle },
+  { path: '/projects', label: 'Projects', icon: FolderOpen },
+];
+
+interface MobileNavProps {
+  onOpenPalette: () => void;
+}
+
+export function MobileNav({ onOpenPalette }: MobileNavProps) {
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const location = useLocation();
+  const moreActive =
+    !primary.some((item) => item.path === location.pathname) &&
+    location.pathname !== '/';
+
+  return (
+    <>
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+        aria-label="Primary mobile"
+      >
+        <div className="mx-auto grid max-w-lg grid-cols-5">
+          {primary.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === '/'}
+                className={({ isActive }) =>
+                  cn(
+                    'flex h-[58px] flex-col items-center justify-center gap-1 text-[9px] tracking-wide transition-colors',
+                    isActive ? 'text-accent' : 'text-muted',
+                  )
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon size={17} strokeWidth={isActive ? 2 : 1.5} aria-hidden />
+                    <span>{item.label}</span>
+                    <span
+                      className={cn(
+                        'h-[2px] w-4',
+                        isActive ? 'bg-accent' : 'bg-transparent',
+                      )}
+                      aria-hidden
+                    />
+                  </>
+                )}
+              </NavLink>
+            );
+          })}
+        </div>
+      </nav>
+
+      <button
+        type="button"
+        onClick={() => setSheetOpen(true)}
+        className={cn(
+          'fixed bottom-[calc(58px+env(safe-area-inset-bottom))] right-3 z-30 flex h-8 items-center gap-1.5 border border-line bg-paper px-2.5 font-mono text-[9px] uppercase tracking-[0.1em] text-muted shadow-sm lg:hidden',
+          moreActive && 'text-accent',
+        )}
+        aria-label="More sections"
+      >
+        <Menu size={12} aria-hidden />
+        More
+      </button>
+
+      <AnimatePresence>
+        {sheetOpen ? (
+          <div className="fixed inset-0 z-[95] lg:hidden">
+            <motion.button
+              type="button"
+              aria-label="Close menu"
+              className="absolute inset-0 bg-ink/35 backdrop-blur-[1px]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSheetOpen(false)}
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto border-t border-line bg-paper pb-[calc(76px+env(safe-area-inset-bottom))] shadow-lift"
+              role="dialog"
+              aria-label="All sections"
+            >
+              <div className="sticky top-0 flex items-center justify-between border-b border-line bg-paper px-5 py-3.5">
+                <div>
+                  <p className="eyebrow">Contents</p>
+                  <p className="mt-0.5 font-serif text-[19px]">Sections</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSheetOpen(false)}
+                  className="p-1 text-muted hover:text-ink"
+                  aria-label="Close menu"
+                >
+                  <X size={17} aria-hidden />
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-px bg-line">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSheetOpen(false);
+                    onOpenPalette();
+                  }}
+                  className="col-span-2 flex items-center gap-2 bg-paper px-4 py-3 text-left text-[12px] text-ink"
+                >
+                  <Search size={15} className="text-accent" aria-hidden />
+                  Search and commands
+                  <span className="ml-auto font-mono text-[9px] text-muted">Ctrl K</span>
+                </button>
+                {NAV_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setSheetOpen(false)}
+                      className="flex items-center gap-2 bg-paper px-4 py-3.5 text-[12px] text-ink"
+                    >
+                      <Icon size={15} className="text-muted" aria-hidden />
+                      <span className="flex-1">{item.label}</span>
+                      <span className="font-mono text-[8px] text-muted/60">{item.index}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+              <p className="px-5 pt-4 text-[10.5px] leading-5 text-muted">
+                TakTic keeps everything on this device. Export a backup from Settings whenever
+                you want.
+              </p>
+            </motion.div>
+          </div>
+        ) : null}
+      </AnimatePresence>
+    </>
+  );
+}
