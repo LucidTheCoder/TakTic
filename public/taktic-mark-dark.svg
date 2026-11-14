@@ -1,8 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="TakTic">
+  <g fill="none" stroke="#FCFAF5">
+    <rect x="1.875" y="1.875" width="28.25" height="28.25" rx="6.2" stroke-width="0.8"/>
+    <path d="M5.55 13.9 10.2 20.3 17.9 10.05" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
   <g fill="#FCFAF5">
-    <rect x="2.5" y="10" width="9.5" height="6.5" rx="1.4" opacity="0.62"/>
-    <rect x="12" y="7" width="8" height="9.5" rx="1.4"/>
-    <rect x="20" y="10" width="9.5" height="6.5" rx="1.4" opacity="0.78"/>
-    <rect x="13.5" y="7" width="5" height="21.5" rx="2"/>
+    <rect x="19.1" y="12.45" width="8.3" height="2.1" rx="1.05"/>
+    <rect x="15.95" y="15.8" width="11.45" height="2.1" rx="1.05"/>
+    <rect x="13.3" y="19.15" width="14.1" height="2.1" rx="1.05"/>
   </g>
 </svg>

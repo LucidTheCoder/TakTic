@@ -32,9 +32,9 @@ export function LevelUpOverlay() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1, duration: 0.4 }}
-              className="mx-auto flex h-14 w-14 items-center justify-center rounded-[14px] border border-line bg-paper"
+              className="mx-auto flex h-14 w-14 items-center justify-center"
             >
-              <TakTicMark className="h-9 w-9" />
+              <TakTicMark className="h-14 w-14" />
             </motion.span>
             <p className="eyebrow mt-5">Level reached</p>
             <p className="mt-2 font-mono text-[64px] leading-none tracking-[-0.04em] text-ink">

@@ -7,17 +7,7 @@ import { DIFFICULTY_LABEL, PRIORITY_DOT, PRIORITY_LABEL } from '../../utils/task
 import { TakTicMark } from '../brand/TakTicLogo';
 
 export function SealMark({ className }: { className?: string }) {
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center justify-center rounded-[8px] border border-line bg-paper',
-        className,
-      )}
-      aria-hidden
-    >
-      <TakTicMark className="h-[72%] w-[72%]" />
-    </span>
-  );
+  return <TakTicMark className={cn('shrink-0', className)} />;
 }
 
 export function Tag({

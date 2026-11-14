@@ -82,8 +82,8 @@ export function AchievementsPage() {
 
       {unlocked.length === 0 ? (
         <div className="mt-5 flex flex-col gap-4 border border-line bg-paper px-5 py-6 sm:flex-row sm:items-center">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] border border-line bg-paper">
-            <TakTicMark className="h-8 w-8" />
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center">
+            <TakTicMark className="h-12 w-12" />
           </span>
           <div className="min-w-0 flex-1">
             <p className="eyebrow">The first mark</p>

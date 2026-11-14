@@ -8,24 +8,20 @@ interface TakTicMarkProps {
   title?: string;
 }
 
+const BRAND_GREEN = '#9BCC8D';
+
 /**
- * The Stepping T: three offset work tiles settle into a single forward stem.
- * It reads as a T at small sizes and as a progression from fragments to one
- * clear next action. The geometry is deliberately blocky so it survives 16px.
+ * The supplied TakTic mark: a rounded frame, a decisive check and three
+ * right-aligned task lines. The frame is part of the mark, so callers should
+ * not wrap it in another bordered tile.
  */
 export function TakTicMark({ className, tone = 'brand', title }: TakTicMarkProps) {
-  const primary =
+  const color =
     tone === 'mono'
       ? 'currentColor'
       : tone === 'inverse'
         ? 'rgb(var(--paper))'
-        : 'rgb(var(--accent))';
-  const secondary =
-    tone === 'mono'
-      ? 'currentColor'
-      : tone === 'inverse'
-        ? 'rgb(var(--paper))'
-        : 'rgb(var(--sage))';
+        : BRAND_GREEN;
 
   return (
     <svg
@@ -37,10 +33,25 @@ export function TakTicMark({ className, tone = 'brand', title }: TakTicMarkProps
       aria-hidden={title ? undefined : true}
       focusable="false"
     >
-      <rect x="2.5" y="10" width="9.5" height="6.5" rx="1.4" fill={secondary} />
-      <rect x="12" y="7" width="8" height="9.5" rx="1.4" fill={primary} />
-      <rect x="20" y="10" width="9.5" height="6.5" rx="1.4" fill={primary} opacity="0.72" />
-      <rect x="13.5" y="7" width="5" height="21.5" rx="2" fill={primary} />
+      <rect
+        x="1.875"
+        y="1.875"
+        width="28.25"
+        height="28.25"
+        rx="6.2"
+        stroke={color}
+        strokeWidth="0.8"
+      />
+      <path
+        d="M5.55 13.9 10.2 20.3 17.9 10.05"
+        stroke={color}
+        strokeWidth="2.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <rect x="19.1" y="12.45" width="8.3" height="2.1" rx="1.05" fill={color} />
+      <rect x="15.95" y="15.8" width="11.45" height="2.1" rx="1.05" fill={color} />
+      <rect x="13.3" y="19.15" width="14.1" height="2.1" rx="1.05" fill={color} />
     </svg>
   );
 }
@@ -92,15 +103,5 @@ export function TakTicLogo({
 }
 
 export function TakTicAppIcon({ className }: { className?: string }) {
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center justify-center rounded-[10px] bg-accent',
-        className ?? 'h-8 w-8',
-      )}
-      aria-hidden
-    >
-      <TakTicMark tone="inverse" className="h-[72%] w-[72%]" />
-    </span>
-  );
+  return <TakTicMark className={cn('block shrink-0', className ?? 'h-8 w-8')} />;
 }

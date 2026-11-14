@@ -235,8 +235,8 @@ ${adaptations || '- none'}`;
           <div className="scroll-thin flex-1 overflow-y-auto px-4 py-5 sm:px-5">
             {state.companionMessages.length === 0 ? (
               <div className="mx-auto max-w-md py-4 text-center">
-                <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-[12px] border border-line bg-paper">
-                  <TakTicMark className="h-8 w-8" />
+                <span className="mx-auto flex h-12 w-12 items-center justify-center">
+                  <TakTicMark className="h-12 w-12" />
                 </span>
                 <h2 className="mt-4 text-[22px] leading-snug">A calm place to think out loud.</h2>
                 <p className="mx-auto mt-2 max-w-sm text-[14px] leading-6 text-muted">
@@ -342,8 +342,8 @@ ${adaptations || '- none'}`;
                 )}
                 {sending ? (
                   <li className="flex items-center gap-2.5">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] border border-line bg-paper">
-                      <TakTicMark className="h-5 w-5" />
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center">
+                      <TakTicMark className="h-8 w-8" />
                     </span>
                     <span className="inline-flex items-center gap-2 text-[13px] text-muted">
                       <Spinner className="h-3.5 w-3.5" />
