@@ -13,6 +13,7 @@ import {
   CalendarClock,
   CalendarRange,
   CheckSquare,
+  Compass,
   CornerDownLeft,
   FolderOpen,
   LayoutGrid,
@@ -54,6 +55,7 @@ interface CommandPaletteProps {
   onOpenPlanner: () => void;
   onOpenCatchUp: () => void;
   onOpenUnstuck: () => void;
+  onOpenTour: () => void;
 }
 
 export function CommandPalette({
@@ -67,6 +69,7 @@ export function CommandPalette({
   onOpenPlanner,
   onOpenCatchUp,
   onOpenUnstuck,
+  onOpenTour,
 }: CommandPaletteProps) {
   const { state } = useTakTic();
   const navigate = useNavigate();
@@ -212,6 +215,16 @@ export function CommandPalette({
         },
       },
       {
+        id: 'action-tour',
+        label: 'Take the quick tour',
+        sublabel: 'A 60-second explanation of how TakTic works',
+        icon: Compass,
+        onSelect: () => {
+          onClose();
+          onOpenTour();
+        },
+      },
+      {
         id: 'action-unstuck',
         label: 'I\'m stuck',
         sublabel: 'Adapt a task around what is blocking you',
@@ -280,7 +293,7 @@ export function CommandPalette({
     }
 
     return [
-      { title: 'Quick actions', items: actionItems.slice(0, 4) },
+      { title: 'Quick actions', items: actionItems.slice(0, 5) },
       { title: 'Pick up where you left off', items: taskItems },
       { title: 'Projects', items: projectItems },
       { title: 'Sections', items: pageItems },
@@ -296,6 +309,9 @@ export function CommandPalette({
     onCreateProject,
     onOpenDecompose,
     onOpenPlanner,
+    onOpenCatchUp,
+    onOpenUnstuck,
+    onOpenTour,
   ]);
 
   const flat = useMemo(() => groups.flatMap((group) => group.items), [groups]);
@@ -459,16 +475,16 @@ export function CommandPalette({
               )}
             </div>
 
-            <div className="flex items-center justify-between border-t border-line px-4 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
-              <span className="inline-flex items-center gap-3">
-                <span className="inline-flex items-center gap-1">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-line px-3 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-muted sm:px-4">
+              <span className="inline-flex min-w-0 flex-wrap items-center gap-3">
+                <span className="inline-flex items-center gap-1 whitespace-nowrap">
                   <ArrowUpRight size={10} aria-hidden /> Navigate
                 </span>
-                <span className="inline-flex items-center gap-1">
+                <span className="inline-flex items-center gap-1 whitespace-nowrap">
                   <CornerDownLeft size={10} aria-hidden /> Open
                 </span>
               </span>
-              <span className="inline-flex items-center gap-1">
+              <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
                 <LayoutGrid size={10} aria-hidden />
                 {mode === 'search' ? 'Search' : 'Commands'}
               </span>

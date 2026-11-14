@@ -42,6 +42,7 @@ import {
 import { DEFAULT_AI_MODEL } from '../services/ai/models';
 import { playChime, unlockAudio } from '../services/audio';
 import { defaultSettings } from '../services/gamification/xp';
+import { xpFromLedger } from '../services/storage/repair';
 import type {
   AccentName,
   AppSettings,
@@ -73,6 +74,7 @@ const AVATARS = ['', 'T', 'S', 'A', 'M'];
 export function SettingsPage() {
   const {
     state,
+    stats,
     dispatch,
     captureSnapshot,
     offerUndo,
@@ -303,9 +305,12 @@ export function SettingsPage() {
       />
 
       <div className="grid gap-7 lg:grid-cols-[178px_minmax(0,1fr)]">
-        <nav aria-label="Settings sections" className="h-fit lg:sticky lg:top-8">
+        <nav
+          aria-label="Settings sections"
+          className="h-fit min-w-0 max-w-full lg:sticky lg:top-8"
+        >
           <p className="eyebrow mb-2 hidden lg:block">Contents</p>
-          <div className="flex gap-1 overflow-x-auto border-b border-line pb-2 lg:flex-col lg:border-b-0 lg:pb-0">
+          <div className="flex w-full min-w-0 gap-1 overflow-x-auto border-b border-line pb-2 lg:flex-col lg:border-b-0 lg:pb-0">
             {SECTIONS.map((section) => (
               <a
                 key={section.id}
@@ -820,7 +825,7 @@ export function SettingsPage() {
                     month: 'long',
                     year: 'numeric',
                   })}{' '}
-                  · Level {state.profile.level} · {state.profile.xp} XP
+                  · Level {stats.level.level} · {stats.xp} XP
                 </p>
               </div>
             </div>
@@ -1116,7 +1121,7 @@ export function SettingsPage() {
             <>
               The file “{importName}” contains {pendingImport.projects.length} projects,{' '}
               {pendingImport.tasks.length} tasks, {pendingImport.focusSessions.length} focus
-              sessions and {pendingImport.profile.xp} XP. Importing replaces the current workspace.
+              sessions and {xpFromLedger(pendingImport)} XP. Importing replaces the current workspace.
               You can undo immediately afterwards.
             </>
           ) : (
@@ -1196,7 +1201,7 @@ function SettingsSection({
   return (
     <section
       id={id}
-      className="scroll-mt-24 border border-line bg-paper"
+      className="w-full min-w-0 scroll-mt-24 border border-line bg-paper"
       aria-labelledby={`${id}-title`}
     >
       <header className="border-b border-line px-4 py-4 sm:px-5">
@@ -1211,7 +1216,7 @@ function SettingsSection({
           <p className="mt-1 max-w-2xl text-[13px] leading-5 text-muted">{description}</p>
         ) : null}
       </header>
-      <div className="px-4 py-4 sm:px-5">{children}</div>
+      <div className="min-w-0 px-4 py-4 sm:px-5">{children}</div>
     </section>
   );
 }

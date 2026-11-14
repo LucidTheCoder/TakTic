@@ -1,11 +1,11 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useTakTic } from '../../store/TakTicProvider';
-import { levelInfo } from '../../services/gamification/xp';
+import { TakTicMark } from '../brand/TakTicLogo';
 
 export function LevelUpOverlay() {
-  const { levelUp, dismissLevelUp, state } = useTakTic();
-  const level = levelUp ? levelInfo(state.profile.xp) : null;
+  const { levelUp, dismissLevelUp, stats } = useTakTic();
+  const level = levelUp ? stats.level : null;
 
   return (
     <AnimatePresence>
@@ -32,9 +32,9 @@ export function LevelUpOverlay() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1, duration: 0.4 }}
-              className="mx-auto flex h-14 w-14 items-center justify-center rounded-[14px] border border-accent font-serif text-[26px] text-accent"
+              className="mx-auto flex h-14 w-14 items-center justify-center rounded-[14px] border border-line bg-paper"
             >
-              T
+              <TakTicMark className="h-9 w-9" />
             </motion.span>
             <p className="eyebrow mt-5">Level reached</p>
             <p className="mt-2 font-mono text-[64px] leading-none tracking-[-0.04em] text-ink">

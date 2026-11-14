@@ -1,4 +1,4 @@
-import type { AppSettings, Difficulty, XpConfig } from '../../types';
+import type { AppSettings, Difficulty, XpConfig, XpTransaction } from '../../types';
 import { DEFAULT_AI_MODEL } from '../ai/models';
 
 export const DEFAULT_XP: XpConfig = {
@@ -58,6 +58,52 @@ export function levelInfo(totalXp: number): LevelInfo {
 
 export function xpForDifficulty(difficulty: Difficulty, xp: XpConfig): number {
   return xp[difficulty];
+}
+
+export interface XpBreakdown {
+  task: number;
+  focus: number;
+  project: number;
+  achievement: number;
+  objective: number;
+  other: number;
+  total: number;
+}
+
+/**
+ * The ledger is the only XP source of truth. Count each transaction id and
+ * source once so an imported or historically duplicated event cannot inflate
+ * the lifetime total.
+ */
+export function summarizeXp(transactions: XpTransaction[]): XpBreakdown {
+  const seenIds = new Set<string>();
+  const seenSources = new Set<string>();
+  const breakdown: XpBreakdown = {
+    task: 0,
+    focus: 0,
+    project: 0,
+    achievement: 0,
+    objective: 0,
+    other: 0,
+    total: 0,
+  };
+
+  for (const transaction of transactions) {
+    if (!transaction.id || seenIds.has(transaction.id)) continue;
+    if (!transaction.source || seenSources.has(transaction.source)) continue;
+    seenIds.add(transaction.id);
+    seenSources.add(transaction.source);
+    const amount = Math.max(0, Math.floor(transaction.amount));
+    if (transaction.source.startsWith('task:')) breakdown.task += amount;
+    else if (transaction.source.startsWith('focus:')) breakdown.focus += amount;
+    else if (transaction.source.startsWith('project:')) breakdown.project += amount;
+    else if (transaction.source.startsWith('achievement:')) breakdown.achievement += amount;
+    else if (transaction.source.startsWith('objective:')) breakdown.objective += amount;
+    else breakdown.other += amount;
+    breakdown.total += amount;
+  }
+
+  return breakdown;
 }
 
 export function defaultSettings(): AppSettings {

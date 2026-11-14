@@ -91,9 +91,47 @@ export function DashboardPage() {
   } = useTakTic();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { openTask, openProject, openDecompose, openPlanner, openCatchUp, openUnstuck } =
+  const { openTask, openProject, openDecompose, openPlanner, openCatchUp, openUnstuck, openTour } =
     useAppActions();
   const [customising, setCustomising] = useState(false);
+
+  const openUnstuckWithContext = () => {
+    if (state.tasks.length === 0) {
+      toast({
+        title: 'Add one small task first',
+        description:
+          'Once there is a task, TakTic can adapt it around what is actually blocking you.',
+      });
+      openTask();
+      return;
+    }
+    openUnstuck({ taskId: stats.nextTask?.id ?? null });
+  };
+
+  const openCatchUpWithContext = () => {
+    if (stats.openTasks.length === 0) {
+      toast({
+        title: 'Nothing to catch up on',
+        description:
+          'There is no open work to reorganise. Add a task when something real comes up.',
+      });
+      return;
+    }
+    openCatchUp();
+  };
+
+  const openPlannerWithContext = () => {
+    if (state.tasks.length === 0) {
+      toast({
+        title: 'Add something to plan',
+        description:
+          'Plan my day works from the tasks and deadlines already in your workspace.',
+      });
+      openTask();
+      return;
+    }
+    openPlanner();
+  };
 
   const firstName = state.profile.displayName.split(/\s+/)[0] || 'there';
   const now = new Date();
@@ -177,12 +215,12 @@ export function DashboardPage() {
               </div>
               <div className="flex items-center gap-1">
                 {stats.todayProgress.remaining > 0 || stats.overdueTasks.length > 0 ? (
-                  <Button variant="ghost" size="sm" onClick={openCatchUp}>
+                  <Button variant="ghost" size="sm" onClick={openCatchUpWithContext}>
                     <CalendarClock size={12} aria-hidden />
                     Catch up
                   </Button>
                 ) : null}
-                <Button variant="ghost" size="sm" onClick={openPlanner}>
+                <Button variant="ghost" size="sm" onClick={openPlannerWithContext}>
                   <CalendarRange size={12} aria-hidden />
                   Plan
                 </Button>
@@ -327,7 +365,7 @@ export function DashboardPage() {
                       <Button size="sm" variant="primary" onClick={() => openTask()}>
                         New task
                       </Button>
-                      <Button size="sm" variant="quiet" onClick={openPlanner}>
+                      <Button size="sm" variant="quiet" onClick={openPlannerWithContext}>
                         Plan my day
                       </Button>
                     </div>
@@ -729,12 +767,12 @@ export function DashboardPage() {
           </Button>
           <Button
             variant="secondary"
-            onClick={() => openUnstuck({ taskId: stats.nextTask?.id ?? null })}
+            onClick={openUnstuckWithContext}
           >
             <LifeBuoy size={13} aria-hidden />
             I&apos;m stuck
           </Button>
-          <Button variant="ghost" onClick={openCatchUp}>
+          <Button variant="ghost" onClick={openCatchUpWithContext}>
             <CalendarClock size={13} aria-hidden />
             Help me catch up
           </Button>
@@ -742,7 +780,7 @@ export function DashboardPage() {
             <Timer size={13} aria-hidden />
             Focus timer
           </Button>
-          <Button variant="ghost" onClick={openPlanner}>
+          <Button variant="ghost" onClick={openPlannerWithContext}>
             <CalendarRange size={13} aria-hidden />
             Plan my day
           </Button>
@@ -859,7 +897,10 @@ export function DashboardPage() {
             <Button variant="primary" onClick={() => openTask()}>
               Add a task
             </Button>
-            <Button variant="secondary" onClick={() => openProject()}>
+            <Button variant="secondary" onClick={openTour}>
+              Take a quick tour
+            </Button>
+            <Button variant="ghost" onClick={() => openProject()}>
               Create a project
             </Button>
             <Button

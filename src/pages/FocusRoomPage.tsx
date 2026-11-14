@@ -17,6 +17,7 @@ import {
   Waves,
 } from 'lucide-react';
 import { useTakTic } from '../store/TakTicProvider';
+import { TakTicLogo } from '../components/brand/TakTicLogo';
 import { useAppActions } from '../components/app/AppActionsProvider';
 import { useToast } from '../components/ui/ToastProvider';
 import { useAmbientSound } from '../hooks/useAmbientSound';
@@ -660,11 +661,12 @@ export function FocusRoomPage() {
         <div className="fixed inset-0 z-[85] flex flex-col bg-ivory">
           <div className="grain pointer-events-none absolute inset-0" aria-hidden />
           <div className="relative flex items-center justify-between px-5 py-4 sm:px-8">
-            <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] border border-accent font-serif text-[15px] text-accent">
-                T
-              </span>
-              <span className="font-serif text-[19px]">TakTic</span>
+            <div className="flex min-w-0 items-center gap-2">
+              <TakTicLogo
+                showTagline={false}
+                markClassName="h-6 w-6"
+                textClassName="text-[19px]"
+              />
               <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
                 Quiet view
               </span>

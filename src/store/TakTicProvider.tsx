@@ -125,7 +125,7 @@ export function TakTicProvider({ children }: { children: ReactNode }) {
   const seenAchievements = useRef<Set<string>>(
     new Set(initial.state.achievements.map((achievement) => achievement.id)),
   );
-  const previousLevel = useRef(initial.state.profile.level);
+  const previousLevel = useRef(stats.level.level);
   const remindedDeadlines = useRef<Set<string>>(new Set());
   const chimeGuard = useRef<string | null>(null);
   const seenReviewNotification = useRef<string | null>(null);
@@ -293,18 +293,18 @@ export function TakTicProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (Date.now() < feedbackSuppressedUntil.current) {
-      previousLevel.current = state.profile.level;
+      previousLevel.current = stats.level.level;
       return undefined;
     }
-    if (state.profile.level > previousLevel.current) {
-      setLevelUp(state.profile.level);
-      previousLevel.current = state.profile.level;
+    if (stats.level.level > previousLevel.current) {
+      setLevelUp(stats.level.level);
+      previousLevel.current = stats.level.level;
       const timeout = window.setTimeout(() => setLevelUp(null), 4200);
       return () => window.clearTimeout(timeout);
     }
-    previousLevel.current = state.profile.level;
+    previousLevel.current = stats.level.level;
     return undefined;
-  }, [state.profile.level]);
+  }, [stats.level.level]);
 
   // Deadline reminders, once per task per session, never guilt-based.
   useEffect(() => {

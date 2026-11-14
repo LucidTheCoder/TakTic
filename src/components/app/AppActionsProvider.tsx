@@ -18,11 +18,13 @@ import { CatchUpModal } from '../dashboard/CatchUpModal';
 import { TroubleModal } from '../tasks/TroubleModal';
 import { ReviewModal } from '../focus/ReviewModal';
 import { CommandPalette } from '../layout/CommandPalette';
+import { GuidedTour } from './GuidedTour';
 
 interface TaskOpenOptions {
   taskId?: string | null;
   projectId?: string | null;
   parentTaskId?: string | null;
+  initialDeadlineDate?: string | null;
 }
 
 interface DecomposeOpenOptions {
@@ -39,6 +41,7 @@ interface AppActionsValue {
   openCatchUp: () => void;
   openUnstuck: (options?: { taskId?: string | null }) => void;
   openPalette: (mode?: 'command' | 'search') => void;
+  openTour: () => void;
 }
 
 const AppActionsContext = createContext<AppActionsValue | null>(null);
@@ -47,6 +50,7 @@ type TaskModalState = {
   taskId: string | null;
   projectId: string | null;
   parentTaskId: string | null;
+  initialDeadlineDate: string | null;
 } | null;
 
 type ProjectModalState = {
@@ -77,12 +81,14 @@ export function AppActionsProvider({ children }: { children: ReactNode }) {
     open: false,
     mode: 'command',
   });
+  const [tourOpen, setTourOpen] = useState(false);
 
   const openTask = useCallback((options?: TaskOpenOptions) => {
     setTaskModal({
       taskId: options?.taskId ?? null,
       projectId: options?.projectId ?? null,
       parentTaskId: options?.parentTaskId ?? null,
+      initialDeadlineDate: options?.initialDeadlineDate ?? null,
     });
   }, []);
 
@@ -109,6 +115,7 @@ export function AppActionsProvider({ children }: { children: ReactNode }) {
     (mode: 'command' | 'search' = 'command') => setPalette({ open: true, mode }),
     [],
   );
+  const openTour = useCallback(() => setTourOpen(true), []);
   const closePalette = useCallback(
     () => setPalette((current) => ({ ...current, open: false })),
     [],
@@ -157,8 +164,18 @@ export function AppActionsProvider({ children }: { children: ReactNode }) {
       openCatchUp,
       openUnstuck,
       openPalette,
+      openTour,
     }),
-    [openTask, openProject, openDecompose, openPlanner, openCatchUp, openUnstuck, openPalette],
+    [
+      openTask,
+      openProject,
+      openDecompose,
+      openPlanner,
+      openCatchUp,
+      openUnstuck,
+      openPalette,
+      openTour,
+    ],
   );
 
   return (
@@ -170,6 +187,7 @@ export function AppActionsProvider({ children }: { children: ReactNode }) {
         taskId={taskModal?.taskId}
         projectId={taskModal?.projectId}
         parentTaskId={taskModal?.parentTaskId}
+        initialDeadlineDate={taskModal?.initialDeadlineDate}
         onClose={() => setTaskModal(null)}
         onRequestProject={() => {
           setTaskModal(null);
@@ -177,7 +195,12 @@ export function AppActionsProvider({ children }: { children: ReactNode }) {
             projectId: null,
             onCreated: (projectId) => {
               setProjectModal(null);
-              setTaskModal({ taskId: null, projectId, parentTaskId: null });
+              setTaskModal({
+                taskId: null,
+                projectId,
+                parentTaskId: null,
+                initialDeadlineDate: taskModal?.initialDeadlineDate ?? null,
+              });
             },
           });
         }}
@@ -230,7 +253,10 @@ export function AppActionsProvider({ children }: { children: ReactNode }) {
         onOpenPlanner={openPlanner}
         onOpenCatchUp={openCatchUp}
         onOpenUnstuck={() => openUnstuck()}
+        onOpenTour={openTour}
       />
+
+      <GuidedTour open={tourOpen} onClose={() => setTourOpen(false)} />
 
       <ReviewModal
         session={reviewSession ?? null}

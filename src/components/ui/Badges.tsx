@@ -4,11 +4,18 @@ import type { Difficulty, Priority, Task } from '../../types';
 import { cn } from '../../utils/cn';
 import { deadlineInfo } from '../../utils/date';
 import { DIFFICULTY_LABEL, PRIORITY_DOT, PRIORITY_LABEL } from '../../utils/tasks';
+import { TakTicMark } from '../brand/TakTicLogo';
 
 export function SealMark({ className }: { className?: string }) {
   return (
-    <span className={cn('inline-flex items-center justify-center rounded-[8px] border border-accent font-serif text-accent', className)} aria-hidden>
-      T
+    <span
+      className={cn(
+        'inline-flex items-center justify-center rounded-[8px] border border-line bg-paper',
+        className,
+      )}
+      aria-hidden
+    >
+      <TakTicMark className="h-[72%] w-[72%]" />
     </span>
   );
 }

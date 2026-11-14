@@ -5,6 +5,7 @@ import { useTakTic } from '../../store/TakTicProvider';
 import { ProgressBar } from '../ui/Feedback';
 import { cn } from '../../utils/cn';
 import { formatLongDate } from '../../utils/date';
+import { TakTicLogo } from '../brand/TakTicLogo';
 
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -24,18 +25,8 @@ export function Sidebar({ onOpenPalette }: SidebarProps) {
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-[264px] flex-col border-r border-line bg-ivory lg:flex">
       <div className="px-6 pb-4 pt-6">
-        <Link to="/" className="group flex items-center gap-2.5" aria-label="TakTic home">
-          <span className="flex h-9 w-9 items-center justify-center rounded-[9px] border border-accent font-serif text-[17px] leading-none text-accent transition-colors group-hover:bg-accent group-hover:text-paper">
-            T
-          </span>
-          <span className="flex flex-col">
-            <span className="font-serif text-[22px] leading-none tracking-[-0.015em] text-ink">
-              TakTic
-            </span>
-            <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-              one step at a time
-            </span>
-          </span>
+        <Link to="/" className="group inline-flex" aria-label="TakTic home">
+          <TakTicLogo markClassName="h-9 w-9 transition-transform duration-200 group-hover:-translate-y-0.5" />
         </Link>
         <p className="mt-5 border-t border-line pt-3 text-[12px] leading-5 text-muted">
           {formatLongDate()}
@@ -134,9 +125,12 @@ export function Sidebar({ onOpenPalette }: SidebarProps) {
         </Link>
         <div className="mt-2.5">
           <ProgressBar value={level.percent} height="sm" label="Level progress" />
-          <div className="mt-1 flex items-center justify-between font-mono text-[10px] text-muted">
-            <span>{level.intoLevel} XP</span>
-            <span>{level.forNext} XP</span>
+          <div
+            className="mt-1 flex items-center justify-between gap-2 font-mono text-[10px] text-muted"
+            title={`${level.totalXp} total XP`}
+          >
+            <span>Level progress</span>
+            <span>{level.intoLevel} / {level.forNext} XP</span>
           </div>
         </div>
       </div>

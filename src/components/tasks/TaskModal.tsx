@@ -25,6 +25,7 @@ interface TaskModalProps {
   taskId?: string | null;
   projectId?: string | null;
   parentTaskId?: string | null;
+  initialDeadlineDate?: string | null;
   onClose: () => void;
   onRequestProject: () => void;
   onBreakDown: (taskId: string) => void;
@@ -69,6 +70,7 @@ export function TaskModal({
   taskId,
   projectId,
   parentTaskId,
+  initialDeadlineDate,
   onClose,
   onRequestProject,
   onBreakDown,
@@ -119,12 +121,13 @@ export function TaskModal({
         ...emptyForm,
         projectId: projectId ?? state.projects.find((project) => project.status === 'active')?.id ?? state.projects[0]?.id ?? '',
         parentTaskId: parentTaskId ?? '',
+        deadlineDate: initialDeadlineDate ?? '',
         scheduledDate: '',
       });
     }
     // Resetting only when the dialog target changes keeps typing stable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, taskId, projectId, parentTaskId]);
+  }, [open, taskId, projectId, parentTaskId, initialDeadlineDate]);
 
   const sortedProjects = useMemo(
     () =>

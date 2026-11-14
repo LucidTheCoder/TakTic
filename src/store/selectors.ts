@@ -15,7 +15,12 @@ import {
   todayTasks,
   orderTasksByDependencies,
 } from '../utils/tasks';
-import { levelInfo, type LevelInfo } from '../services/gamification/xp';
+import {
+  levelInfo,
+  summarizeXp,
+  type LevelInfo,
+  type XpBreakdown,
+} from '../services/gamification/xp';
 import { todayKey, weekKeys } from '../utils/date';
 import { computeCurrentStreak } from '../services/gamification/streak';
 import { ACHIEVEMENTS } from '../services/gamification/achievements';
@@ -33,6 +38,8 @@ export interface DaySummary {
 }
 
 export interface DerivedStats {
+  xp: number;
+  xpBreakdown: XpBreakdown;
   level: LevelInfo;
   today: string;
   todaysTasks: Task[];
@@ -89,7 +96,8 @@ function computeEstimateAccuracy(state: TakTicState): DerivedStats['estimateAccu
 
 export function derive(state: TakTicState): DerivedStats {
   const today = todayKey();
-  const level = levelInfo(state.profile.xp);
+  const xpBreakdown = summarizeXp(state.xpTransactions);
+  const level = levelInfo(xpBreakdown.total);
   const todayScheduled = tasksForDate(state.tasks, today);
   const projectSummaries = sortProjects(state.projects).map((project) => ({
     project,
@@ -124,6 +132,8 @@ export function derive(state: TakTicState): DerivedStats {
   };
 
   return {
+    xp: xpBreakdown.total,
+    xpBreakdown,
     level,
     today,
     todaysTasks: sortTodayTasks(todayScheduled, state.tasks),

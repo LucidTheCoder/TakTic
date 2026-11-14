@@ -173,7 +173,10 @@ export function CalendarPage() {
                 Plan today
               </Button>
             ) : null}
-            <Button variant="primary" onClick={() => openTask()}>
+            <Button
+              variant="primary"
+              onClick={() => openTask({ initialDeadlineDate: selected })}
+            >
               <Plus size={13} aria-hidden />
               New task
             </Button>
@@ -236,17 +239,20 @@ export function CalendarPage() {
                 const sessions = sessionsForCell(key);
                 const activity = state.streak.activityDates.find((day) => day.date === key);
                 return (
-                  <button
+                  <div
                     key={key}
+                    className={cn(
+                      'group relative min-h-[64px] border-b border-r border-line transition-colors last:border-r-0 sm:min-h-[92px]',
+                      isSelected ? 'bg-accent-soft/50' : 'hover:bg-surface2/40',
+                      !isCurrentMonth && 'opacity-40',
+                    )}
+                  >
+                  <button
                     type="button"
                     onClick={() => setSelected(key)}
                     aria-label={`${formatDateKey(key, { weekday: 'long', day: 'numeric', month: 'long' })}${tasks.length ? `, ${tasks.length} tasks` : ''}`}
                     aria-pressed={isSelected}
-                    className={cn(
-                      'relative min-h-[64px] border-b border-r border-line p-1.5 text-left transition-colors last:border-r-0 sm:min-h-[92px] sm:p-2',
-                      isSelected ? 'bg-accent-soft/50' : 'hover:bg-surface2/40',
-                      !isCurrentMonth && 'opacity-40',
-                    )}
+                    className="h-full w-full p-1.5 text-left sm:p-2"
                   >
                     <div className="flex items-start justify-between">
                       <span
@@ -259,7 +265,7 @@ export function CalendarPage() {
                       </span>
                       {activity ? (
                         <span
-                          className="mt-1 h-1 w-1 rounded-full bg-sage"
+                          className="mt-1 mr-6 h-1 w-1 rounded-full bg-sage"
                           title="Activity recorded"
                           aria-hidden
                         />
@@ -273,6 +279,19 @@ export function CalendarPage() {
                       </span>
                     ) : null}
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelected(key);
+                      openTask({ initialDeadlineDate: key });
+                    }}
+                    className="absolute right-1 top-1 z-10 flex h-5 w-5 items-center justify-center border border-line bg-paper text-muted transition-opacity hover:border-accent hover:text-accent focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+                    aria-label={`Create a task due ${formatDateKey(key, { weekday: 'long', day: 'numeric', month: 'long' })}`}
+                    title="Create a task for this day"
+                  >
+                    <Plus size={11} aria-hidden />
+                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -297,7 +316,7 @@ export function CalendarPage() {
             sessions={daySessions}
             savedPlan={savedPlan}
             onOpenTask={(id) => openTask({ taskId: id })}
-            onAddTask={() => openTask()}
+            onAddTask={() => openTask({ initialDeadlineDate: selected })}
             isToday={selected === today}
           />
         </div>
@@ -379,7 +398,7 @@ export function CalendarPage() {
             sessions={daySessions}
             savedPlan={savedPlan}
             onOpenTask={(id) => openTask({ taskId: id })}
-            onAddTask={() => openTask()}
+            onAddTask={() => openTask({ initialDeadlineDate: selected })}
             isToday={selected === today}
           />
         </div>
@@ -393,7 +412,7 @@ export function CalendarPage() {
             sessions={daySessions}
             savedPlan={savedPlan}
             onOpenTask={(id) => openTask({ taskId: id })}
-            onAddTask={() => openTask()}
+            onAddTask={() => openTask({ initialDeadlineDate: selected })}
             isToday={selected === today}
             expanded
           />
@@ -553,8 +572,9 @@ function DayAgenda({
               type="button"
               onClick={onAddTask}
               className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.08em] text-muted hover:text-ink"
+              aria-label={`Add a task due ${formatDateKey(selected, { weekday: 'long', day: 'numeric', month: 'long' })}`}
             >
-              <Plus size={9} aria-hidden /> Add
+              <Plus size={9} aria-hidden /> Add task
             </button>
           </div>
           {open.length === 0 && completed.length === 0 ? (
@@ -565,7 +585,7 @@ function DayAgenda({
                 onClick={onAddTask}
                 className="mt-1.5 text-[12px] text-accent underline decoration-accent/40 underline-offset-2"
               >
-                Add a task
+                Add a task for this day
               </button>
             </div>
           ) : (

@@ -171,7 +171,7 @@ export function splitDeadline(iso: string | null, hasTime: boolean): { dateKey: 
 }
 
 export function greetingForHour(hour = new Date().getHours()): string {
-  if (hour < 5) return 'Still awake';
+  if (hour < 5) return 'Good evening';
   if (hour < 12) return 'Good morning';
   if (hour < 18) return 'Good afternoon';
   return 'Good evening';

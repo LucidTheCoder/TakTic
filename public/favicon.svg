@@ -1,6 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" fill="#F5F1E8"/>
-  <rect x="9.5" y="9.5" width="45" height="45" fill="none" stroke="#B94B3A" stroke-width="3"/>
-  <path d="M21 26h22M32 18v28M24 34h16M24 42h16" stroke="#292B29" stroke-width="2.2" fill="none" stroke-linecap="square"/>
-  <circle cx="46" cy="46" r="3" fill="#B94B3A"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="TakTic app icon">
+  <rect width="64" height="64" rx="13" fill="#B94B3A"/>
+  <rect x="5" y="20" width="19" height="13" rx="2.5" fill="#FCFAF5" opacity="0.78"/>
+  <rect x="24" y="14" width="16" height="19" rx="2.5" fill="#FCFAF5"/>
+  <rect x="40" y="20" width="19" height="13" rx="2.5" fill="#FCFAF5" opacity="0.62"/>
+  <rect x="27" y="14" width="10" height="43" rx="3.5" fill="#FCFAF5"/>
 </svg>

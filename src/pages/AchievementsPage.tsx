@@ -4,12 +4,13 @@ import { ArrowRight, Lock, Sparkles, Trophy } from 'lucide-react';
 import { useTakTic } from '../store/TakTicProvider';
 import { PageHeader } from '../components/ui/PageHeader';
 import { AchievementIcon } from '../components/gamification/AchievementIcon';
+import { TakTicMark } from '../components/brand/TakTicLogo';
 import { ProgressBar } from '../components/ui/Feedback';
 import { ACHIEVEMENTS } from '../services/gamification/achievements';
 import { formatDateKey } from '../utils/date';
 
 export function AchievementsPage() {
-  const { state } = useTakTic();
+  const { state, stats } = useTakTic();
 
   const entries = useMemo(
     () =>
@@ -32,7 +33,7 @@ export function AchievementsPage() {
   const locked = entries
     .filter((entry) => !entry.unlock)
     .sort((a, b) => b.ratio - a.ratio);
-  const totalXp = unlocked.reduce((sum, entry) => sum + entry.definition.xpReward, 0);
+  const achievementXp = unlocked.reduce((sum, entry) => sum + entry.definition.xpReward, 0);
   const next = locked[0] ?? null;
 
   return (
@@ -63,7 +64,10 @@ export function AchievementsPage() {
         </div>
         <div className="bg-paper px-4 py-4">
           <p className="eyebrow mb-1.5">XP from achievements</p>
-          <p className="font-mono text-[24px] leading-none text-ink">{totalXp}</p>
+          <p className="font-mono text-[24px] leading-none text-ink">{achievementXp}</p>
+          <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.06em] text-muted">
+            of {stats.xp} XP total
+          </p>
         </div>
         <div className="bg-paper px-4 py-4">
           <p className="eyebrow mb-1.5">Closest next</p>
@@ -78,8 +82,8 @@ export function AchievementsPage() {
 
       {unlocked.length === 0 ? (
         <div className="mt-5 flex flex-col gap-4 border border-line bg-paper px-5 py-6 sm:flex-row sm:items-center">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] border border-accent font-serif text-[21px] text-accent">
-            T
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] border border-line bg-paper">
+            <TakTicMark className="h-8 w-8" />
           </span>
           <div className="min-w-0 flex-1">
             <p className="eyebrow">The first mark</p>

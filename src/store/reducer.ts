@@ -21,7 +21,7 @@ import { uid } from '../utils/id';
 import { createInitialState } from '../data/initialState';
 import { createDemoState } from '../data/demo';
 import { prepareState, syncChildLinks, xpFromLedger } from '../services/storage/repair';
-import { levelInfo } from '../services/gamification/xp';
+import { levelInfo, summarizeXp } from '../services/gamification/xp';
 import {
   generateObjectives,
   refreshObjectives,
@@ -228,7 +228,7 @@ function settle(_prev: TakTicState, input: TakTicState, events: SettleEvents = {
     pushXp(`achievement:${achievement.id}`, achievement.xpReward, achievement.name);
   }
 
-  const xp = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const xp = summarizeXp(transactions).total;
   const level = levelInfo(xp).level;
 
   return {
@@ -336,6 +336,7 @@ function finishSession(
   const { elapsed } = sessionElapsedSeconds(active);
   const completedNaturally = mode === 'complete' && elapsed >= active.plannedSeconds * 0.95;
   const isFocus = active.type === 'focus';
+  const qualifies = isFocus && completedNaturally;
   const timestamp = nowIso();
   const record: FocusSession = {
     id: active.id,
@@ -346,7 +347,7 @@ function finishSession(
     startTime: new Date(active.startedAt).toISOString(),
     endTime: timestamp,
     status: completedNaturally ? 'completed' : 'abandoned',
-    xpAwarded: false,
+    xpAwarded: qualifies,
   };
 
   const tasks = active.taskId
@@ -357,7 +358,6 @@ function finishSession(
       )
     : state.tasks;
 
-  const qualifies = isFocus && record.status === 'completed';
   const focusMinutes = qualifies ? Math.round(record.actualSeconds / 60) : 0;
   let focusCycle = state.focusCycle;
   if (qualifies) {
@@ -397,7 +397,7 @@ function removeDemoData(state: TakTicState): TakTicState {
   );
   const streak = rebuildStreak({ tasks, focusSessions });
   const objectives = generateObjectives(projects, tasks, state.settings.xp.objective, todayKey());
-  const xp = xpTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const xp = summarizeXp(xpTransactions).total;
 
   return prepareState({
     ...state,

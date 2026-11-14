@@ -1,7 +1,7 @@
 import type { Task, TakTicState } from '../../types';
 import { todayKey } from '../../utils/date';
 import { generateObjectives, refreshObjectives } from '../gamification/objectives';
-import { levelInfo } from '../gamification/xp';
+import { levelInfo, summarizeXp } from '../gamification/xp';
 import { computeCurrentStreak, computeLongestStreak } from '../gamification/streak';
 import { SCHEMA_VERSION } from './storage';
 
@@ -23,7 +23,7 @@ export function syncChildLinks(tasks: Task[]): Task[] {
 }
 
 export function xpFromLedger(state: TakTicState): number {
-  return state.xpTransactions.reduce((sum, transaction) => sum + Math.max(0, transaction.amount), 0);
+  return summarizeXp(state.xpTransactions).total;
 }
 
 /**

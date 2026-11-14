@@ -9,6 +9,7 @@ import { useTakTic } from '../../store/TakTicProvider';
 import { useAppActions } from '../app/AppActionsProvider';
 import { useToast } from '../ui/ToastProvider';
 import { pageMeta } from '../../data/navigation';
+import { TakTicLogo } from '../brand/TakTicLogo';
 
 export function AppLayout() {
   const { state } = useTakTic();
@@ -69,11 +70,12 @@ export function AppLayout() {
       <div className="relative z-10 lg:pl-[264px]">
         <header className="sticky top-0 z-30 border-b border-line bg-ivory/95 backdrop-blur lg:hidden">
           <div className="flex h-[52px] items-center gap-3 px-4">
-            <Link to="/" className="flex items-center gap-2" aria-label="TakTic home">
-              <span className="flex h-7 w-7 items-center justify-center rounded-[8px] border border-accent font-serif text-[14px] leading-none text-accent">
-                T
-              </span>
-              <span className="font-serif text-[17px] tracking-[-0.01em]">TakTic</span>
+            <Link to="/" className="flex items-center" aria-label="TakTic home">
+              <TakTicLogo
+                showTagline={false}
+                markClassName="h-6 w-6"
+                textClassName="text-[17px] tracking-[-0.01em]"
+              />
             </Link>
             <span className="ml-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
               {meta.index} / {meta.label}

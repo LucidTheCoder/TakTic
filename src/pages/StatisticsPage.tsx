@@ -113,7 +113,7 @@ export function StatisticsPage() {
         {[
           { label: 'Tasks completed', value: String(stats.completedTasksCount), note: 'actionable steps only' },
           { label: 'Focus time', value: formatDuration(stats.totalFocusMinutes), note: 'all qualifying sessions' },
-          { label: 'XP earned', value: String(state.profile.xp), note: 'from the transaction ledger' },
+          { label: 'XP earned', value: String(stats.xp), note: 'from the transaction ledger' },
           { label: 'Projects completed', value: String(stats.completedProjectsCount), note: 'counted once each' },
         ].map((item) => (
           <div key={item.label} className="bg-paper px-4 py-4">
@@ -125,6 +125,44 @@ export function StatisticsPage() {
           </div>
         ))}
       </div>
+
+      <section className="mt-4 border border-line bg-paper" aria-labelledby="xp-sources-title">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-4 py-3">
+          <div>
+            <p className="eyebrow">XP sources</p>
+            <h2 id="xp-sources-title" className="mt-0.5 text-[16px]">
+              Where the earned XP came from
+            </h2>
+          </div>
+          <p className="font-mono text-[11px] text-muted">
+            {stats.xpBreakdown.total} XP total · ledger reconciled
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-px bg-line sm:grid-cols-3 lg:grid-cols-5">
+          {[
+            { label: 'Task completion', value: stats.xpBreakdown.task },
+            { label: 'Focus sessions', value: stats.xpBreakdown.focus },
+            { label: 'Achievements', value: stats.xpBreakdown.achievement },
+            { label: 'Project completion', value: stats.xpBreakdown.project },
+            { label: 'Daily objectives', value: stats.xpBreakdown.objective },
+          ].map((item) => (
+            <div key={item.label} className="bg-paper px-4 py-3">
+              <p className="font-mono text-[18px] leading-none text-ink">{item.value}</p>
+              <p className="mt-1.5 font-mono text-[10px] uppercase leading-4 tracking-[0.06em] text-muted">
+                {item.label}
+              </p>
+              <p className="mt-0.5 font-mono text-[10px] text-muted/80">
+                {stats.xp > 0 ? Math.round((item.value / stats.xp) * 100) : 0}%
+              </p>
+            </div>
+          ))}
+        </div>
+        {stats.xpBreakdown.other > 0 ? (
+          <p className="border-t border-line px-4 py-2 font-mono text-[10px] uppercase tracking-[0.06em] text-muted">
+            Other rewards: {stats.xpBreakdown.other} XP
+          </p>
+        ) : null}
+      </section>
 
       <div className="mt-4 grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
         {[
