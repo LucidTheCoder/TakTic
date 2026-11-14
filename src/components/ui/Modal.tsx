@@ -115,45 +115,45 @@ export function Modal({
             exit={{ opacity: 0, y: 16, transition: { duration: 0.16 } }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
-              'relative flex max-h-[94vh] w-full flex-col border border-line bg-paper shadow-lift sm:max-h-[88vh]',
-              'border-b-0 sm:border-b',
+              'relative flex max-h-[94dvh] w-full flex-col overflow-hidden border border-line bg-paper shadow-lift sm:max-h-[88vh]',
+              'rounded-t-[18px] border-b-0 sm:rounded-[16px] sm:border-b',
               widths[width],
               className,
             )}
           >
             {title || eyebrow ? (
-              <header className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
+              <header className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
                 <div className="min-w-0">
                   {eyebrow ? (
-                    <p className="eyebrow mb-1.5 flex items-center gap-2">
+                    <p className="eyebrow mb-2 flex items-center gap-2">
                       <span className="h-px w-4 bg-line" aria-hidden />
                       {eyebrow}
                     </p>
                   ) : null}
                   {title ? (
-                    <h2 className="text-[20px] leading-snug text-ink sm:text-[22px]">
+                    <h2 className="text-balance text-[23px] leading-snug text-ink sm:text-[26px]">
                       {title}
                     </h2>
                   ) : null}
                   {description ? (
-                    <p className="mt-1.5 text-[12.5px] leading-5 text-muted">{description}</p>
+                    <p className="mt-2 text-[14px] leading-6 text-muted">{description}</p>
                   ) : null}
                 </div>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="-mr-1 -mt-1 p-1.5 text-muted transition-colors hover:text-ink"
+                  className="-mr-1 -mt-1 rounded-[8px] p-2 text-muted transition-colors hover:bg-surface2 hover:text-ink"
                   aria-label="Close dialog"
                 >
-                  <X size={16} aria-hidden />
+                  <X size={18} aria-hidden />
                 </button>
               </header>
             ) : null}
-            <div className="scroll-thin min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
+            <div className="scroll-thin min-h-0 flex-1 overflow-y-auto px-6 py-5 sm:py-6">
               {children}
             </div>
             {footer ? (
-              <footer className="flex flex-wrap items-center justify-end gap-2 border-t border-line bg-paper px-5 py-3.5 sm:px-6">
+              <footer className="flex flex-col gap-2 border-t border-line bg-paper px-6 py-4 [&>button]:w-full sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:[&>button]:w-auto">
                 {footer}
               </footer>
             ) : null}
@@ -214,7 +214,7 @@ export function ConfirmDialog({
       }
     >
       {description ? (
-        <p className="text-[13px] leading-6 text-ink/85">{description}</p>
+        <p className="text-[15px] leading-7 text-ink/85">{description}</p>
       ) : null}
       {children}
     </Modal>

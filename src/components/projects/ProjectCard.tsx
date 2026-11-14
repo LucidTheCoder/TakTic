@@ -24,7 +24,7 @@ export function ProjectCard({ project, tasks }: { project: Project; tasks: Task[
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted">
+          <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted">
             {completed ? 'Completed' : 'Active'}
           </span>
           <span className="h-2.5 w-px bg-line" aria-hidden />
@@ -38,7 +38,7 @@ export function ProjectCard({ project, tasks }: { project: Project; tasks: Task[
       </div>
 
       <h3 className="mt-2.5 line-clamp-2 text-[18px] leading-snug text-ink">{project.title}</h3>
-      <p className="mt-1.5 line-clamp-2 min-h-[2.6rem] text-[11.5px] leading-5 text-muted">
+      <p className="mt-1.5 line-clamp-2 min-h-[2.6rem] text-[13px] leading-5 text-muted">
         {project.description || 'No description yet.'}
       </p>
 
@@ -46,9 +46,9 @@ export function ProjectCard({ project, tasks }: { project: Project; tasks: Task[
         <div className="mb-1.5 flex items-end justify-between gap-3">
           <span className="font-mono text-[24px] leading-none tracking-[-0.03em] text-ink">
             {progress.percent}
-            <span className="ml-0.5 text-[11px] text-muted">%</span>
+            <span className="ml-0.5 text-[13px] text-muted">%</span>
           </span>
-          <span className="font-mono text-[9.5px] text-muted">
+          <span className="font-mono text-[11px] text-muted">
             {progress.completed} / {progress.total} tasks
           </span>
         </div>
@@ -58,7 +58,7 @@ export function ProjectCard({ project, tasks }: { project: Project; tasks: Task[
           height="md"
           label={`${project.title} completion`}
         />
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[10px] text-muted">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[12px] text-muted">
           <span className="inline-flex items-center gap-1">
             {completed ? (
               <>

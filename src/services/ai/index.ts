@@ -14,11 +14,13 @@ import { isoFromDateAndTime, todayKey } from '../../utils/date';
 import { uid } from '../../utils/id';
 
 const taskDraftSchema = z.object({
+  key: z.string().min(1).max(40).optional(),
   title: z.string().min(2).max(180),
   description: z.string().max(500).default(''),
   estimatedMinutes: z.number().int().min(5).max(240),
   difficulty: z.enum(['easy', 'medium', 'hard']),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+  dependsOn: z.array(z.string().min(1).max(60)).max(8).default([]),
 });
 
 const decompositionSchema = z.object({
@@ -158,10 +160,14 @@ Rules:
 - Sub-tasks must be things a student can start without further planning, and must be small enough to fit in one sitting (5–90 minutes).
 - Do not create placeholder tasks like "work on it" or "try harder".
 - Do not add time off, celebrations or invented resources.
+- Priority and execution order are different. The final deliverable can be urgent, but it must wait for research, planning, drafting and review.
+- Give every task a short unique key such as "research" or "outline" and list the keys that must finish first in "dependsOn". A task with no prerequisites has an empty list.
+- Dependencies must be acyclic. Never make a task depend on itself or on a task that comes after it in a loop.
+- Prefer dependencies within the same phase, but a later phase may depend on an earlier one. Independent tasks may run in parallel.
 - Include a short, factual reasoning explaining the shape of the plan.
 
 Return JSON:
-{"projectTitle": string, "projectDescription": string, "reasoning": string, "phases": [{"title": string, "tasks": [{"title": string, "description": string, "estimatedMinutes": number, "difficulty": "easy"|"medium"|"hard", "priority": "low"|"medium"|"high"|"urgent"}]}]}`,
+{"projectTitle": string, "projectDescription": string, "reasoning": string, "phases": [{"title": string, "tasks": [{"key": string, "title": string, "description": string, "estimatedMinutes": number, "difficulty": "easy"|"medium"|"hard", "priority": "low"|"medium"|"high"|"urgent", "dependsOn": string[]}]}]}`,
   });
 
   return {
@@ -171,11 +177,13 @@ Return JSON:
     phases: result.phases.map((phase) => ({
       title: phase.title.trim(),
       tasks: phase.tasks.map((draft) => ({
+        key: draft.key?.trim(),
         title: draft.title.trim(),
         description: draft.description.trim(),
         estimatedMinutes: Math.round(draft.estimatedMinutes),
         difficulty: draft.difficulty,
         priority: draft.priority ?? 'medium',
+        dependsOn: draft.dependsOn.map((key) => key.trim()).filter(Boolean),
       })),
     })),
   };

@@ -16,7 +16,7 @@ import {
   splitDeadline,
   formatDateKey,
 } from '../../utils/date';
-import { childrenOf, descendantsOf } from '../../utils/tasks';
+import { childrenOf, descendantsOf, wouldCreateDependencyCycle } from '../../utils/tasks';
 import { estimateTaskDuration } from '../../services/ai';
 import { describeAiError, isAiConfigured } from '../../services/ai/client';
 
@@ -85,6 +85,7 @@ export function TaskModal({
   const [estimateNote, setEstimateNote] = useState<string | null>(null);
   const [estimateError, setEstimateError] = useState<string | null>(null);
   const [showDependencies, setShowDependencies] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -93,6 +94,7 @@ export function TaskModal({
     setEstimateNote(null);
     setEstimateError(null);
     setShowDependencies(false);
+    setShowAdvanced(Boolean(task));
     if (task) {
       const deadline = splitDeadline(task.deadline, task.deadlineHasTime);
       setForm({
@@ -183,6 +185,14 @@ export function TaskModal({
     if (!Number.isFinite(estimate) || estimate < 5) nextErrors.estimatedMinutes = 'Use at least 5 minutes.';
     if (estimate > 600) nextErrors.estimatedMinutes = 'Keep estimates under 10 hours; split larger work.';
     if (form.deadlineTime && !form.deadlineDate) nextErrors.deadlineDate = 'Choose a date for that time.';
+    const dependencyIds = form.dependencies.filter((id) =>
+      dependencyOptions.some((option) => option.id === id),
+    );
+    if (task && wouldCreateDependencyCycle(task.id, dependencyIds, state.tasks)) {
+      nextErrors.dependencies = 'Those tasks already wait on this one. Choose a different order.';
+      setShowDependencies(true);
+      setShowAdvanced(true);
+    }
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -323,7 +333,7 @@ export function TaskModal({
               <div className="mr-auto flex flex-wrap items-center gap-1">
                 <Button variant="ghost" size="sm" onClick={() => onBreakDown(task.id)}>
                   <Wand2 size={13} aria-hidden />
-                  Break down
+                  Split task
                 </Button>
                 {task.status !== 'completed' ? (
                   <Button variant="ghost" size="sm" onClick={() => onStartFocus(task.id)}>
@@ -377,10 +387,10 @@ export function TaskModal({
             />
           </Field>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4">
             <Field label="Project" htmlFor="task-project" required error={errors.projectId}>
               {sortedProjects.length === 0 ? (
-                <div className="border border-line bg-surface2/50 px-3 py-2 text-[12px] leading-5 text-muted">
+                <div className="border border-line bg-surface2/50 px-3 py-2 text-[14px] leading-5 text-muted">
                   No projects yet.{' '}
                   <button
                     type="button"
@@ -411,7 +421,39 @@ export function TaskModal({
                 </Select>
               )}
             </Field>
+          </div>
 
+          <Field label="Due date" htmlFor="task-deadline" error={errors.deadlineDate}>
+            <Input
+              id="task-deadline"
+              type="date"
+              value={form.deadlineDate}
+              onChange={(event) => update('deadlineDate', event.target.value)}
+              aria-invalid={Boolean(errors.deadlineDate)}
+            />
+          </Field>
+
+          <div className="border-t border-line pt-1">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced((current) => !current)}
+              className="flex w-full items-center justify-between gap-3 py-2 text-left"
+              aria-expanded={showAdvanced}
+            >
+              <span>
+                <span className="block text-[14px] font-medium text-ink">More options</span>
+                <span className="mt-0.5 block text-[13px] text-muted">
+                  Priority, estimate, subtasks and tasks to finish first.
+                </span>
+              </span>
+              <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-accent">
+                {showAdvanced ? 'Hide' : 'Show'}
+              </span>
+            </button>
+          </div>
+
+          {showAdvanced ? (
+          <div className="space-y-4 border-t border-line pt-4">
             <Field
               label="Parent task"
               htmlFor="task-parent"
@@ -431,7 +473,6 @@ export function TaskModal({
                 ))}
               </Select>
             </Field>
-          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Field
@@ -452,7 +493,7 @@ export function TaskModal({
                     onChange={(event) => update('estimatedMinutes', event.target.value)}
                     className="pr-12"
                   />
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] text-muted">
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[12px] text-muted">
                     min
                   </span>
                 </div>
@@ -499,7 +540,7 @@ export function TaskModal({
             <InlineNote tone="accent">{estimateError}</InlineNote>
           ) : null}
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Priority" htmlFor="task-priority">
               <Select
                 id="task-priority"
@@ -511,15 +552,6 @@ export function TaskModal({
                 <option value="high">High</option>
                 <option value="urgent">Urgent</option>
               </Select>
-            </Field>
-            <Field label="Deadline" htmlFor="task-deadline">
-              <Input
-                id="task-deadline"
-                type="date"
-                value={form.deadlineDate}
-                onChange={(event) => update('deadlineDate', event.target.value)}
-                aria-invalid={Boolean(errors.deadlineDate)}
-              />
             </Field>
             <Field
               label="Time"
@@ -570,7 +602,7 @@ export function TaskModal({
                 Clear
               </Button>
               {form.scheduledDate ? (
-                <span className="font-mono text-[10px] text-muted">
+                <span className="font-mono text-[12px] text-muted">
                   {formatDateKey(form.scheduledDate, { weekday: 'short', day: 'numeric', month: 'short' })}
                 </span>
               ) : null}
@@ -584,22 +616,22 @@ export function TaskModal({
               className="flex w-full items-center justify-between px-3 py-2.5 text-left"
               aria-expanded={showDependencies}
             >
-              <span className="text-[12px] text-ink">
-                Dependencies
+              <span className="text-[14px] text-ink">
+                Tasks to complete first
                 {form.dependencies.length > 0 ? (
-                  <span className="ml-1.5 font-mono text-[10px] text-accent">
+                  <span className="ml-1.5 font-mono text-[12px] text-accent">
                     {form.dependencies.length}
                   </span>
                 ) : null}
               </span>
-              <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted">
+              <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">
                 {showDependencies ? 'Hide' : 'Add'}
               </span>
             </button>
             {showDependencies ? (
               <div className="max-h-40 overflow-y-auto border-t border-line px-3 py-2">
                 {dependencyOptions.length === 0 ? (
-                  <p className="py-2 text-[11.5px] text-muted">
+                  <p className="py-2 text-[13px] text-muted">
                     No other open tasks in this project.
                   </p>
                 ) : (
@@ -608,7 +640,7 @@ export function TaskModal({
                       const checked = form.dependencies.includes(option.id);
                       return (
                         <li key={option.id}>
-                          <label className="flex cursor-pointer items-center gap-2 py-1 text-[12px] text-ink/85">
+                          <label className="flex cursor-pointer items-center gap-2 py-1 text-[14px] text-ink/85">
                             <input
                               type="checkbox"
                               checked={checked}
@@ -623,7 +655,7 @@ export function TaskModal({
                               className="h-3.5 w-3.5 accent-[rgb(var(--accent))]"
                             />
                             <span className="flex-1 truncate">{option.title}</span>
-                            <span className="font-mono text-[9px] text-muted">
+                            <span className="font-mono text-[11px] text-muted">
                               {option.estimatedMinutes} min
                             </span>
                           </label>
@@ -633,6 +665,11 @@ export function TaskModal({
                   </ul>
                 )}
               </div>
+            ) : null}
+            {errors.dependencies ? (
+              <p className="border-t border-line px-3 py-2 text-[13px] text-accent" role="alert">
+                {errors.dependencies}
+              </p>
             ) : null}
           </div>
 
@@ -644,8 +681,8 @@ export function TaskModal({
               className="mt-0.5 h-3.5 w-3.5 accent-[rgb(var(--accent))]"
             />
             <span className="flex-1">
-              <span className="block text-[12px] text-ink">Mark this task as blocked</span>
-              <span className="mt-0.5 block text-[11px] leading-5 text-muted">
+              <span className="block text-[14px] text-ink">Mark this task as blocked</span>
+              <span className="mt-0.5 block text-[13px] leading-5 text-muted">
                 TakTic will show the reason, but never prevent you from working on it.
               </span>
               {form.blocked ? (
@@ -659,17 +696,19 @@ export function TaskModal({
               ) : null}
             </span>
           </label>
+          </div>
+          ) : null}
 
           {task ? (
-            <div className="flex flex-wrap items-center gap-3 border-t border-line pt-3 text-[10.5px] text-muted">
+            <div className="flex flex-wrap items-center gap-3 border-t border-line pt-3 text-[12px] text-muted">
               <StatusPill tone={task.status === 'completed' ? 'sage' : task.status === 'blocked' ? 'accent' : 'neutral'}>
                 {task.status === 'in_progress' ? 'in progress' : task.status}
               </StatusPill>
               <PriorityBadge priority={task.priority} />
               {childCount > 0 ? (
-                <span className="font-mono text-[10px]">{childCount} subtasks</span>
+                <span className="font-mono text-[12px]">{childCount} subtasks</span>
               ) : null}
-              <span className="ml-auto font-mono text-[9px]">
+              <span className="ml-auto font-mono text-[11px]">
                 created {new Date(task.createdAt).toLocaleDateString('en-GB')}
               </span>
             </div>

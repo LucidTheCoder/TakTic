@@ -14,6 +14,7 @@ import { cn } from '../utils/cn';
 import {
   PRIORITY_ORDER,
   leafTasks,
+  orderTasksByDependencies,
   projectProgress,
   projectTasks,
   tasksForDate,
@@ -29,7 +30,7 @@ const VIEWS: Array<{ value: View; label: string }> = [
   { value: 'today', label: 'Today' },
   { value: 'upcoming', label: 'Upcoming' },
   { value: 'overdue', label: 'Overdue' },
-  { value: 'completed', label: 'Completed' },
+  { value: 'completed', label: 'Finished' },
   { value: 'byProject', label: 'By project' },
 ];
 
@@ -222,8 +223,13 @@ export function TasksPage() {
   );
 
   const sortedMatched = useMemo(
-    () => [...matched].sort((a, b) => compareTasks(a, b, sort)),
-    [matched, sort],
+    () =>
+      orderTasksByDependencies([...matched], state.tasks, (a, b) => {
+        if (a.status === 'completed' && b.status !== 'completed') return 1;
+        if (b.status === 'completed' && a.status !== 'completed') return -1;
+        return compareTasks(a, b, sort);
+      }),
+    [matched, sort, state.tasks],
   );
 
   const roots = useMemo(
@@ -310,7 +316,7 @@ export function TasksPage() {
         };
       case 'completed':
         return {
-          title: 'Nothing completed yet.',
+          title: 'Nothing finished yet.',
           description: 'Finished tasks collect here, with their XP history intact.',
           action: (
             <Button size="sm" variant="primary" onClick={() => openTask()}>
@@ -345,7 +351,7 @@ export function TasksPage() {
               </Button>
               <Button size="sm" variant="quiet" onClick={() => openDecompose()}>
                 <Wand2 size={12} aria-hidden />
-                Break down something big
+                Split a big task
               </Button>
             </div>
           ),
@@ -357,14 +363,14 @@ export function TasksPage() {
     <div>
       <PageHeader
         index="02"
-        jp="作業"
+        jp=""
         title="My tasks"
         description="Every step in one place. Filter the noise out, or follow the plan you already made."
         actions={
           <>
             <Button variant="secondary" onClick={() => openDecompose()}>
               <Wand2 size={13} aria-hidden />
-              Break down
+              Split a big task
             </Button>
             <Button variant="primary" onClick={() => openTask()}>
               New task
@@ -434,7 +440,7 @@ export function TasksPage() {
             <Filter size={12} aria-hidden />
             Filters
             {activeFilterCount > 0 ? (
-              <span className="ml-1 border border-accent/30 px-1 font-mono text-[8px] text-accent">
+              <span className="ml-1 border border-accent/30 px-1 font-mono text-[10px] text-accent">
                 {activeFilterCount}
               </span>
             ) : null}
@@ -444,7 +450,7 @@ export function TasksPage() {
               value={projectFilter}
               onChange={(event) => setProjectFilter(event.target.value)}
               aria-label="Filter by project"
-              className="h-8 w-[160px] py-1 text-[11px]"
+              className="h-8 w-[160px] py-1 text-[13px]"
             >
               <option value="">All projects</option>
               {[...state.projects]
@@ -459,7 +465,7 @@ export function TasksPage() {
               value={priorityFilter}
               onChange={(event) => setPriorityFilter(event.target.value as Priority | '')}
               aria-label="Filter by priority"
-              className="h-8 w-[118px] py-1 text-[11px]"
+              className="h-8 w-[118px] py-1 text-[13px]"
             >
               <option value="">Priority</option>
               <option value="urgent">Urgent</option>
@@ -471,7 +477,7 @@ export function TasksPage() {
               value={difficultyFilter}
               onChange={(event) => setDifficultyFilter(event.target.value as Difficulty | '')}
               aria-label="Filter by difficulty"
-              className="h-8 w-[118px] py-1 text-[11px]"
+              className="h-8 w-[118px] py-1 text-[13px]"
             >
               <option value="">Difficulty</option>
               <option value="easy">Easy</option>
@@ -482,7 +488,7 @@ export function TasksPage() {
               value={deadlineFilter}
               onChange={(event) => setDeadlineFilter(event.target.value as DeadlineFilter)}
               aria-label="Filter by deadline"
-              className="h-8 w-[128px] py-1 text-[11px]"
+              className="h-8 w-[128px] py-1 text-[13px]"
             >
               <option value="all">Any deadline</option>
               <option value="overdue">Overdue</option>
@@ -497,7 +503,7 @@ export function TasksPage() {
               value={sort}
               onChange={(event) => setSort(event.target.value as SortKey)}
               aria-label="Sort tasks"
-              className="h-8 w-[132px] py-1 text-[11px]"
+              className="h-8 w-[132px] py-1 text-[13px]"
             >
               <option value="priority">Priority</option>
               <option value="deadline">Deadline</option>
@@ -510,7 +516,7 @@ export function TasksPage() {
             <button
               type="button"
               onClick={clearFilters}
-              className="text-[10.5px] text-accent underline decoration-accent/40 underline-offset-2"
+              className="text-[12px] text-accent underline decoration-accent/40 underline-offset-2"
             >
               Clear {activeFilterCount}
             </button>
@@ -523,7 +529,7 @@ export function TasksPage() {
               value={projectFilter}
               onChange={(event) => setProjectFilter(event.target.value)}
               aria-label="Filter by project"
-              className="h-9 text-[12px]"
+              className="h-9 text-[14px]"
             >
               <option value="">All projects</option>
               {[...state.projects]
@@ -539,7 +545,7 @@ export function TasksPage() {
                 value={priorityFilter}
                 onChange={(event) => setPriorityFilter(event.target.value as Priority | '')}
                 aria-label="Filter by priority"
-                className="h-9 text-[11px]"
+                className="h-9 text-[13px]"
               >
                 <option value="">Priority</option>
                 <option value="urgent">Urgent</option>
@@ -551,7 +557,7 @@ export function TasksPage() {
                 value={difficultyFilter}
                 onChange={(event) => setDifficultyFilter(event.target.value as Difficulty | '')}
                 aria-label="Filter by difficulty"
-                className="h-9 text-[11px]"
+                className="h-9 text-[13px]"
               >
                 <option value="">Difficulty</option>
                 <option value="easy">Easy</option>
@@ -562,7 +568,7 @@ export function TasksPage() {
                 value={deadlineFilter}
                 onChange={(event) => setDeadlineFilter(event.target.value as DeadlineFilter)}
                 aria-label="Filter by deadline"
-                className="h-9 text-[11px]"
+                className="h-9 text-[13px]"
               >
                 <option value="all">Deadline</option>
                 <option value="overdue">Overdue</option>
@@ -598,18 +604,18 @@ export function TasksPage() {
                       >
                         {project.title}
                       </a>
-                      <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+                      <p className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.08em] text-muted">
                         {progress.percent}% · {progress.completed}/{progress.total} tasks ·{' '}
                         {project.status}
                       </p>
                     </div>
-                    <span className="font-mono text-[9px] text-muted">{tasks.length} shown</span>
+                    <span className="font-mono text-[11px] text-muted">{tasks.length} shown</span>
                   </div>
                   {groupRoots.map((task) => (
                     <TaskRow key={task.id} task={task} showProject={false} />
                   ))}
                   {groupRoots.length === 0 ? (
-                    <p className="px-4 py-4 text-[11.5px] text-muted">
+                    <p className="px-4 py-4 text-[13px] text-muted">
                       These matches are all nested under a task that does not match. Switch to the
                       flat view or clear filters to see them.
                     </p>
@@ -628,7 +634,7 @@ export function TasksPage() {
       </div>
 
       {view === 'byProject' && matched.length > 0 && flatMode ? (
-        <p className="mt-3 text-[10.5px] text-muted">
+        <p className="mt-3 text-[12px] text-muted">
           Filters are applied; nested tasks that only match through a parent may need the flat
           “All” view.
         </p>

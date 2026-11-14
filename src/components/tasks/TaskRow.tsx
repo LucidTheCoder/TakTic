@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertTriangle,
+  ArrowDown,
+  ArrowUp,
   Check,
   ChevronDown,
   ChevronRight,
@@ -61,7 +63,7 @@ export function TaskRow({
   compact = false,
   flat = false,
 }: TaskRowProps) {
-  const { state, dispatch, captureSnapshot, offerUndo } = useTakTic();
+  const { state, stats, dispatch, captureSnapshot, offerUndo } = useTakTic();
   const { toast } = useToast();
   const { openTask, openDecompose } = useAppActions();
   const navigate = useNavigate();
@@ -81,6 +83,33 @@ export function TaskRow({
 
   const completed = task.status === 'completed';
   const blocked = task.status === 'blocked';
+  const isNextStep = !completed && stats.nextTask?.id === task.id;
+  const siblings = state.tasks
+    .filter(
+      (candidate) =>
+        candidate.parentTaskId === task.parentTaskId &&
+        candidate.projectId === task.projectId,
+    )
+    .sort((a, b) => a.order - b.order);
+  const siblingIndex = siblings.findIndex((candidate) => candidate.id === task.id);
+
+  const moveTask = (direction: 'up' | 'down') => {
+    const swapIndex = direction === 'up' ? siblingIndex - 1 : siblingIndex + 1;
+    const other = siblings[swapIndex];
+    if (!other) return;
+    const needsOther =
+      (direction === 'up' && task.dependencies.includes(other.id)) ||
+      (direction === 'down' && other.dependencies.includes(task.id));
+    if (needsOther) {
+      toast({
+        title: 'Keep the working order',
+        description: `“${other.title}” has to come first for this task.`,
+        tone: 'error',
+      });
+      return;
+    }
+    dispatch({ type: 'REORDER_TASK', id: task.id, direction });
+  };
 
   const handleToggle = () => {
     if (hasChildren) {
@@ -156,7 +185,7 @@ export function TaskRow({
       onSelect: () => openTask({ taskId: null, projectId: task.projectId, parentTaskId: task.id }),
     },
     {
-      label: 'Break down further',
+      label: 'Split further',
       icon: Wand2,
       onSelect: () => openDecompose({ taskId: task.id }),
     },
@@ -187,12 +216,22 @@ export function TaskRow({
             onSelect: () => setTroubleOpen(true),
           },
           {
-            label: 'Start focus',
+            label: 'Start focus timer',
             icon: Play,
             onSelect: () => navigate(`/focus?task=${task.id}`),
           },
         ]
       : []),
+    {
+      label: 'Move up',
+      icon: ArrowUp,
+      onSelect: () => moveTask('up'),
+    },
+    {
+      label: 'Move down',
+      icon: ArrowDown,
+      onSelect: () => moveTask('down'),
+    },
     {
       label: 'Duplicate',
       icon: Copy,
@@ -294,7 +333,7 @@ export function TaskRow({
               type="button"
               onClick={() => openTask({ taskId: task.id })}
               className={cn(
-                'min-w-0 flex-1 text-left text-[13px] leading-5 transition-colors hover:text-accent md:text-[13.5px]',
+                'min-w-0 flex-1 text-left text-[15px] leading-5 transition-colors hover:text-accent md:text-[15px]',
                 completed ? 'text-muted line-through decoration-muted/40' : 'text-ink',
               )}
             >
@@ -305,7 +344,7 @@ export function TaskRow({
                 <button
                   type="button"
                   onClick={() => setTroubleOpen(true)}
-                  className="hidden items-center gap-1 px-1 py-0.5 text-[10px] text-muted transition-colors hover:text-accent md:flex"
+                  className="hidden items-center gap-1 px-1 py-0.5 text-[12px] text-muted transition-colors hover:text-accent md:flex"
                   title="Having trouble? Adapt this task"
                 >
                   <LifeBuoy size={12} aria-hidden />
@@ -320,14 +359,14 @@ export function TaskRow({
             {showProject && project ? (
               <Link
                 to={`/projects/${project.id}`}
-                className="inline-flex items-center gap-1.5 text-[10px] text-muted transition-colors hover:text-ink"
+                className="inline-flex items-center gap-1.5 text-[12px] text-muted transition-colors hover:text-ink"
                 onClick={(event) => event.stopPropagation()}
               >
                 <span className="h-1 w-1 rounded-full bg-accent" aria-hidden />
                 <span className="max-w-[180px] truncate">{project.title}</span>
               </Link>
             ) : null}
-            <span className="inline-flex items-center gap-1 text-[10.5px] text-muted">
+            <span className="inline-flex items-center gap-1 text-[12px] text-muted">
               <Clock3 size={10} aria-hidden />
               <span className="font-mono">{formatDuration(task.estimatedMinutes)}</span>
             </span>
@@ -337,7 +376,7 @@ export function TaskRow({
             {hasChildren ? (
               <>
                 <TaskCount count={children.length} />
-                <span className="inline-flex items-center gap-1.5 text-[9.5px] text-muted">
+                <span className="inline-flex items-center gap-1.5 text-[11px] text-muted">
                   <span className="w-10">
                     <ProgressBar value={parentPercent} height="sm" tone={completed ? 'sage' : 'accent'} label="Subtask progress" />
                   </span>
@@ -347,15 +386,21 @@ export function TaskRow({
             ) : null}
             {blocked ? (
               <span
-                className="inline-flex items-center gap-1 text-[10px] text-accent"
+                className="inline-flex items-center gap-1 text-[12px] text-accent"
                 title={task.blockedReason ?? 'Marked as blocked'}
               >
                 <Lock size={10} aria-hidden />
                 Blocked
               </span>
             ) : null}
+            {isNextStep ? (
+              <span className="inline-flex items-center gap-1 rounded-[6px] bg-accent/10 px-1.5 py-0.5 font-mono text-[11px] uppercase tracking-[0.08em] text-accent">
+                <Play size={9} aria-hidden />
+                Start here
+              </span>
+            ) : null}
             {task.lastAdaptedAt ? (
-              <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.08em] text-muted/80">
+              <span className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.08em] text-muted/80">
                 <Wand2 size={9} aria-hidden />
                 adapted
               </span>
@@ -364,9 +409,9 @@ export function TaskRow({
               <StatusPill tone="accent">in progress</StatusPill>
             ) : null}
             {dependencies.length > 0 && !completed ? (
-              <span className="inline-flex items-center gap-1 text-[10px] text-accent/90" title={`Waiting on: ${dependencies.map((dependency) => dependency.title).join(', ')}`}>
+              <span className="inline-flex items-center gap-1 text-[12px] text-accent/90" title={`Waiting on: ${dependencies.map((dependency) => dependency.title).join(', ')}`}>
                 <AlertTriangle size={10} aria-hidden />
-                {dependencies.length} blocker{dependencies.length === 1 ? '' : 's'}
+                Waiting on {dependencies.length === 1 ? dependencies[0].title : `${dependencies.length} tasks`}
               </span>
             ) : null}
           </div>
@@ -437,7 +482,7 @@ export function TaskRow({
         {prompt?.kind !== 'cascade' && prompt?.dependencies.length ? (
           <ul className="mt-3 space-y-1 border-l-2 border-accent/40 pl-3">
             {prompt.dependencies.map((dependency) => (
-              <li key={dependency.id} className="text-[12px] text-ink/80">
+              <li key={dependency.id} className="text-[14px] text-ink/80">
                 {dependency.title}
               </li>
             ))}

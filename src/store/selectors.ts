@@ -13,7 +13,7 @@ import {
   tasksCompletedOn,
   tasksForDate,
   todayTasks,
-  PRIORITY_ORDER,
+  orderTasksByDependencies,
 } from '../utils/tasks';
 import { levelInfo, type LevelInfo } from '../services/gamification/xp';
 import { todayKey, weekKeys } from '../utils/date';
@@ -63,16 +63,8 @@ export interface DerivedStats {
   sessionCountByType: Record<SessionType, number>;
 }
 
-function sortTodayTasks(tasks: Task[]): Task[] {
-  return [...tasks].sort((a, b) => {
-    if (a.status === 'completed' && b.status !== 'completed') return 1;
-    if (b.status === 'completed' && a.status !== 'completed') return -1;
-    return (
-      PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority] ||
-      a.order - b.order ||
-      a.createdAt.localeCompare(b.createdAt)
-    );
-  });
+function sortTodayTasks(tasks: Task[], allTasks: Task[]): Task[] {
+  return orderTasksByDependencies(tasks, allTasks);
 }
 
 function computeEstimateAccuracy(state: TakTicState): DerivedStats['estimateAccuracy'] {
@@ -134,7 +126,7 @@ export function derive(state: TakTicState): DerivedStats {
   return {
     level,
     today,
-    todaysTasks: sortTodayTasks(todayScheduled),
+    todaysTasks: sortTodayTasks(todayScheduled, state.tasks),
     todayProgress: dailyProgress(state.tasks),
     activeProjects: activeProjects(state.projects),
     projectSummaries,

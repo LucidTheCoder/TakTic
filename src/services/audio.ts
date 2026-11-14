@@ -1,5 +1,7 @@
 let context: AudioContext | null = null;
 
+export type ChimeKind = 'start' | 'focus' | 'break' | 'task' | 'achievement' | 'test';
+
 function getContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -8,32 +10,83 @@ function getContext(): AudioContext | null {
       if (!Ctor) return null;
       context = new Ctor();
     }
-    if (context.state === 'suspended') {
-      void context.resume();
-    }
     return context;
   } catch {
     return null;
   }
 }
 
-/** A quiet two-note chime written for TakTic (no external audio files). */
-export function playChime(volume = 0.12): void {
+/**
+ * Browsers keep a new AudioContext suspended until a real gesture. Creating a
+ * silent one-second buffer on the first click or key press makes later timers
+ * and task sounds reliable, even after the tab has been idle for a long time.
+ */
+export function unlockAudio(): boolean {
+  const audioContext = getContext();
+  if (!audioContext) return false;
+  if (audioContext.state === 'suspended') {
+    void audioContext.resume().catch(() => undefined);
+  }
+  try {
+    const buffer = audioContext.createBuffer(1, 1, 22050);
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioContext.destination);
+    source.start(0);
+    source.stop(audioContext.currentTime + 0.01);
+  } catch {
+    // The next gesture will try again.
+  }
+  return audioContext.state !== 'closed';
+}
+
+const CHIMES: Record<ChimeKind, Array<{ frequency: number; start: number; duration: number }>> = {
+  start: [
+    { frequency: 440, start: 0, duration: 0.28 },
+    { frequency: 660, start: 0.1, duration: 0.38 },
+  ],
+  focus: [
+    { frequency: 660, start: 0, duration: 0.5 },
+    { frequency: 880, start: 0.16, duration: 0.7 },
+  ],
+  break: [
+    { frequency: 660, start: 0, duration: 0.42 },
+    { frequency: 523, start: 0.15, duration: 0.58 },
+  ],
+  task: [
+    { frequency: 740, start: 0, duration: 0.28 },
+    { frequency: 988, start: 0.09, duration: 0.42 },
+  ],
+  achievement: [
+    { frequency: 659, start: 0, duration: 0.34 },
+    { frequency: 784, start: 0.12, duration: 0.4 },
+    { frequency: 988, start: 0.24, duration: 0.62 },
+  ],
+  test: [
+    { frequency: 660, start: 0, duration: 0.45 },
+    { frequency: 880, start: 0.14, duration: 0.6 },
+  ],
+};
+
+/** A quiet chime written for TakTic. No audio files, so nothing can 404. */
+export function playChime(kind: ChimeKind = 'focus', volume = 0.12): void {
   const audioContext = getContext();
   if (!audioContext) return;
+  const level = Math.max(0, Math.min(1, volume));
+  if (level === 0) return;
+  if (audioContext.state === 'suspended') {
+    void audioContext.resume().catch(() => undefined);
+  }
   try {
     const now = audioContext.currentTime;
-    const notes = [
-      { frequency: 660, start: 0, duration: 0.5 },
-      { frequency: 880, start: 0.16, duration: 0.7 },
-    ];
+    const notes = CHIMES[kind];
     for (const note of notes) {
       const oscillator = audioContext.createOscillator();
       const gain = audioContext.createGain();
       oscillator.type = 'sine';
       oscillator.frequency.value = note.frequency;
       gain.gain.setValueAtTime(0, now + note.start);
-      gain.gain.linearRampToValueAtTime(volume, now + note.start + 0.03);
+      gain.gain.linearRampToValueAtTime(level * 0.16, now + note.start + 0.03);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + note.start + note.duration);
       oscillator.connect(gain);
       gain.connect(audioContext.destination);

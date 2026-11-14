@@ -25,23 +25,23 @@ export function Sidebar({ onOpenPalette }: SidebarProps) {
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-[264px] flex-col border-r border-line bg-ivory lg:flex">
       <div className="px-6 pb-4 pt-6">
         <Link to="/" className="group flex items-center gap-2.5" aria-label="TakTic home">
-          <span className="flex h-9 w-9 items-center justify-center border border-accent font-serif text-[17px] leading-none text-accent transition-colors group-hover:bg-accent group-hover:text-paper">
-            歩
+          <span className="flex h-9 w-9 items-center justify-center rounded-[9px] border border-accent font-serif text-[17px] leading-none text-accent transition-colors group-hover:bg-accent group-hover:text-paper">
+            T
           </span>
           <span className="flex flex-col">
             <span className="font-serif text-[22px] leading-none tracking-[-0.015em] text-ink">
               TakTic
             </span>
-            <span className="mt-1 font-mono text-[8px] uppercase tracking-[0.22em] text-muted">
+            <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
               one step at a time
             </span>
           </span>
         </Link>
-        <p className="mt-5 border-t border-line pt-3 text-[10px] leading-5 text-muted">
+        <p className="mt-5 border-t border-line pt-3 text-[12px] leading-5 text-muted">
           {formatLongDate()}
         </p>
         {state.demoLoaded ? (
-          <p className="mt-2 inline-flex items-center gap-1.5 border border-accent/30 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-accent">
+          <p className="mt-2 inline-flex items-center gap-1.5 border border-accent/30 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em] text-accent">
             <span className="h-1 w-1 rounded-full bg-accent" aria-hidden />
             Demo workspace
           </p>
@@ -51,7 +51,6 @@ export function Sidebar({ onOpenPalette }: SidebarProps) {
       <nav className="scroll-thin flex-1 overflow-y-auto px-3" aria-label="Main">
         <div className="mb-2 flex items-center justify-between px-2.5">
           <span className="eyebrow">Workspace</span>
-          <span className="font-mono text-[9px] text-muted/70">目次</span>
         </div>
         <ul className="space-y-0.5">
           {NAV_ITEMS.map((item) => {
@@ -63,7 +62,7 @@ export function Sidebar({ onOpenPalette }: SidebarProps) {
                   end={item.path === '/'}
                   className={({ isActive }) =>
                     cn(
-                      'group relative flex items-center gap-3 px-2.5 py-2.5 text-[12.5px] transition-colors',
+                      'group relative flex items-center gap-3 px-2.5 py-2.5 text-[14px] transition-colors',
                       isActive
                         ? 'bg-paper text-ink'
                         : 'text-muted hover:bg-paper/70 hover:text-ink',
@@ -86,7 +85,7 @@ export function Sidebar({ onOpenPalette }: SidebarProps) {
                         aria-hidden
                       />
                       <span className="flex-1">{item.label}</span>
-                      <span className="font-mono text-[8.5px] tracking-[0.08em] text-muted/60">
+                      <span className="font-mono text-[10px] tracking-[0.08em] text-muted/60">
                         {item.index}
                       </span>
                     </>
@@ -102,11 +101,11 @@ export function Sidebar({ onOpenPalette }: SidebarProps) {
         <button
           type="button"
           onClick={onOpenPalette}
-          className="mb-4 flex w-full items-center gap-2 border border-line bg-paper px-2.5 py-2 text-left text-[11.5px] text-muted transition-colors hover:border-ink/25 hover:text-ink"
+          className="mb-4 flex w-full items-center gap-2 border border-line bg-paper px-2.5 py-2 text-left text-[13px] text-muted transition-colors hover:border-ink/25 hover:text-ink"
         >
           <Command size={12} aria-hidden />
           <span className="flex-1">Search & commands</span>
-          <kbd className="border border-line px-1 py-[1px] font-mono text-[8.5px] text-muted">
+          <kbd className="border border-line px-1 py-[1px] font-mono text-[10px] text-muted">
             Ctrl K
           </kbd>
         </button>
@@ -116,14 +115,14 @@ export function Sidebar({ onOpenPalette }: SidebarProps) {
           className="group flex items-center gap-2.5"
           aria-label="Open profile settings"
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-line bg-paper font-mono text-[10px] tracking-wide text-ink transition-colors group-hover:border-accent">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-line bg-paper font-mono text-[12px] tracking-wide text-ink transition-colors group-hover:border-accent">
             {state.profile.avatar || initials(state.profile.displayName)}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-[12px] text-ink">
+            <span className="block truncate text-[14px] text-ink">
               {state.profile.displayName}
             </span>
-            <span className="mt-0.5 block font-mono text-[9px] text-muted">
+            <span className="mt-0.5 block font-mono text-[11px] text-muted">
               Level {level.level} · {level.title}
             </span>
           </span>
@@ -135,7 +134,7 @@ export function Sidebar({ onOpenPalette }: SidebarProps) {
         </Link>
         <div className="mt-2.5">
           <ProgressBar value={level.percent} height="sm" label="Level progress" />
-          <div className="mt-1 flex items-center justify-between font-mono text-[8.5px] text-muted">
+          <div className="mt-1 flex items-center justify-between font-mono text-[10px] text-muted">
             <span>{level.intoLevel} XP</span>
             <span>{level.forNext} XP</span>
           </div>

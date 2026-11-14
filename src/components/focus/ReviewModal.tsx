@@ -177,8 +177,8 @@ export function ReviewModal({ session, onClose }: ReviewModalProps) {
         {task ? (
           <div className="border border-line px-3 py-2.5">
             <p className="eyebrow mb-1">Task</p>
-            <p className="text-[13px] leading-5 text-ink">{task.title}</p>
-            <p className="mt-1 font-mono text-[9.5px] text-muted">
+            <p className="text-[15px] leading-5 text-ink">{task.title}</p>
+            <p className="mt-1 font-mono text-[11px] text-muted">
               Session ended {formatTime(session.endTime)}
             </p>
           </div>
@@ -210,7 +210,7 @@ export function ReviewModal({ session, onClose }: ReviewModalProps) {
         )}
 
         {completed ? (
-          <p className="font-mono text-[9.5px] leading-5 text-muted">
+          <p className="font-mono text-[11px] leading-5 text-muted">
             {state.focusCycle >= state.settings.focus.sessionsBeforeLongBreak
               ? 'You have completed a full focus cycle. A longer break is suggested.'
               : `${state.focusCycle} of ${state.settings.focus.sessionsBeforeLongBreak} focus sessions in this cycle.`}

@@ -9,6 +9,8 @@ export type AccentName = 'vermilion' | 'indigo' | 'matcha' | 'ochre';
 export interface UserPreferences {
   theme: 'light' | 'dark';
   accent: AccentName;
+  /** True once the accent has been chosen by hand. */
+  accentChanged?: boolean;
   reducedMotion: boolean;
 }
 
@@ -213,6 +215,8 @@ export interface FocusSettings {
   sessionsBeforeLongBreak: number;
   autoStartBreaks: boolean;
   sound: boolean;
+  /** Master volume for interface sounds, from 0 to 1. */
+  soundVolume: number;
   ambient: 'silent' | 'brown' | 'rain';
   distractionFree: boolean;
 }
@@ -235,6 +239,8 @@ export interface NotificationSettings {
 export interface DashboardSettings {
   order: DashboardWidgetId[];
   hidden: DashboardWidgetId[];
+  /** True once the person has arranged or restored the dashboard themselves. */
+  customized?: boolean;
 }
 
 export interface AppSettings {
@@ -274,11 +280,15 @@ export interface TakTicState {
 }
 
 export interface TaskDraft {
+  /** Stable key used while a generated breakdown is still in memory. */
+  key?: string;
   title: string;
   description?: string;
   estimatedMinutes: number;
   difficulty: Difficulty;
   priority?: Priority;
+  /** Keys of generated tasks that must be finished first. */
+  dependsOn?: string[];
 }
 
 export interface AchievementDefinition {

@@ -18,7 +18,7 @@ const primary = [
   { path: '/', label: 'Home', icon: LayoutGrid },
   { path: '/tasks', label: 'Tasks', icon: ListChecks },
   { path: '/focus', label: 'Focus', icon: Timer },
-  { path: '/companion', label: 'Companion', icon: MessageCircle },
+  { path: '/companion', label: 'Ask AI', icon: MessageCircle },
   { path: '/projects', label: 'Projects', icon: FolderOpen },
 ];
 
@@ -49,7 +49,7 @@ export function MobileNav({ onOpenPalette }: MobileNavProps) {
                 end={item.path === '/'}
                 className={({ isActive }) =>
                   cn(
-                    'flex h-[58px] flex-col items-center justify-center gap-1 text-[9px] tracking-wide transition-colors',
+                    'flex h-[58px] flex-col items-center justify-center gap-1 text-[11px] tracking-wide transition-colors',
                     isActive ? 'text-accent' : 'text-muted',
                   )
                 }
@@ -77,7 +77,7 @@ export function MobileNav({ onOpenPalette }: MobileNavProps) {
         type="button"
         onClick={() => setSheetOpen(true)}
         className={cn(
-          'fixed bottom-[calc(58px+env(safe-area-inset-bottom))] right-3 z-30 flex h-8 items-center gap-1.5 border border-line bg-paper px-2.5 font-mono text-[9px] uppercase tracking-[0.1em] text-muted shadow-sm lg:hidden',
+          'fixed bottom-[calc(58px+env(safe-area-inset-bottom))] right-3 z-30 flex h-8 items-center gap-1.5 border border-line bg-paper px-2.5 font-mono text-[11px] uppercase tracking-[0.1em] text-muted shadow-sm lg:hidden',
           moreActive && 'text-accent',
         )}
         aria-label="More sections"
@@ -128,11 +128,11 @@ export function MobileNav({ onOpenPalette }: MobileNavProps) {
                     setSheetOpen(false);
                     onOpenPalette();
                   }}
-                  className="col-span-2 flex items-center gap-2 bg-paper px-4 py-3 text-left text-[12px] text-ink"
+                  className="col-span-2 flex items-center gap-2 bg-paper px-4 py-3 text-left text-[14px] text-ink"
                 >
                   <Search size={15} className="text-accent" aria-hidden />
                   Search and commands
-                  <span className="ml-auto font-mono text-[9px] text-muted">Ctrl K</span>
+                  <span className="ml-auto font-mono text-[11px] text-muted">Ctrl K</span>
                 </button>
                 {NAV_ITEMS.map((item) => {
                   const Icon = item.icon;
@@ -141,16 +141,16 @@ export function MobileNav({ onOpenPalette }: MobileNavProps) {
                       key={item.path}
                       to={item.path}
                       onClick={() => setSheetOpen(false)}
-                      className="flex items-center gap-2 bg-paper px-4 py-3.5 text-[12px] text-ink"
+                      className="flex items-center gap-2 bg-paper px-4 py-3.5 text-[14px] text-ink"
                     >
                       <Icon size={15} className="text-muted" aria-hidden />
                       <span className="flex-1">{item.label}</span>
-                      <span className="font-mono text-[8px] text-muted/60">{item.index}</span>
+                      <span className="font-mono text-[10px] text-muted/60">{item.index}</span>
                     </Link>
                   );
                 })}
               </div>
-              <p className="px-5 pt-4 text-[10.5px] leading-5 text-muted">
+              <p className="px-5 pt-4 text-[12px] leading-5 text-muted">
                 TakTic keeps everything on this device. Export a backup from Settings whenever
                 you want.
               </p>

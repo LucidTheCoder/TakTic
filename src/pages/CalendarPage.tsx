@@ -31,7 +31,6 @@ import type { Task } from '../types';
 type View = 'month' | 'week' | 'day';
 
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const JP_WEEKDAYS = ['月', '火', '水', '木', '金', '土', '日'];
 
 function shiftMonthKey(key: string, delta: number): string {
   const date = fromDateKey(key);
@@ -88,7 +87,6 @@ export function CalendarPage() {
     month: 'long',
     year: 'numeric',
   }).format(selectedDate);
-  const monthJp = new Intl.DateTimeFormat('en-GB', { month: 'numeric' }).format(selectedDate);
 
   const daysForView = view === 'week' ? weekKeys(selected) : [];
 
@@ -124,7 +122,7 @@ export function CalendarPage() {
             />
           ))}
           {tasks.length > 3 ? (
-            <span className="font-mono text-[7px] text-muted">+{tasks.length - 3}</span>
+            <span className="font-mono text-[10px] text-muted">+{tasks.length - 3}</span>
           ) : null}
           {sessions.length > 0 ? <span className="ml-0.5 h-1 w-2 bg-sage/70" /> : null}
         </div>
@@ -135,7 +133,7 @@ export function CalendarPage() {
         {tasks.slice(0, 2).map((task) => (
           <span
             key={task.id}
-            className="flex items-center gap-1 truncate text-[8.5px] leading-4 text-ink/70"
+            className="flex items-center gap-1 truncate text-[10px] leading-4 text-ink/70"
           >
             <span
               className={cn(
@@ -148,7 +146,7 @@ export function CalendarPage() {
           </span>
         ))}
         {tasks.length > 2 ? (
-          <span className="block font-mono text-[7.5px] text-muted">+{tasks.length - 2}</span>
+          <span className="block font-mono text-[10px] text-muted">+{tasks.length - 2}</span>
         ) : null}
         {sessions.length > 0 ? (
           <span className="block h-[2px] w-6 bg-sage/60" title={`${sessions.length} focus sessions`} />
@@ -161,7 +159,7 @@ export function CalendarPage() {
     <div>
       <PageHeader
         index="06"
-        jp="暦"
+        jp=""
         title="Calendar"
         description="Deadlines, scheduled tasks and focus sessions on a local calendar. Select a day to inspect it."
         actions={
@@ -195,9 +193,6 @@ export function CalendarPage() {
           </button>
           <h2 className="min-w-[180px] text-center text-[20px] sm:min-w-[220px]">
             {view === 'day' ? formatDateKey(selected, { weekday: 'long', day: 'numeric', month: 'long' }) : monthLabel}
-            <span className="ml-2 font-mono text-[9px] uppercase tracking-[0.1em] text-muted">
-              {view === 'day' ? '' : monthJp}月
-            </span>
           </h2>
           <button
             type="button"
@@ -223,13 +218,10 @@ export function CalendarPage() {
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
           <div className="border border-line bg-paper">
             <div className="grid grid-cols-7 border-b border-line bg-surface2/40">
-              {WEEKDAY_LABELS.map((label, index) => (
+              {WEEKDAY_LABELS.map((label) => (
                 <div key={label} className="px-1 py-2 text-center">
-                  <span className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted">
                     {label}
-                  </span>
-                  <span className="ml-1 hidden font-serif text-[9px] text-muted sm:inline">
-                    {JP_WEEKDAYS[index]}
                   </span>
                 </div>
               ))}
@@ -259,7 +251,7 @@ export function CalendarPage() {
                     <div className="flex items-start justify-between">
                       <span
                         className={cn(
-                          'flex h-5 w-5 items-center justify-center font-mono text-[10px]',
+                          'flex h-5 w-5 items-center justify-center font-mono text-[12px]',
                           isToday ? 'bg-accent text-paper' : 'text-ink',
                         )}
                       >
@@ -276,7 +268,7 @@ export function CalendarPage() {
                     <div className="hidden sm:block">{renderCellTasks(key)}</div>
                     <div className="sm:hidden">{renderCellTasks(key, true)}</div>
                     {sessions.length > 0 ? (
-                      <span className="absolute bottom-1 right-1.5 font-mono text-[7px] text-sage">
+                      <span className="absolute bottom-1 right-1.5 font-mono text-[10px] text-sage">
                         {sessions.reduce((sum, session) => sum + Math.round(session.actualSeconds / 60), 0)}m
                       </span>
                     ) : null}
@@ -284,7 +276,7 @@ export function CalendarPage() {
                 );
               })}
             </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2 font-mono text-[8px] uppercase tracking-[0.08em] text-muted">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
               <span className="inline-flex items-center gap-1">
                 <span className="h-1 w-1 rounded-full bg-accent" aria-hidden /> priority
               </span>
@@ -330,32 +322,32 @@ export function CalendarPage() {
                       )}
                     >
                       <span className="flex items-baseline gap-1.5">
-                        <span className="font-mono text-[8px] uppercase tracking-[0.06em] text-muted">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-muted">
                           {WEEKDAY_LABELS[index]}
                         </span>
                         <span
                           className={cn(
-                            'flex h-5 w-5 items-center justify-center font-mono text-[10px]',
+                            'flex h-5 w-5 items-center justify-center font-mono text-[12px]',
                             isToday ? 'bg-accent text-paper' : 'text-ink',
                           )}
                         >
                           {date.getDate()}
                         </span>
                       </span>
-                      <span className="font-mono text-[8px] text-muted">
+                      <span className="font-mono text-[10px] text-muted">
                         {sessions.length ? `${sessions.reduce((sum, s) => sum + Math.round(s.actualSeconds / 60), 0)}m` : ''}
                       </span>
                     </button>
                     <div className="space-y-1 p-1.5">
                       {tasks.length === 0 ? (
-                        <p className="px-1 py-2 text-[9px] text-muted/70">—</p>
+                        <p className="px-1 py-2 text-[11px] text-muted/70">—</p>
                       ) : (
                         tasks.map((task) => (
                           <button
                             key={task.id}
                             type="button"
                             onClick={() => openTask({ taskId: task.id })}
-                            className="block w-full border border-line bg-paper px-1.5 py-1 text-left text-[9.5px] leading-4 text-ink/80 hover:border-accent/40"
+                            className="block w-full border border-line bg-paper px-1.5 py-1 text-left text-[11px] leading-4 text-ink/80 hover:border-accent/40"
                           >
                             <span className="line-clamp-2">{task.title}</span>
                             <span className="mt-0.5 flex items-center gap-1">
@@ -366,7 +358,7 @@ export function CalendarPage() {
                                 )}
                                 aria-hidden
                               />
-                              <span className="font-mono text-[7.5px] text-muted">
+                              <span className="font-mono text-[10px] text-muted">
                                 {task.estimatedMinutes}m
                               </span>
                             </span>
@@ -407,15 +399,15 @@ export function CalendarPage() {
           />
           <div className="space-y-4">
             <section className="border border-line bg-paper p-4">
-              <p className="eyebrow">Signals · 兆し</p>
+              <p className="eyebrow">Signals</p>
               <h2 className="mt-0.5 text-[15px]">This day</h2>
-              <div className="mt-3 space-y-2 font-mono text-[10px] text-muted">
+              <div className="mt-3 space-y-2 font-mono text-[12px] text-muted">
                 <p className="flex justify-between">
                   <span>Focus minutes</span>
                   <span className="text-ink">{focusMinutesOn(state, selected)}</span>
                 </p>
                 <p className="flex justify-between">
-                  <span>Completed tasks</span>
+                  <span>Finished tasks</span>
                   <span className="text-ink">{dayCompleted.length}</span>
                 </p>
                 <p className="flex justify-between">
@@ -449,10 +441,10 @@ function UpcomingList({ tasks, onOpen }: { tasks: Task[]; onOpen: (options: { ta
     .slice(0, 5);
   return (
     <section className="border border-line bg-paper p-4">
-      <p className="eyebrow">Next deadlines · 期限</p>
+      <p className="eyebrow">Next deadlines</p>
       <h2 className="mt-0.5 text-[15px]">Coming up</h2>
       {upcoming.length === 0 ? (
-        <p className="mt-2 text-[10.5px] leading-5 text-muted">No deadlines set on open tasks.</p>
+        <p className="mt-2 text-[12px] leading-5 text-muted">No deadlines set on open tasks.</p>
       ) : (
         <ul className="mt-2 divide-y divide-line border-t border-line">
           {upcoming.map((task) => {
@@ -464,10 +456,10 @@ function UpcomingList({ tasks, onOpen }: { tasks: Task[]; onOpen: (options: { ta
                   onClick={() => onOpen({ taskId: task.id })}
                   className="flex w-full items-start justify-between gap-2 py-2 text-left"
                 >
-                  <span className="min-w-0 truncate text-[10.5px] text-ink/85">{task.title}</span>
+                  <span className="min-w-0 truncate text-[12px] text-ink/85">{task.title}</span>
                   <span
                     className={cn(
-                      'shrink-0 font-mono text-[8.5px]',
+                      'shrink-0 font-mono text-[10px]',
                       info.tone === 'overdue' ? 'text-accent' : 'text-muted',
                     )}
                   >
@@ -517,9 +509,9 @@ function DayAgenda({
     <aside className={cn('border border-line bg-paper', !expanded && 'h-fit')}>
       <div className="border-b border-line px-4 py-3">
         <div className="flex items-center justify-between gap-2">
-          <p className="eyebrow">Agenda · 予定</p>
+          <p className="eyebrow">Agenda</p>
           {isToday ? (
-            <span className="border border-accent/40 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.1em] text-accent">
+            <span className="border border-accent/40 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-accent">
               Today
             </span>
           ) : null}
@@ -527,7 +519,7 @@ function DayAgenda({
         <h2 className="mt-1 text-[20px]">
           {formatDateKey(selected, { weekday: 'long', day: 'numeric' })}
         </h2>
-        <p className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted">
+        <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted">
           {formatDateKey(selected, { month: 'long', year: 'numeric' })} · {focusMinutes} min focus
         </p>
       </div>
@@ -538,7 +530,7 @@ function DayAgenda({
             <p className="eyebrow mb-2">Saved plan · {savedPlan?.source === 'ai' ? 'AI' : 'rules'}</p>
             <ul className="space-y-1">
               {planned.map((block) => (
-                <li key={block.id} className="flex items-start gap-2 font-mono text-[9px]">
+                <li key={block.id} className="flex items-start gap-2 font-mono text-[11px]">
                   <span className="w-[78px] shrink-0 text-muted">{formatTime(block.start)}</span>
                   <span
                     className={cn(
@@ -560,18 +552,18 @@ function DayAgenda({
             <button
               type="button"
               onClick={onAddTask}
-              className="inline-flex items-center gap-1 font-mono text-[8px] uppercase tracking-[0.08em] text-muted hover:text-ink"
+              className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.08em] text-muted hover:text-ink"
             >
               <Plus size={9} aria-hidden /> Add
             </button>
           </div>
           {open.length === 0 && completed.length === 0 ? (
             <div className="border border-dashed border-line px-3 py-6 text-center">
-              <p className="text-[11px] text-muted">Nothing recorded for this day.</p>
+              <p className="text-[13px] text-muted">Nothing recorded for this day.</p>
               <button
                 type="button"
                 onClick={onAddTask}
-                className="mt-1.5 text-[10.5px] text-accent underline decoration-accent/40 underline-offset-2"
+                className="mt-1.5 text-[12px] text-accent underline decoration-accent/40 underline-offset-2"
               >
                 Add a task
               </button>
@@ -586,13 +578,13 @@ function DayAgenda({
                     className="flex w-full items-start justify-between gap-2 py-2 text-left"
                   >
                     <span className="min-w-0">
-                      <span className="block text-[11.5px] leading-4 text-ink">{task.title}</span>
+                      <span className="block text-[13px] leading-4 text-ink">{task.title}</span>
                       <span className="mt-0.5 flex flex-wrap items-center gap-2">
                         <PriorityBadge priority={task.priority} />
                         <DeadlineLabel task={task} />
                       </span>
                     </span>
-                    <span className="shrink-0 font-mono text-[8.5px] text-muted">
+                    <span className="shrink-0 font-mono text-[10px] text-muted">
                       {task.estimatedMinutes}m
                     </span>
                   </button>
@@ -601,10 +593,10 @@ function DayAgenda({
               {completed.map((task) => (
                 <li key={task.id} className="flex items-center gap-2 py-2">
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sage" aria-hidden />
-                  <span className="min-w-0 flex-1 truncate text-[10.5px] text-muted line-through decoration-muted/40">
+                  <span className="min-w-0 flex-1 truncate text-[12px] text-muted line-through decoration-muted/40">
                     {task.title}
                   </span>
-                  <span className="font-mono text-[8px] text-sage">done</span>
+                  <span className="font-mono text-[10px] text-sage">done</span>
                 </li>
               ))}
             </ul>
@@ -620,11 +612,11 @@ function DayAgenda({
                   <button
                     type="button"
                     onClick={() => onOpenTask(task.id)}
-                    className="min-w-0 truncate text-left text-[10.5px] text-ink/80"
+                    className="min-w-0 truncate text-left text-[12px] text-ink/80"
                   >
                     {task.title}
                   </button>
-                  <span className="shrink-0 font-mono text-[8px] text-accent">due</span>
+                  <span className="shrink-0 font-mono text-[10px] text-accent">due</span>
                 </li>
               ))}
             </ul>
@@ -640,10 +632,10 @@ function DayAgenda({
                 return (
                   <li key={session.id} className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="truncate text-[10.5px] text-ink/80">
+                      <p className="truncate text-[12px] text-ink/80">
                         {session.type === 'focus' ? sessionTask?.title ?? 'Focus block' : session.type === 'long' ? 'Long break' : 'Short break'}
                       </p>
-                      <p className="font-mono text-[8px] text-muted">
+                      <p className="font-mono text-[10px] text-muted">
                         {formatTime(session.startTime)} · {Math.round(session.actualSeconds / 60)} min
                       </p>
                     </div>
@@ -657,7 +649,7 @@ function DayAgenda({
           </div>
         ) : null}
 
-        <div className="flex items-center gap-2 border-t border-line px-4 py-2.5 font-mono text-[8px] uppercase tracking-[0.08em] text-muted">
+        <div className="flex items-center gap-2 border-t border-line px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
           <Clock3 size={9} aria-hidden />
           {focusMinutes} minutes focused
           <span className="ml-auto">{completed.length} done</span>

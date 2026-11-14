@@ -12,18 +12,68 @@ import {
 } from 'react';
 import type { TakTicState } from '../types';
 import { createInitialState } from '../data/initialState';
+import { defaultSettings } from '../services/gamification/xp';
 import { loadState, saveState } from '../services/storage/storage';
 import { prepareState } from '../services/storage/repair';
 import { reducer, type Action } from './reducer';
 import { derive, type DerivedStats } from './selectors';
 import { useToast } from '../components/ui/ToastProvider';
-import { playChime } from '../services/audio';
+import { playChime, unlockAudio } from '../services/audio';
 import {
   browserNotificationsSupported,
   sendBrowserNotification,
 } from '../services/notifications';
 import { ACHIEVEMENTS } from '../services/gamification/achievements';
 import { toDateKey, todayKey } from '../utils/date';
+
+const LEGACY_DASHBOARD_ORDER = [
+  'dailyProgress',
+  'progression',
+  'todayTasks',
+  'objectives',
+  'activeProjects',
+  'deadlines',
+  'focusStats',
+  'recentAchievements',
+  'companionNote',
+];
+
+/**
+ * Moves only untouched old defaults onto the new Matcha, four-panel default.
+ * Explicit dashboard arrangements and chosen accents are never overwritten.
+ */
+function migrateLegacyDefaults(state: TakTicState): TakTicState {
+  const dashboard = state.settings.dashboard;
+  const needsDashboardMigration =
+    !dashboard.customized &&
+    dashboard.hidden.length === 0 &&
+    dashboard.order.join('|') === LEGACY_DASHBOARD_ORDER.join('|');
+  const needsAccentMigration =
+    !state.profile.preferences.accentChanged &&
+    state.profile.preferences.accent === 'vermilion';
+  if (!needsDashboardMigration && !needsAccentMigration) return state;
+
+  const defaults = defaultSettings().dashboard;
+  return {
+    ...state,
+    profile: needsAccentMigration
+      ? {
+          ...state.profile,
+          preferences: {
+            ...state.profile.preferences,
+            accent: 'matcha',
+            accentChanged: false,
+          },
+        }
+      : state.profile,
+    settings: needsDashboardMigration
+      ? {
+          ...state.settings,
+          dashboard: { order: defaults.order, hidden: defaults.hidden, customized: false },
+        }
+      : state.settings,
+  };
+}
 
 const BULK_STATE_ACTIONS: ReadonlySet<Action['type']> = new Set([
   'LOAD_DEMO',
@@ -50,7 +100,7 @@ export function TakTicProvider({ children }: { children: ReactNode }) {
   const [initial] = useState<{ state: TakTicState; error: string | null }>(() => {
     const loaded = loadState();
     return {
-      state: loaded.state ? prepareState(loaded.state) : createInitialState(),
+      state: loaded.state ? migrateLegacyDefaults(prepareState(loaded.state)) : createInitialState(),
       error: loaded.error,
     };
   });
@@ -80,6 +130,17 @@ export function TakTicProvider({ children }: { children: ReactNode }) {
   const chimeGuard = useRef<string | null>(null);
   const seenReviewNotification = useRef<string | null>(null);
   const saveErrorShown = useRef(false);
+
+  // A user gesture is required before any browser audio can play.
+  useEffect(() => {
+    const unlock = () => unlockAudio();
+    window.addEventListener('pointerdown', unlock, { once: true });
+    window.addEventListener('keydown', unlock, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, []);
 
   useEffect(() => {
     if (initial.error) {
@@ -135,7 +196,12 @@ export function TakTicProvider({ children }: { children: ReactNode }) {
       if (Date.now() + 250 < activeSession.endsAt) return;
       if (chimeGuard.current !== activeSession.id) {
         chimeGuard.current = activeSession.id;
-        if (stateRef.current.settings.focus.sound) playChime();
+        if (stateRef.current.settings.focus.sound) {
+          playChime(
+            activeSession.type === 'focus' ? 'focus' : 'break',
+            stateRef.current.settings.focus.soundVolume,
+          );
+        }
         const session = stateRef.current.activeSession;
         if (session) {
           if (
@@ -172,6 +238,12 @@ export function TakTicProvider({ children }: { children: ReactNode }) {
     if (recent.length === 0) return;
     const total = recent.reduce((sum, transaction) => sum + transaction.amount, 0);
     if (total <= 0) return;
+    if (
+      stateRef.current.settings.focus.sound &&
+      recent.some((transaction) => transaction.source.startsWith('task:'))
+    ) {
+      playChime('task', stateRef.current.settings.focus.soundVolume);
+    }
     toast({
       title: `+${total} XP`,
       description:
@@ -193,6 +265,9 @@ export function TakTicProvider({ children }: { children: ReactNode }) {
       const definition = ACHIEVEMENTS.find((item) => item.id === unlock.id);
       if (!definition) continue;
       if (Date.now() - new Date(unlock.unlockedAt).getTime() > 15_000) continue;
+      if (stateRef.current.settings.focus.sound) {
+        playChime('achievement', stateRef.current.settings.focus.soundVolume);
+      }
       if (
         state.settings.notifications.inApp &&
         state.settings.notifications.achievements

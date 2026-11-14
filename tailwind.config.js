@@ -28,11 +28,14 @@ export default {
         wide2: '0.34em',
       },
       borderRadius: {
-        card: '3px',
+        card: '12px',
+        field: '9px',
+        button: '8px',
+        modal: '16px',
       },
       boxShadow: {
-        paper: '0 1px 0 0 rgb(var(--line)), 0 24px 48px -36px rgba(30, 31, 28, 0.35)',
-        lift: '0 20px 60px -30px rgba(30, 31, 28, 0.45)',
+        paper: '0 1px 2px rgba(30, 31, 28, 0.05), 0 12px 30px -26px rgba(30, 31, 28, 0.28)',
+        lift: '0 24px 70px -34px rgba(30, 31, 28, 0.42)',
       },
       keyframes: {
         'fade-up': {

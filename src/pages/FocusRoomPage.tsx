@@ -20,6 +20,7 @@ import { useTakTic } from '../store/TakTicProvider';
 import { useAppActions } from '../components/app/AppActionsProvider';
 import { useToast } from '../components/ui/ToastProvider';
 import { useAmbientSound } from '../hooks/useAmbientSound';
+import { playChime, unlockAudio } from '../services/audio';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/ui/Modal';
 import { EmptyState } from '../components/ui/Feedback';
@@ -35,10 +36,10 @@ import {
 import { leafTasks, tasksForDate } from '../utils/tasks';
 import type { SessionType } from '../types';
 
-const TYPE_LABEL: Record<SessionType, { label: string; jp: string }> = {
-  focus: { label: 'Focus', jp: '集中' },
-  short: { label: 'Short break', jp: '小休憩' },
-  long: { label: 'Long break', jp: '長休憩' },
+const TYPE_LABEL: Record<SessionType, string> = {
+  focus: 'Focus',
+  short: 'Short break',
+  long: 'Long break',
 };
 
 export function FocusRoomPage() {
@@ -47,7 +48,7 @@ export function FocusRoomPage() {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState<SessionType>('focus');
-  const [quiet, setQuiet] = useState(false);
+  const [quiet, setQuiet] = useState(state.settings.focus.distractionFree);
   const [now, setNow] = useState(Date.now());
   const [confirm, setConfirm] = useState<'reset' | 'end' | 'skip' | null>(null);
 
@@ -157,6 +158,10 @@ export function FocusRoomPage() {
 
   const startSession = (type: SessionType) => {
     if (active) return;
+    unlockAudio();
+    if (state.settings.focus.sound) {
+      playChime('start', state.settings.focus.soundVolume);
+    }
     dispatch({
       type: 'START_SESSION',
       sessionType: type,
@@ -164,6 +169,7 @@ export function FocusRoomPage() {
       plannedSeconds: durations[type] * 60,
     });
     setTab(type);
+    if (type === 'focus') setQuiet(true);
   };
 
   const toggleTimer = () => {
@@ -304,12 +310,12 @@ export function FocusRoomPage() {
             <button
               type="button"
               onClick={() => setConfirm('end')}
-              className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.1em] text-muted underline decoration-line underline-offset-4 hover:text-accent"
+              className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.1em] text-muted underline decoration-line underline-offset-4 hover:text-accent"
             >
               <Square size={9} aria-hidden />
               End early
             </button>
-            <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted">
+            <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">
               {active.status === 'paused' ? 'paused' : 'running'}
             </span>
           </div>
@@ -325,7 +331,7 @@ export function FocusRoomPage() {
             <Play size={15} aria-hidden />
             Start {tab === 'focus' ? `${durations.focus}-minute focus` : `${durations[tab]}-minute break`}
           </Button>
-          <p className="font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted">
+          <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted">
             {state.settings.shortcutsEnabled ? 'Space to start · XP after a complete session' : 'XP after a complete session'}
           </p>
         </>
@@ -338,19 +344,19 @@ export function FocusRoomPage() {
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-4">
         <div>
           <div className="flex items-center gap-3">
-            <span className="font-mono text-[10px] tracking-[0.18em] text-accent">04</span>
+            <span className="font-mono text-[12px] tracking-[0.18em] text-accent">04</span>
             <span className="h-px w-6 bg-line" aria-hidden />
-            <span className="eyebrow">Focus room · 集中</span>
+            <span className="eyebrow">Focus room</span>
           </div>
           <h1 className="mt-2 text-[26px] leading-tight sm:text-[30px]">A single block of time.</h1>
-          <p className="mt-1 text-[12px] leading-6 text-muted">
+          <p className="mt-1 text-[14px] leading-6 text-muted">
             One step at a time. The timer keeps running even if you look away.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Link
             to="/settings#focus"
-            className="inline-flex items-center gap-1.5 border border-line bg-paper px-2.5 py-1.5 text-[10.5px] text-muted transition-colors hover:text-ink"
+            className="inline-flex items-center gap-1.5 border border-line bg-paper px-2.5 py-1.5 text-[12px] text-muted transition-colors hover:text-ink"
           >
             <Settings2 size={12} aria-hidden />
             Session settings
@@ -382,11 +388,8 @@ export function FocusRoomPage() {
                       active && !isActive && 'opacity-40',
                     )}
                   >
-                    <span className="font-mono text-[8px] uppercase tracking-[0.14em]">
-                      {TYPE_LABEL[type].jp}
-                    </span>
-                    <span className="text-[11px]">{TYPE_LABEL[type].label}</span>
-                    <span className="font-mono text-[8.5px] text-muted">{durations[type]} min</span>
+                    <span className="text-[13px] font-medium">{TYPE_LABEL[type]}</span>
+                    <span className="font-mono text-[10px] text-muted">{durations[type]} min</span>
                   </button>
                 );
               })}
@@ -406,7 +409,7 @@ export function FocusRoomPage() {
                   aria-hidden
                 />
               ))}
-              <span className="ml-1 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted">
+              <span className="ml-1 font-mono text-[10px] uppercase tracking-[0.1em] text-muted">
                 Cycle {cycleDone}/{cycleTarget} · long break after {cycleTarget}
               </span>
             </div>
@@ -432,7 +435,7 @@ export function FocusRoomPage() {
           <section className="border border-line bg-paper p-4">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="eyebrow">Session task · 課題</p>
+                <p className="eyebrow">Session task</p>
                 <h2 className="mt-0.5 text-[15px]">What are you working on?</h2>
               </div>
               <Button variant="ghost" size="icon" aria-label="Create a task" onClick={() => openTask()}>
@@ -463,7 +466,7 @@ export function FocusRoomPage() {
                       }
                     }}
                     className={cn(
-                      'flex w-full items-center gap-2 py-2 text-left text-[11.5px]',
+                      'flex w-full items-center gap-2 py-2 text-left text-[13px]',
                       !selectedTaskId ? 'text-accent' : 'text-muted hover:text-ink',
                     )}
                   >
@@ -501,7 +504,7 @@ export function FocusRoomPage() {
                         <span className="min-w-0 flex-1">
                           <span
                             className={cn(
-                              'block text-[11.5px] leading-4',
+                              'block text-[13px] leading-4',
                               isSelected ? 'text-ink' : 'text-ink/75',
                             )}
                           >
@@ -509,7 +512,7 @@ export function FocusRoomPage() {
                           </span>
                           <span className="mt-0.5 flex items-center gap-2">
                             <PriorityBadge priority={task.priority} />
-                            <span className="font-mono text-[8.5px] text-muted">
+                            <span className="font-mono text-[10px] text-muted">
                               {task.estimatedMinutes} min
                             </span>
                           </span>
@@ -526,12 +529,12 @@ export function FocusRoomPage() {
             <p className="eyebrow">Session ledger</p>
             <h2 className="mt-0.5 text-[15px]">Recorded effort</h2>
             <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
-              <span className="text-[11px] text-muted">Qualifying focus</span>
-              <span className="font-mono text-[11px] text-ink">
+              <span className="text-[13px] text-muted">Qualifying focus</span>
+              <span className="font-mono text-[13px] text-ink">
                 +{state.settings.xp.focus} XP each
               </span>
             </div>
-            <p className="mt-2 text-[10.5px] leading-5 text-muted">
+            <p className="mt-2 text-[12px] leading-5 text-muted">
               XP is awarded only when the timer completes. Ending early records the time but does
               not award XP.
             </p>
@@ -542,10 +545,10 @@ export function FocusRoomPage() {
                   return (
                     <li key={session.id} className="flex items-start justify-between gap-2 py-2">
                       <div className="min-w-0">
-                        <p className="truncate text-[11px] text-ink/85">
-                          {session.type === 'focus' ? task?.title ?? 'Focus block' : TYPE_LABEL[session.type].label}
+                        <p className="truncate text-[13px] text-ink/85">
+                          {session.type === 'focus' ? task?.title ?? 'Focus block' : TYPE_LABEL[session.type]}
                         </p>
-                        <p className="font-mono text-[8.5px] text-muted">
+                        <p className="font-mono text-[10px] text-muted">
                           {formatDateKey(toDateKey(session.startTime), { day: 'numeric', month: 'short' })}{' '}
                           · {Math.round(session.actualSeconds / 60)}min
                         </p>
@@ -561,7 +564,7 @@ export function FocusRoomPage() {
           </section>
 
           <section className="border border-line bg-paper p-4">
-            <p className="eyebrow">Soundscape · 背景</p>
+            <p className="eyebrow">Soundscape</p>
             <h2 className="mt-0.5 text-[15px]">Ambient sound</h2>
             <div className="mt-3 grid grid-cols-3 gap-px bg-line">
               {([
@@ -588,7 +591,7 @@ export function FocusRoomPage() {
                     }
                     aria-pressed={isActive}
                     className={cn(
-                      'flex flex-col items-center gap-1.5 bg-paper px-2 py-3 text-[10px] transition-colors',
+                      'flex flex-col items-center gap-1.5 bg-paper px-2 py-3 text-[12px] transition-colors',
                       isActive ? 'text-accent' : 'text-muted hover:text-ink',
                     )}
                   >
@@ -598,23 +601,23 @@ export function FocusRoomPage() {
                 );
               })}
             </div>
-            <p className="mt-2 text-[9.5px] leading-4 text-muted">
+            <p className="mt-2 text-[11px] leading-4 text-muted">
               Generated locally. Audio begins after a click, and never leaves your device.
             </p>
           </section>
 
           {selectedTask && taskSessions.length > 0 ? (
             <section className="border border-line bg-paper p-4">
-              <p className="eyebrow">Previous sessions · 履歴</p>
-              <h2 className="mt-0.5 line-clamp-1 text-[13px]">{selectedTask.title}</h2>
+              <p className="eyebrow">Previous sessions</p>
+              <h2 className="mt-0.5 line-clamp-1 text-[15px]">{selectedTask.title}</h2>
               <ul className="mt-2 divide-y divide-line border-t border-line">
                 {taskSessions.map((session) => (
                   <li key={session.id} className="flex items-center justify-between gap-2 py-2">
-                    <span className="font-mono text-[9px] text-muted">
+                    <span className="font-mono text-[11px] text-muted">
                       {formatDateKey(toDateKey(session.startTime), { day: 'numeric', month: 'short' })}{' '}
                       · {formatTime(session.startTime)}
                     </span>
-                    <span className="font-mono text-[9px] text-ink">
+                    <span className="font-mono text-[11px] text-ink">
                       {Math.round(session.actualSeconds / 60)} / {Math.round(session.plannedSeconds / 60)} min
                     </span>
                   </li>
@@ -624,8 +627,8 @@ export function FocusRoomPage() {
           ) : null}
 
           <section className="border border-line bg-paper p-4">
-            <p className="eyebrow">Session plan · 設定</p>
-            <div className="mt-2 space-y-1 font-mono text-[10px] text-muted">
+            <p className="eyebrow">Session plan</p>
+            <div className="mt-2 space-y-1 font-mono text-[12px] text-muted">
               <p className="flex justify-between">
                 <span>Focus</span>
                 <span className="text-ink">{state.settings.focus.focusMinutes} min</span>
@@ -645,7 +648,7 @@ export function FocusRoomPage() {
             </div>
             <Link
               to="/settings#focus"
-              className="mt-3 inline-block text-[10px] text-accent underline decoration-accent/40 underline-offset-2"
+              className="mt-3 inline-block text-[12px] text-accent underline decoration-accent/40 underline-offset-2"
             >
               Adjust durations
             </Link>
@@ -658,18 +661,18 @@ export function FocusRoomPage() {
           <div className="grain pointer-events-none absolute inset-0" aria-hidden />
           <div className="relative flex items-center justify-between px-5 py-4 sm:px-8">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center border border-accent font-serif text-[13px] text-accent">
-                歩
+              <span className="flex h-8 w-8 items-center justify-center rounded-[8px] border border-accent font-serif text-[15px] text-accent">
+                T
               </span>
               <span className="font-serif text-[19px]">TakTic</span>
-              <span className="ml-2 font-mono text-[8px] uppercase tracking-[0.16em] text-muted">
+              <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
                 Quiet view
               </span>
             </div>
             <button
               type="button"
               onClick={() => setQuiet(false)}
-              className="inline-flex items-center gap-1.5 border border-line bg-paper px-3 py-1.5 text-[10.5px] text-muted hover:text-ink"
+              className="inline-flex items-center gap-1.5 border border-line bg-paper px-3 py-1.5 text-[12px] text-muted hover:text-ink"
             >
               <Minimize2 size={12} aria-hidden />
               Leave quiet view
@@ -678,7 +681,7 @@ export function FocusRoomPage() {
           <div className="relative flex flex-1 flex-col items-center justify-center px-4 pb-16">
             <div className="w-full max-w-[600px]">{dial}</div>
             <div className="mt-6">{controls}</div>
-            <p className="mt-6 font-mono text-[8.5px] uppercase tracking-[0.14em] text-muted">
+            <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
               Esc to leave · Space to pause
             </p>
           </div>
@@ -711,7 +714,7 @@ export function FocusRoomPage() {
         confirmLabel="Skip ahead"
       />
 
-      <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-3 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted">
+      <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted">
         <span className="inline-flex items-center gap-1">
           <CheckCircle2 size={10} aria-hidden />
           Timestamp-based timer
@@ -800,7 +803,7 @@ function TimerDial({
         <circle cx="160" cy="18" r="2.2" fill="rgb(var(--accent))" />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center px-12 text-center">
-        <span className="flex items-center gap-2 font-mono text-[8.5px] uppercase tracking-[0.2em] text-muted">
+        <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
           <span
             className={cn(
               'h-1 w-1 rounded-full',
@@ -808,7 +811,7 @@ function TimerDial({
             )}
             aria-hidden
           />
-          {TYPE_LABEL[type].jp} · {TYPE_LABEL[type].label}
+          {TYPE_LABEL[type]}
         </span>
         <span
           className={cn(
@@ -818,10 +821,10 @@ function TimerDial({
         >
           {formatClock(remainingSeconds)}
         </span>
-        <span className="mt-3 max-w-[240px] text-[10.5px] leading-4 text-muted">
+        <span className="mt-3 max-w-[240px] text-[12px] leading-4 text-muted">
           {taskTitle ?? (breakSession ? 'Step away from the desk.' : 'No task attached')}
         </span>
-        <span className="mt-1 font-mono text-[8px] uppercase tracking-[0.1em] text-muted/70">
+        <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-muted/70">
           {plannedMinutes} minute block
         </span>
       </div>

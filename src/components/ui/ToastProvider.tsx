@@ -127,9 +127,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <div className="flex items-start gap-2.5">
                 <span className="mt-0.5 shrink-0">{toneStyles[item.tone].icon}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-medium leading-5 text-ink">{item.title}</p>
+                  <p className="text-[15px] font-medium leading-5 text-ink">{item.title}</p>
                   {item.description ? (
-                    <p className="mt-0.5 text-[12px] leading-5 text-muted">{item.description}</p>
+                    <p className="mt-0.5 text-[14px] leading-5 text-muted">{item.description}</p>
                   ) : null}
                   {item.action ? (
                     <button
@@ -138,7 +138,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                         item.action?.onClick();
                         dismiss(item.id);
                       }}
-                      className="mt-1.5 text-[12px] font-medium text-accent underline decoration-accent/40 underline-offset-2 transition-colors hover:decoration-accent"
+                      className="mt-1.5 text-[14px] font-medium text-accent underline decoration-accent/40 underline-offset-2 transition-colors hover:decoration-accent"
                     >
                       {item.action.label}
                     </button>

@@ -5,7 +5,7 @@ export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'quie
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-[2px] border font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-45 whitespace-nowrap';
+  'inline-flex items-center justify-center gap-2 rounded-[8px] border font-medium transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-45 whitespace-nowrap';
 
 const variants: Record<ButtonVariant, string> = {
   primary:
@@ -21,10 +21,10 @@ const variants: Record<ButtonVariant, string> = {
 };
 
 const sizes: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3 text-[12px]',
-  md: 'h-9 px-4 text-[13px]',
-  lg: 'h-11 px-5 text-[13.5px]',
-  icon: 'h-8 w-8 p-0',
+  sm: 'h-9 px-3.5 text-[15px]',
+  md: 'h-10 px-4 text-[14px]',
+  lg: 'h-12 px-5 text-[15px]',
+  icon: 'h-9 w-9 p-0',
 };
 
 export function buttonClass(

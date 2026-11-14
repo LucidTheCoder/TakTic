@@ -11,9 +11,9 @@ interface ProgressBarProps {
 }
 
 const heights = {
-  sm: 'h-[3px]',
-  md: 'h-1.5',
-  lg: 'h-2.5',
+  sm: 'h-[4px]',
+  md: 'h-2',
+  lg: 'h-3',
 };
 
 const tones = {
@@ -32,7 +32,7 @@ export function ProgressBar({
   const clamped = Math.max(0, Math.min(100, Math.round(value)));
   return (
     <div
-      className={cn('w-full overflow-hidden bg-stone/60', heights[height], className)}
+      className={cn('w-full overflow-hidden rounded-full bg-stone/60', heights[height], className)}
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
@@ -69,8 +69,8 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center border border-dashed border-line bg-paper/40 px-6 text-center',
-        compact ? 'py-8' : 'py-14',
+        'flex flex-col items-center justify-center rounded-[12px] border border-dashed border-line bg-paper/40 px-6 text-center',
+        compact ? 'py-9' : 'py-14',
       )}
     >
       {icon ? (
@@ -79,9 +79,9 @@ export function EmptyState({
         </div>
       ) : null}
       {eyebrow ? <p className="eyebrow mb-2">{eyebrow}</p> : null}
-      <h3 className={cn('text-balance', compact ? 'text-[17px]' : 'text-[20px]')}>{title}</h3>
+      <h3 className={cn('text-balance', compact ? 'text-[19px]' : 'text-[23px]')}>{title}</h3>
       {description ? (
-        <p className="mt-2 max-w-sm text-[12.5px] leading-6 text-muted">{description}</p>
+        <p className="mt-2 max-w-md text-[14px] leading-6 text-muted">{description}</p>
       ) : null}
       {action ? <div className="mt-5">{action}</div> : null}
     </div>
@@ -122,7 +122,7 @@ export function InlineNote({
   return (
     <p
       className={cn(
-        'border-l-2 py-1 pl-3 text-[12px] leading-5',
+        'border-l-2 py-1 pl-3 text-[15px] leading-6',
         tone === 'accent'
           ? 'border-accent/60 text-ink/80'
           : tone === 'sage'

@@ -31,7 +31,7 @@ export function TabBar<T extends string>({
             aria-selected={active}
             onClick={() => onChange(item.value)}
             className={cn(
-              'relative -mb-px flex shrink-0 items-center gap-1.5 border-b-[1.5px] pb-2.5 pt-1 text-[12px] transition-colors',
+              'relative -mb-px flex shrink-0 items-center gap-1.5 border-b-[1.5px] pb-2.5 pt-1 text-[14px] transition-colors',
               active
                 ? 'border-accent text-ink'
                 : 'border-transparent text-muted hover:border-line hover:text-ink/80',
@@ -41,7 +41,7 @@ export function TabBar<T extends string>({
             {typeof item.count === 'number' ? (
               <span
                 className={cn(
-                  'font-mono text-[9.5px]',
+                  'font-mono text-[11px]',
                   active ? 'text-accent' : 'text-muted/80',
                 )}
               >
@@ -85,7 +85,7 @@ export function Segmented<T extends string>({
             onClick={() => onChange(item.value)}
             className={cn(
               'px-3 transition-colors',
-              size === 'sm' ? 'py-1 text-[10.5px]' : 'py-1.5 text-[11.5px]',
+              size === 'sm' ? 'py-1 text-[12px]' : 'py-1.5 text-[13px]',
               active
                 ? 'bg-accent text-paper'
                 : 'text-muted hover:bg-surface2 hover:text-ink',

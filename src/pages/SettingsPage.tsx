@@ -14,6 +14,7 @@ import {
   Trash2,
   Upload,
   UserRound,
+  Volume2,
 } from 'lucide-react';
 import { useTakTic } from '../store/TakTicProvider';
 import { useToast } from '../components/ui/ToastProvider';
@@ -39,6 +40,7 @@ import {
   testOpenRouterConnection,
 } from '../services/ai/client';
 import { DEFAULT_AI_MODEL } from '../services/ai/models';
+import { playChime, unlockAudio } from '../services/audio';
 import { defaultSettings } from '../services/gamification/xp';
 import type {
   AccentName,
@@ -50,13 +52,13 @@ import { formatDateKey, todayKey } from '../utils/date';
 import { cn } from '../utils/cn';
 
 const SECTIONS = [
-  { id: 'appearance', index: '01', label: 'Appearance', jp: '外観' },
-  { id: 'focus', index: '02', label: 'Focus', jp: '集中' },
-  { id: 'ai', index: '03', label: 'AI connection', jp: '知能' },
-  { id: 'profile', index: '04', label: 'Profile', jp: '名票' },
-  { id: 'notifications', index: '05', label: 'Notifications', jp: '通知' },
-  { id: 'shortcuts', index: '06', label: 'Shortcuts', jp: '鍵' },
-  { id: 'data', index: '07', label: 'Data & demo', jp: '記録' },
+  { id: 'appearance', index: '01', label: 'Appearance' },
+  { id: 'focus', index: '02', label: 'Focus' },
+  { id: 'ai', index: '03', label: 'AI connection' },
+  { id: 'profile', index: '04', label: 'Profile' },
+  { id: 'notifications', index: '05', label: 'Notifications' },
+  { id: 'shortcuts', index: '06', label: 'Shortcuts' },
+  { id: 'data', index: '07', label: 'Data & demo' },
 ];
 
 const ACCENTS: Array<{ value: AccentName; label: string; hex: string }> = [
@@ -66,7 +68,7 @@ const ACCENTS: Array<{ value: AccentName; label: string; hex: string }> = [
   { value: 'ochre', label: 'Ochre', hex: '#A4772F' },
 ];
 
-const AVATARS = ['', '歩', '山', '花', '月'];
+const AVATARS = ['', 'T', 'S', 'A', 'M'];
 
 export function SettingsPage() {
   const {
@@ -277,9 +279,10 @@ export function SettingsPage() {
   };
 
   const restoreDashboard = () => {
+    const defaults = defaultSettings().dashboard;
     dispatch({
       type: 'UPDATE_SETTINGS',
-      patch: { dashboard: defaultSettings().dashboard },
+      patch: { dashboard: { order: defaults.order, hidden: defaults.hidden, customized: false } },
     });
     toast({ title: 'Dashboard layout restored', tone: 'success' });
   };
@@ -294,7 +297,7 @@ export function SettingsPage() {
     <div>
       <PageHeader
         index="09"
-        jp="設定"
+        jp=""
         title="Settings"
         description="Adjust the workspace to fit you. Everything is stored locally in this browser; nothing is sent anywhere except the AI requests you explicitly make."
       />
@@ -307,19 +310,16 @@ export function SettingsPage() {
               <a
                 key={section.id}
                 href={`#${section.id}`}
-                className="group flex shrink-0 items-baseline gap-2 px-2 py-1.5 text-[11.5px] text-muted transition-colors hover:bg-surface2 hover:text-ink lg:px-2.5"
+                className="group flex shrink-0 items-baseline gap-2 px-2 py-1.5 text-[13px] text-muted transition-colors hover:bg-surface2 hover:text-ink lg:px-2.5"
               >
-                <span className="font-mono text-[8.5px] tracking-[0.12em] text-muted/70 group-hover:text-accent">
+                <span className="font-mono text-[10px] tracking-[0.12em] text-muted/70 group-hover:text-accent">
                   {section.index}
                 </span>
                 {section.label}
-                <span className="ml-auto hidden font-serif text-[10px] text-muted/60 lg:inline">
-                  {section.jp}
-                </span>
               </a>
             ))}
           </div>
-          <p className="mt-3 hidden border-t border-line pt-3 font-mono text-[8px] uppercase leading-4 tracking-[0.1em] text-muted lg:block">
+          <p className="mt-3 hidden border-t border-line pt-3 font-mono text-[10px] uppercase leading-4 tracking-[0.1em] text-muted lg:block">
             Schema v{SCHEMA_VERSION}
             <br />
             {storageKb} KB stored
@@ -330,12 +330,12 @@ export function SettingsPage() {
           <SettingsSection
             id="appearance"
             index="01"
-            jp="外観"
+            jp=""
             title="Appearance"
             description="The Japanese editorial light theme is the default. Dark mode keeps the same paper logic rather than inverting to neon."
           >
             <div>
-              <p className="mb-2 text-[11.5px] font-medium text-ink/80">Theme</p>
+              <p className="mb-2 text-[13px] font-medium text-ink/80">Theme</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 <ThemeCard
                   label="Light"
@@ -359,7 +359,7 @@ export function SettingsPage() {
             </div>
 
             <div className="border-t border-line pt-4">
-              <p className="mb-2 text-[11.5px] font-medium text-ink/80">Accent colour</p>
+              <p className="mb-2 text-[13px] font-medium text-ink/80">Accent colour</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {ACCENTS.map((accent) => {
                   const active = state.profile.preferences.accent === accent.value;
@@ -371,7 +371,7 @@ export function SettingsPage() {
                       onClick={() =>
                         dispatch({
                           type: 'UPDATE_PREFERENCES',
-                          patch: { accent: accent.value },
+                          patch: { accent: accent.value, accentChanged: true },
                         })
                       }
                       className={cn(
@@ -387,8 +387,8 @@ export function SettingsPage() {
                         aria-hidden
                       />
                       <span className="min-w-0">
-                        <span className="block text-[11px] text-ink">{accent.label}</span>
-                        <span className="block font-mono text-[7.5px] uppercase tracking-[0.04em] text-muted">
+                        <span className="block text-[13px] text-ink">{accent.label}</span>
+                        <span className="block font-mono text-[10px] uppercase tracking-[0.04em] text-muted">
                           {accent.hex}
                         </span>
                       </span>
@@ -414,8 +414,8 @@ export function SettingsPage() {
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
               <div>
-                <p className="text-[11.5px] font-medium text-ink/80">Dashboard layout</p>
-                <p className="mt-0.5 text-[11px] leading-5 text-muted">
+                <p className="text-[13px] font-medium text-ink/80">Dashboard layout</p>
+                <p className="mt-0.5 text-[13px] leading-5 text-muted">
                   {hiddenWidgets > 0
                     ? `${hiddenWidgets} widget${hiddenWidgets === 1 ? '' : 's'} hidden.`
                     : 'All widgets are visible.'}{' '}
@@ -425,7 +425,7 @@ export function SettingsPage() {
               <div className="flex flex-wrap gap-2">
                 <Link
                   to="/"
-                  className="inline-flex h-8 items-center gap-1.5 border border-line bg-paper px-3 text-[11.5px] text-ink hover:border-ink/30"
+                  className="inline-flex h-8 items-center gap-1.5 border border-line bg-paper px-3 text-[13px] text-ink hover:border-ink/30"
                 >
                   <LayoutDashboard size={13} aria-hidden /> Open dashboard
                 </Link>
@@ -439,7 +439,7 @@ export function SettingsPage() {
           <SettingsSection
             id="focus"
             index="02"
-            jp="集中"
+            jp=""
             title="Focus room"
             description="Default session lengths and ambient sound. Changes apply to the next session; a running timer is never altered mid-session."
           >
@@ -510,9 +510,44 @@ export function SettingsPage() {
                 <Toggle
                   checked={settings.focus.sound}
                   onChange={(checked) => updateFocus({ sound: checked })}
-                  label="Completion chime"
-                  description="A short, quiet tone when a timer finishes."
+                  label="Sound effects"
+                  description="Quiet tones for starting, finishing and completing tasks."
                 />
+                <div className="mt-3 border border-line bg-ivory/50 px-3 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <label htmlFor="sound-volume" className="text-[13px] text-ink">
+                      Volume
+                    </label>
+                    <span className="font-mono text-[12px] text-muted">
+                      {Math.round(settings.focus.soundVolume * 100)}%
+                    </span>
+                  </div>
+                  <input
+                    id="sound-volume"
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={Math.round(settings.focus.soundVolume * 100)}
+                    onChange={(event) => {
+                      unlockAudio();
+                      updateFocus({ soundVolume: Number(event.target.value) / 100 });
+                    }}
+                    className="mt-2 h-2 w-full cursor-pointer accent-[rgb(var(--accent))]"
+                    aria-label="Sound volume"
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="mt-2"
+                    onClick={() => {
+                      unlockAudio();
+                      playChime('test', settings.focus.soundVolume);
+                    }}
+                  >
+                    <Volume2 size={12} aria-hidden /> Test sound
+                  </Button>
+                </div>
                 <Toggle
                   checked={settings.focus.autoStartBreaks}
                   onChange={(checked) => updateFocus({ autoStartBreaks: checked })}
@@ -548,7 +583,7 @@ export function SettingsPage() {
           <SettingsSection
             id="ai"
             index="03"
-            jp="知能"
+            jp=""
             title="AI connection"
             description={
               managedAi
@@ -558,11 +593,11 @@ export function SettingsPage() {
           >
             {managedAi ? (
               <div className="border border-line bg-surface2/40 px-4 py-3">
-                <p className="flex items-center gap-1.5 text-[11.5px] font-medium text-ink">
+                <p className="flex items-center gap-1.5 text-[13px] font-medium text-ink">
                   <Lock size={13} className="text-accent" aria-hidden /> AI is provided by this
                   deployment
                 </p>
-                <p className="mt-1 text-[11px] leading-5 text-ink/75">
+                <p className="mt-1 text-[13px] leading-5 text-ink/75">
                   The owner’s OpenRouter key stays in the server function and is never sent to
                   visitors. Every AI request uses zero-cost free models with automatic fallbacks.
                 </p>
@@ -576,7 +611,7 @@ export function SettingsPage() {
                     {testing ? <Loader2 size={13} className="animate-spin" aria-hidden /> : null}
                     {testing ? 'Testing…' : 'Test deployment connection'}
                   </Button>
-                  <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-muted">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
                     Server-side key · free models
                   </span>
                 </div>
@@ -586,11 +621,11 @@ export function SettingsPage() {
             {!managedAi ? (
               <>
             <div className="border-l-2 border-accent/70 bg-accent-soft/30 px-3 py-2.5">
-              <p className="flex items-center gap-1.5 text-[11.5px] font-medium text-ink">
+              <p className="flex items-center gap-1.5 text-[13px] font-medium text-ink">
                 <KeyRound size={13} className="text-accent" aria-hidden /> Browser-side keys are for a
                 local prototype
               </p>
-              <p className="mt-1 text-[11px] leading-5 text-ink/75">
+              <p className="mt-1 text-[13px] leading-5 text-ink/75">
                 A key saved in LocalStorage is readable by anyone with access to this browser. For a
                 deployed version, send AI requests through a small server or Worker and keep the key
                 out of the browser. Never commit a key to source control.
@@ -612,7 +647,7 @@ export function SettingsPage() {
                     placeholder="sk-or-v1-…"
                     autoComplete="off"
                     spellCheck={false}
-                    className="pr-10 font-mono text-[11px]"
+                    className="pr-10 font-mono text-[13px]"
                   />
                   <button
                     type="button"
@@ -635,7 +670,7 @@ export function SettingsPage() {
                   onChange={(event) => setModelDraft(event.target.value)}
                   placeholder={DEFAULT_AI_MODEL}
                   spellCheck={false}
-                  className="font-mono text-[11px]"
+                  className="font-mono text-[13px]"
                 />
               </Field>
             </div>
@@ -646,7 +681,7 @@ export function SettingsPage() {
                 onClick={() => setModelDraft(DEFAULT_AI_MODEL)}
                 title={DEFAULT_AI_MODEL}
                 className={cn(
-                  'border px-2 py-1 font-mono text-[9px] transition-colors',
+                  'border px-2 py-1 font-mono text-[11px] transition-colors',
                   modelDraft === DEFAULT_AI_MODEL
                     ? 'border-accent/50 bg-accent-soft/40 text-accent'
                     : 'border-line text-muted hover:border-ink/25 hover:text-ink',
@@ -654,7 +689,7 @@ export function SettingsPage() {
               >
                 Free default
               </button>
-              <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-muted">
+              <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
                 Zero cost · free fallbacks · no reasoning overhead
               </span>
             </div>
@@ -686,7 +721,7 @@ export function SettingsPage() {
                 href="https://openrouter.ai/keys"
                 target="_blank"
                 rel="noreferrer noopener"
-                className="ml-auto inline-flex items-center gap-1 text-[10.5px] text-muted underline decoration-line underline-offset-2 hover:text-ink"
+                className="ml-auto inline-flex items-center gap-1 text-[12px] text-muted underline decoration-line underline-offset-2 hover:text-ink"
               >
                 OpenRouter keys <ExternalLink size={10} aria-hidden />
               </a>
@@ -699,7 +734,7 @@ export function SettingsPage() {
                 {testResult.message}
               </InlineNote>
             ) : (
-              <p className="font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted">
+              <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
                 {managedAi
                   ? 'Server-managed key · AI features available to every visitor'
                   : settings.ai.apiKey
@@ -710,8 +745,8 @@ export function SettingsPage() {
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
               <div>
-                <p className="text-[11.5px] font-medium text-ink/80">Companion style</p>
-                <p className="mt-0.5 text-[10.5px] leading-5 text-muted">
+                <p className="text-[13px] font-medium text-ink/80">Companion style</p>
+                <p className="mt-0.5 text-[12px] leading-5 text-muted">
                   Changes tone only. It never changes the data the companion is allowed to see.
                 </p>
               </div>
@@ -732,7 +767,7 @@ export function SettingsPage() {
           <SettingsSection
             id="profile"
             index="04"
-            jp="名票"
+            jp=""
             title="Profile"
             description="The name and mark used in the sidebar and greetings. No account exists; this profile lives only in this browser."
           >
@@ -778,7 +813,7 @@ export function SettingsPage() {
                     </Button>
                   </div>
                 </Field>
-                <p className="mt-3 text-[10.5px] text-muted">
+                <p className="mt-3 text-[12px] text-muted">
                   Member since{' '}
                   {formatDateKey(state.profile.createdAt.slice(0, 10), {
                     day: 'numeric',
@@ -791,8 +826,8 @@ export function SettingsPage() {
             </div>
 
             <div className="border-t border-line pt-3">
-              <p className="mb-1 text-[11.5px] font-medium text-ink/80">Avatar mark</p>
-              <p className="mb-2 text-[10.5px] leading-5 text-muted">
+              <p className="mb-1 text-[13px] font-medium text-ink/80">Avatar mark</p>
+              <p className="mb-2 text-[12px] leading-5 text-muted">
                 A single character, in the spirit of a personal seal. Initials are used if none is
                 chosen.
               </p>
@@ -832,7 +867,7 @@ export function SettingsPage() {
           <SettingsSection
             id="notifications"
             index="05"
-            jp="通知"
+            jp=""
             title="Notifications"
             description="Quiet, optional nudges. TakTic never uses guilt, countdown pressure or streak-loss warnings."
           >
@@ -875,7 +910,7 @@ export function SettingsPage() {
                 description="A single notice when a new mark is earned."
               />
             </div>
-            <p className="border-t border-line pt-3 font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted">
+            <p className="border-t border-line pt-3 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
               Browser permission: {permission} · never requested without a click
             </p>
           </SettingsSection>
@@ -883,7 +918,7 @@ export function SettingsPage() {
           <SettingsSection
             id="shortcuts"
             index="06"
-            jp="鍵"
+            jp=""
             title="Keyboard"
             description="Shortcuts stay out of the way: they never fire while you are typing in a field, and can be turned off entirely."
           >
@@ -907,8 +942,8 @@ export function SettingsPage() {
                   key={shortcut.keys}
                   className="flex items-center justify-between gap-4 py-2.5"
                 >
-                  <span className="text-[12px] text-ink/85">{shortcut.label}</span>
-                  <kbd className="border border-line bg-surface2 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+                  <span className="text-[14px] text-ink/85">{shortcut.label}</span>
+                  <kbd className="border border-line bg-surface2 px-2 py-1 font-mono text-[11px] uppercase tracking-[0.08em] text-muted">
                     {shortcut.keys}
                   </kbd>
                 </div>
@@ -925,7 +960,7 @@ export function SettingsPage() {
           <SettingsSection
             id="data"
             index="07"
-            jp="記録"
+            jp=""
             title="Data and demonstration"
             description="The workspace is a single LocalStorage record. Export before clearing site data, switching browsers or resetting."
           >
@@ -966,7 +1001,7 @@ export function SettingsPage() {
               />
             </div>
             {importName ? (
-              <p className="font-mono text-[9px] text-muted">Selected: {importName}</p>
+              <p className="font-mono text-[11px] text-muted">Selected: {importName}</p>
             ) : null}
             {importError ? (
               <InlineNote tone="accent">
@@ -974,7 +1009,7 @@ export function SettingsPage() {
                 {importError}
               </InlineNote>
             ) : (
-              <p className="text-[10.5px] leading-5 text-muted">
+              <p className="text-[12px] leading-5 text-muted">
                 Import validates the whole file before changing anything. A malformed backup is
                 rejected without touching the current workspace.
               </p>
@@ -983,8 +1018,8 @@ export function SettingsPage() {
             <div className="border-t border-line pt-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[11.5px] font-medium text-ink/80">Demonstration workspace</p>
-                  <p className="mt-0.5 max-w-md text-[10.5px] leading-5 text-muted">
+                  <p className="text-[13px] font-medium text-ink/80">Demonstration workspace</p>
+                  <p className="mt-0.5 max-w-md text-[12px] leading-5 text-muted">
                     {demoOn
                       ? 'The Mika demo workspace is active. The header marks it as a demonstration, and its projects, tasks, sessions and XP carry demo markers.'
                       : 'Load a coherent example — the Biology Research Assignment — to explore adaptation, focus and progression immediately.'}
@@ -1019,8 +1054,8 @@ export function SettingsPage() {
             <div className="border-t border-line pt-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[11.5px] font-medium text-ink/80">Reset the workspace</p>
-                  <p className="mt-0.5 max-w-md text-[10.5px] leading-5 text-muted">
+                  <p className="text-[13px] font-medium text-ink/80">Reset the workspace</p>
+                  <p className="mt-0.5 max-w-md text-[12px] leading-5 text-muted">
                     Removes projects, tasks, sessions, XP, achievements, adaptations and settings
                     from this browser. Undo is offered once in the confirmation toast.
                   </p>
@@ -1038,7 +1073,7 @@ export function SettingsPage() {
               </div>
             </div>
 
-            <p className="border-t border-line pt-3 font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted">
+            <p className="border-t border-line pt-3 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
               Local only · no account · no remote database · export available at any time
             </p>
           </SettingsSection>
@@ -1119,7 +1154,7 @@ export function SettingsPage() {
         }
       >
         <div className="space-y-3">
-          <p className="text-[12.5px] leading-6 text-ink/85">
+          <p className="text-[14px] leading-6 text-ink/85">
             This clears the LocalStorage record for TakTic in this browser: projects, tasks,
             subtasks, sessions, XP, achievements, adaptation history, preferences and the AI key.
           </p>
@@ -1147,7 +1182,6 @@ export function SettingsPage() {
 function SettingsSection({
   id,
   index,
-  jp,
   title,
   description,
   children,
@@ -1167,15 +1201,14 @@ function SettingsSection({
     >
       <header className="border-b border-line px-4 py-4 sm:px-5">
         <div className="flex items-baseline gap-3">
-          <span className="font-mono text-[9px] tracking-[0.16em] text-accent">{index}</span>
-          <span className="font-serif text-[10px] text-muted">{jp}</span>
+          <span className="font-mono text-[11px] tracking-[0.16em] text-accent">{index}</span>
           <span className="h-px flex-1 bg-line" aria-hidden />
         </div>
         <h2 id={`${id}-title`} className="mt-1.5 text-[19px] leading-snug">
           {title}
         </h2>
         {description ? (
-          <p className="mt-1 max-w-2xl text-[11.5px] leading-5 text-muted">{description}</p>
+          <p className="mt-1 max-w-2xl text-[13px] leading-5 text-muted">{description}</p>
         ) : null}
       </header>
       <div className="px-4 py-4 sm:px-5">{children}</div>
@@ -1218,8 +1251,8 @@ function ThemeCard({
       </div>
       <div className="mt-2 flex items-center justify-between gap-2">
         <div>
-          <p className="text-[11.5px] font-medium text-ink">{label}</p>
-          <p className="font-mono text-[8px] uppercase tracking-[0.06em] text-muted">{note}</p>
+          <p className="text-[13px] font-medium text-ink">{label}</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-muted">{note}</p>
         </div>
         {active ? (
           <span className="flex h-4 w-4 items-center justify-center border border-accent bg-accent text-paper">
@@ -1293,9 +1326,9 @@ function NumberSetting({
               event.currentTarget.blur();
             }
           }}
-          className="pr-16 font-mono text-[12px]"
+          className="pr-16 font-mono text-[14px]"
         />
-        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 font-mono text-[8px] uppercase tracking-[0.06em] text-muted">
+        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 font-mono text-[10px] uppercase tracking-[0.06em] text-muted">
           {suffix}
         </span>
       </div>

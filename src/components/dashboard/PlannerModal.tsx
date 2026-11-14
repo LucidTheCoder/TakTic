@@ -167,20 +167,20 @@ export function PlannerModal({ open, onClose }: PlannerModalProps) {
       {preview ? (
         <div className="space-y-4">
           <div className="flex flex-wrap items-center gap-3 border-b border-line pb-3">
-            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-accent">
+            <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-accent">
               {preview.source === 'ai' ? 'AI plan' : 'Rule-based plan'}
             </span>
-            <span className="font-mono text-[9.5px] text-muted">
+            <span className="font-mono text-[11px] text-muted">
               {preview.blocks.length} blocks · {totalFocus} focus min ·{' '}
               {Math.round((totalFocus / availableMinutes) * 100)}% of window
             </span>
             {preview.source === 'rule-based' ? (
-              <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+              <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">
                 no AI used
               </span>
             ) : null}
           </div>
-          <p className="text-[12.5px] leading-6 text-ink/85">{preview.summary}</p>
+          <p className="text-[14px] leading-6 text-ink/85">{preview.summary}</p>
           <ul className="divide-y divide-line border border-line">
             {preview.blocks.map((block) => (
               <li
@@ -190,19 +190,19 @@ export function PlannerModal({ open, onClose }: PlannerModalProps) {
                   block.kind === 'focus' ? 'bg-paper' : 'bg-surface2/35',
                 )}
               >
-                <span className="w-[92px] shrink-0 font-mono text-[10px] text-muted">
+                <span className="w-[92px] shrink-0 font-mono text-[12px] text-muted">
                   {formatTime(block.start)}–{formatTime(block.end)}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span
                     className={cn(
-                      'block text-[12.5px] leading-5',
+                      'block text-[14px] leading-5',
                       block.kind === 'focus' ? 'text-ink' : 'text-muted',
                     )}
                   >
                     {block.label}
                   </span>
-                  <span className="mt-0.5 block font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+                  <span className="mt-0.5 block font-mono text-[11px] uppercase tracking-[0.08em] text-muted">
                     {block.kind === 'longBreak' ? 'long break' : block.kind}
                   </span>
                 </span>
@@ -255,7 +255,7 @@ export function PlannerModal({ open, onClose }: PlannerModalProps) {
                       onChange={(event) => setAvailableMinutes(Number(event.target.value))}
                       className="pr-12"
                     />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] text-muted">
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[12px] text-muted">
                       min
                     </span>
                   </div>
@@ -282,7 +282,7 @@ export function PlannerModal({ open, onClose }: PlannerModalProps) {
                       onChange={(event) => setFocusMinutes(Number(event.target.value))}
                       className="pr-12"
                     />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] text-muted">
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[12px] text-muted">
                       min
                     </span>
                   </div>
@@ -294,7 +294,7 @@ export function PlannerModal({ open, onClose }: PlannerModalProps) {
               <div className="border border-line">
                 <div className="flex items-center justify-between border-b border-line px-3 py-2">
                   <span className="eyebrow">Candidate tasks</span>
-                  <span className="font-mono text-[9px] text-muted">
+                  <span className="font-mono text-[11px] text-muted">
                     {eligible.length} ready · {openTasks.length - eligible.length} blocked
                   </span>
                 </div>
@@ -306,14 +306,14 @@ export function PlannerModal({ open, onClose }: PlannerModalProps) {
                         key={task.id}
                         className="flex items-center justify-between gap-3 px-3 py-2"
                       >
-                        <span className="min-w-0 flex-1 truncate text-[12px] text-ink/85">
+                        <span className="min-w-0 flex-1 truncate text-[14px] text-ink/85">
                           {task.title}
                         </span>
-                        <span className="shrink-0 font-mono text-[9px] text-muted">
+                        <span className="shrink-0 font-mono text-[11px] text-muted">
                           {task.estimatedMinutes} min
                         </span>
                         {waiting ? (
-                          <span className="shrink-0 font-mono text-[8.5px] uppercase tracking-[0.08em] text-accent">
+                          <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.08em] text-accent">
                             blocked
                           </span>
                         ) : null}
@@ -333,17 +333,17 @@ export function PlannerModal({ open, onClose }: PlannerModalProps) {
               {savedPlan ? (
                 <div className="flex items-center justify-between gap-3 border border-line bg-surface2/40 px-3 py-2.5">
                   <div>
-                    <p className="text-[11.5px] text-ink">
+                    <p className="text-[13px] text-ink">
                       A plan is already saved for today ({savedPlan.blocks.filter((block) => block.kind === 'focus').length} focus blocks).
                     </p>
-                    <p className="font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+                    <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">
                       {savedPlan.source}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => dispatch({ type: 'DELETE_PLAN', id: savedPlan.id })}
-                    className="shrink-0 text-[10.5px] text-muted underline decoration-line underline-offset-2 hover:text-accent"
+                    className="shrink-0 text-[12px] text-muted underline decoration-line underline-offset-2 hover:text-accent"
                   >
                     Remove
                   </button>
@@ -352,11 +352,11 @@ export function PlannerModal({ open, onClose }: PlannerModalProps) {
 
               {error ? (
                 <div className="border-l-2 border-accent pl-3">
-                  <p className="text-[12px] leading-5 text-ink">{error}</p>
+                  <p className="text-[14px] leading-5 text-ink">{error}</p>
                   <button
                     type="button"
                     onClick={generateRuleBased}
-                    className="mt-1 inline-flex items-center gap-1 text-[11.5px] text-accent underline decoration-accent/40 underline-offset-2"
+                    className="mt-1 inline-flex items-center gap-1 text-[13px] text-accent underline decoration-accent/40 underline-offset-2"
                   >
                     <Wand2 size={11} aria-hidden />
                     Build a simple plan instead
@@ -364,7 +364,7 @@ export function PlannerModal({ open, onClose }: PlannerModalProps) {
                 </div>
               ) : null}
 
-              <p className="border-t border-line pt-3 text-[10.5px] leading-5 text-muted">
+              <p className="border-t border-line pt-3 text-[12px] leading-5 text-muted">
                 Blocked tasks are left out of the simple plan until their dependencies are done.
                 Deadlines, priority and existing estimates decide the order. Nothing is scheduled
                 without your approval.

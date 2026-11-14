@@ -27,7 +27,7 @@ function NotFound() {
       action={
         <Link
           to="/"
-          className="inline-flex h-9 items-center border border-accent bg-accent px-4 text-[12px] text-paper"
+          className="inline-flex h-9 items-center border border-accent bg-accent px-4 text-[14px] text-paper"
         >
           Back to the dashboard
         </Link>

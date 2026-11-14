@@ -70,13 +70,13 @@ export function AppLayout() {
         <header className="sticky top-0 z-30 border-b border-line bg-ivory/95 backdrop-blur lg:hidden">
           <div className="flex h-[52px] items-center gap-3 px-4">
             <Link to="/" className="flex items-center gap-2" aria-label="TakTic home">
-              <span className="flex h-6 w-6 items-center justify-center border border-accent font-serif text-[12px] leading-none text-accent">
-                歩
+              <span className="flex h-7 w-7 items-center justify-center rounded-[8px] border border-accent font-serif text-[14px] leading-none text-accent">
+                T
               </span>
               <span className="font-serif text-[17px] tracking-[-0.01em]">TakTic</span>
             </Link>
-            <span className="ml-1 font-mono text-[8px] uppercase tracking-[0.14em] text-muted">
-              {meta.index} / {meta.jp}
+            <span className="ml-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
+              {meta.index} / {meta.label}
             </span>
             <div className="ml-auto flex items-center gap-1">
               <button
@@ -101,17 +101,17 @@ export function AppLayout() {
 
         <main className="mx-auto w-full max-w-[1180px] px-4 pb-32 pt-6 sm:px-6 md:px-8 md:pt-8 lg:px-10 lg:pb-20 lg:pt-10">
           {state.demoLoaded ? (
-            <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 border border-accent/30 bg-accent-soft/30 px-3 py-2">
-              <span className="border border-accent/40 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.12em] text-accent">
-                Demo · 見本
+            <div className="mb-5 flex flex-col gap-2 border border-accent/30 bg-accent-soft/30 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-3">
+              <span className="w-fit rounded-[6px] border border-accent/40 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-accent">
+                Demo workspace
               </span>
-              <p className="min-w-0 flex-1 text-[10.5px] leading-5 text-ink/75">
+              <p className="min-w-0 flex-1 text-[12px] leading-5 text-ink/75">
                 This is the demonstration workspace. Sample content can be removed without
                 affecting a non-demo workspace.
               </p>
               <Link
                 to="/settings#data"
-                className="text-[10px] text-accent underline decoration-accent/40 underline-offset-2"
+                className="w-fit shrink-0 text-[12px] text-accent underline decoration-accent/40 underline-offset-2"
               >
                 Manage demo data
               </Link>
@@ -127,7 +127,7 @@ export function AppLayout() {
           </motion.div>
         </main>
 
-        <footer className="mx-auto hidden w-full max-w-[1180px] items-center justify-between px-10 pb-8 font-mono text-[8.5px] uppercase tracking-[0.14em] text-muted/70 lg:flex">
+        <footer className="mx-auto hidden w-full max-w-[1180px] items-center justify-between px-10 pb-8 font-mono text-[10px] uppercase tracking-[0.14em] text-muted/70 lg:flex">
           <span>TakTic · one step at a time</span>
           <button
             type="button"

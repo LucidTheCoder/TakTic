@@ -29,11 +29,11 @@ export function Field({
   className,
 }: FieldProps) {
   return (
-    <div className={cn('flex flex-col gap-1.5', className)}>
+    <div className={cn('flex flex-col gap-2', className)}>
       {label ? (
         <label
           htmlFor={htmlFor}
-          className="flex items-center gap-1 text-[11.5px] font-medium tracking-[0.02em] text-ink/80"
+          className="flex items-center gap-1 text-[15px] font-medium tracking-[0.01em] text-ink/80"
         >
           {label}
           {required ? <span className="text-accent">*</span> : null}
@@ -41,11 +41,11 @@ export function Field({
       ) : null}
       {children}
       {error ? (
-        <p className="text-[11.5px] leading-4 text-accent" role="alert">
+        <p className="text-[14px] leading-5 text-accent" role="alert">
           {error}
         </p>
       ) : hint ? (
-        <p className="text-[11.5px] leading-4 text-muted">{hint}</p>
+        <p className="text-[14px] leading-5 text-muted">{hint}</p>
       ) : null}
     </div>
   );
@@ -110,11 +110,11 @@ export function Toggle({ checked, onChange, label, description, disabled }: Togg
   return (
     <div className="flex items-start justify-between gap-4 py-2.5">
       <div className="min-w-0">
-        <label htmlFor={id} className="block text-[13px] font-medium text-ink">
+        <label htmlFor={id} className="block text-[14px] font-medium text-ink">
           {label}
         </label>
         {description ? (
-          <p className="mt-0.5 text-[12px] leading-5 text-muted">{description}</p>
+          <p className="mt-1 text-[15px] leading-5 text-muted">{description}</p>
         ) : null}
       </div>
       <button

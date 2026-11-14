@@ -16,7 +16,6 @@ import {
   Plus,
   RotateCcw,
   SlidersHorizontal,
-  Sparkles,
   Target,
   Timer,
   Trophy,
@@ -27,42 +26,39 @@ import { useTakTic } from '../store/TakTicProvider';
 import { useAppActions } from '../components/app/AppActionsProvider';
 import { useToast } from '../components/ui/ToastProvider';
 import { Button, buttonClass } from '../components/ui/Button';
-import { ConfirmDialog } from '../components/ui/Modal';
 import { ProgressBar, EmptyState } from '../components/ui/Feedback';
 import { AchievementIcon } from '../components/gamification/AchievementIcon';
 import { PriorityBadge } from '../components/ui/Badges';
 import { TaskRow } from '../components/tasks/TaskRow';
 import { ACHIEVEMENTS } from '../services/gamification/achievements';
 import { defaultSettings } from '../services/gamification/xp';
-import { formatDateKey, formatLongDate, greetingForHour, humanRelative, todayKey, formatDuration } from '../utils/date';
+import { formatDateKey, greetingForHour, humanRelative, todayKey, formatDuration } from '../utils/date';
 import { deadlineInfo } from '../utils/date';
 import { cn } from '../utils/cn';
 
 const WIDGETS: Array<{ id: DashboardWidgetId; label: string; description: string }> = [
   { id: 'dailyProgress', label: "Today's progress", description: 'Completion of tasks scheduled today' },
-  { id: 'progression', label: 'Level and streak', description: 'XP, level and activity streak' },
+  { id: 'progression', label: 'Your progress', description: 'XP, level and activity streak' },
   { id: 'todayTasks', label: "Today's tasks", description: 'Tasks scheduled or due today' },
-  { id: 'objectives', label: 'Daily objectives', description: 'Three small targets for today' },
+  { id: 'objectives', label: "Today's goals", description: 'Three small targets for today' },
   { id: 'activeProjects', label: 'Active projects', description: 'Progress across your projects' },
   { id: 'deadlines', label: 'Upcoming deadlines', description: 'The nearest open due dates' },
   { id: 'focusStats', label: 'Focus statistics', description: 'Today and this week in focus time' },
   { id: 'recentAchievements', label: 'Recent achievements', description: 'Your latest unlocks' },
-  { id: 'companionNote', label: 'Companion note', description: 'A note drawn from your workspace' },
+  { id: 'companionNote', label: 'AI note', description: 'A note drawn from your workspace' },
 ];
 
 const SPANS: Record<DashboardWidgetId, string> = {
-  dailyProgress: 'lg:col-span-7',
-  progression: 'lg:col-span-5',
+  dailyProgress: 'lg:col-span-5',
+  progression: 'lg:col-span-4',
   todayTasks: 'lg:col-span-7',
-  objectives: 'lg:col-span-5',
+  objectives: 'lg:col-span-4',
   activeProjects: 'lg:col-span-7',
-  deadlines: 'lg:col-span-5',
-  focusStats: 'lg:col-span-4',
-  recentAchievements: 'lg:col-span-4',
-  companionNote: 'lg:col-span-4',
+  deadlines: 'lg:col-span-4',
+  focusStats: 'lg:col-span-5',
+  recentAchievements: 'lg:col-span-6',
+  companionNote: 'lg:col-span-6',
 };
-
-const JP_DAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
 function companionNote(
   stats: ReturnType<typeof import('../store/selectors').derive>,
@@ -90,14 +86,11 @@ export function DashboardPage() {
     state,
     stats,
     dispatch,
-    captureSnapshot,
-    offerUndo,
   } = useTakTic();
   const { toast } = useToast();
   const navigate = useNavigate();
   const { openTask, openProject, openDecompose, openPlanner } = useAppActions();
   const [customising, setCustomising] = useState(false);
-  const [removeDemoOpen, setRemoveDemoOpen] = useState(false);
 
   const firstName = state.profile.displayName.split(/\s+/)[0] || 'there';
   const now = new Date();
@@ -127,7 +120,7 @@ export function DashboardPage() {
     dispatch({
       type: 'UPDATE_SETTINGS',
       patch: {
-        dashboard: { order, hidden: nextHidden },
+        dashboard: { order, hidden: nextHidden, customized: true },
       },
     });
   };
@@ -149,7 +142,8 @@ export function DashboardPage() {
   };
 
   const restoreLayout = () => {
-    commitLayout(defaultSettings().dashboard.order, []);
+    const defaults = defaultSettings().dashboard;
+    commitLayout(defaults.order, defaults.hidden);
   };
 
   const todayRoots = stats.todaysTasks.filter(
@@ -175,8 +169,8 @@ export function DashboardPage() {
           <section className="flex h-full flex-col border border-line bg-paper p-5 sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="eyebrow">Today&apos;s progress · 本日の進捗</p>
-                <h2 className="mt-1 text-[16px]">The shape of today</h2>
+                <p className="eyebrow">Today&apos;s progress</p>
+                <h2 className="mt-1 text-[20px]">Today&apos;s progress</h2>
               </div>
               <Button variant="ghost" size="sm" onClick={openPlanner}>
                 <CalendarRange size={12} aria-hidden />
@@ -189,10 +183,10 @@ export function DashboardPage() {
                 <span className="ml-0.5 text-[20px] text-muted">%</span>
               </span>
               <div className="pb-1">
-                <p className="font-mono text-[11px] text-ink">
+                <p className="font-mono text-[13px] text-ink">
                   {stats.todayProgress.completed} / {stats.todayProgress.total} tasks completed
                 </p>
-                <p className="mt-0.5 text-[10.5px] text-muted">
+                <p className="mt-0.5 text-[12px] text-muted">
                   {stats.todayProgress.hasTasks
                     ? `${stats.todayProgress.remaining} remaining today`
                     : 'No tasks scheduled today'}
@@ -206,7 +200,7 @@ export function DashboardPage() {
               className="mt-4"
               label="Daily completion"
             />
-            <p className="mt-3 text-[11.5px] leading-5 text-muted">
+            <p className="mt-3 text-[13px] leading-5 text-muted">
               {stats.todayProgress.total === 0
                 ? 'Schedule a task for today to start measuring the day.'
                 : stats.todayProgress.percent >= 100
@@ -216,15 +210,15 @@ export function DashboardPage() {
             <div className="mt-auto grid grid-cols-3 gap-3 border-t border-line pt-4">
               <div>
                 <p className="eyebrow mb-1">Focus</p>
-                <p className="font-mono text-[13px] text-ink">{stats.todayFocusMinutes} min</p>
+                <p className="font-mono text-[15px] text-ink">{stats.todayFocusMinutes} min</p>
               </div>
               <div>
                 <p className="eyebrow mb-1">Objectives</p>
-                <p className="font-mono text-[13px] text-ink">{objectivesDone}/3</p>
+                <p className="font-mono text-[15px] text-ink">{objectivesDone}/3</p>
               </div>
               <div>
                 <p className="eyebrow mb-1">Overdue</p>
-                <p className={cn('font-mono text-[13px]', stats.overdueTasks.length > 0 ? 'text-accent' : 'text-ink')}>
+                <p className={cn('font-mono text-[15px]', stats.overdueTasks.length > 0 ? 'text-accent' : 'text-ink')}>
                   {stats.overdueTasks.length}
                 </p>
               </div>
@@ -237,23 +231,23 @@ export function DashboardPage() {
           <section className="flex h-full flex-col border border-line bg-paper p-5 sm:p-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="eyebrow">Progression · 積み上げ</p>
-                <h2 className="mt-1 text-[16px]">A steady record</h2>
+                <p className="eyebrow">Your progress</p>
+                <h2 className="mt-1 text-[20px]">Your progress</h2>
               </div>
-              <Link to="/statistics" className="text-[10px] text-muted underline decoration-line underline-offset-2 hover:text-ink">
+              <Link to="/statistics" className="text-[12px] text-muted underline decoration-line underline-offset-2 hover:text-ink">
                 Statistics
               </Link>
             </div>
             <div className="mt-5 flex items-end justify-between gap-4">
               <div>
-                <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted">Level</p>
+                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">Level</p>
                 <p className="font-mono text-[46px] leading-none tracking-[-0.04em] text-ink">
                   {String(stats.level.level).padStart(2, '0')}
                 </p>
               </div>
               <div className="text-right">
                 <p className="font-serif text-[14px] text-ink">{stats.level.title}</p>
-                <p className="mt-1 font-mono text-[9.5px] text-muted">
+                <p className="mt-1 font-mono text-[11px] text-muted">
                   {stats.level.intoLevel} / {stats.level.forNext} XP
                 </p>
               </div>
@@ -281,7 +275,7 @@ export function DashboardPage() {
                 <p className="font-mono text-[16px] text-ink">{stats.completedTasksCount}</p>
               </div>
             </div>
-            <p className="mt-3 text-[10.5px] leading-5 text-muted">
+            <p className="mt-3 text-[12px] leading-5 text-muted">
               {state.streak.currentStreak > 0
                 ? `${state.streak.totalActiveDays} active days recorded. A missed day never removes XP.`
                 : 'A new streak starts with one small action. Nothing is lost.'}
@@ -294,17 +288,17 @@ export function DashboardPage() {
           <section className="flex h-full flex-col border border-line bg-paper">
             <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
               <div>
-                <p className="eyebrow">Today · 本日</p>
-                <h2 className="mt-1 flex items-center gap-2 text-[16px]">
-                  Scheduled work
-                  <span className="font-mono text-[10px] text-muted">
+                <p className="eyebrow">Today</p>
+                <h2 className="mt-1 flex items-center gap-2 text-[20px]">
+                  Today&apos;s tasks
+                  <span className="font-mono text-[12px] text-muted">
                     {stats.todayProgress.completed}/{stats.todayProgress.total}
                   </span>
                 </h2>
               </div>
               <Link
                 to="/tasks?view=today"
-                className="inline-flex items-center gap-1 text-[10px] text-muted underline decoration-line underline-offset-2 hover:text-ink"
+                className="inline-flex items-center gap-1 text-[12px] text-muted underline decoration-line underline-offset-2 hover:text-ink"
               >
                 All tasks
                 <ArrowRight size={10} aria-hidden />
@@ -323,7 +317,7 @@ export function DashboardPage() {
                         New task
                       </Button>
                       <Button size="sm" variant="quiet" onClick={openPlanner}>
-                        Plan day
+                        Plan my day
                       </Button>
                     </div>
                   }
@@ -337,7 +331,7 @@ export function DashboardPage() {
                 {todayRoots.length > 5 ? (
                   <Link
                     to="/tasks?view=today"
-                    className="block px-5 py-2.5 text-[11px] text-muted transition-colors hover:text-ink"
+                    className="block px-5 py-2.5 text-[13px] text-muted transition-colors hover:text-ink"
                   >
                     + {todayRoots.length - 5} more scheduled
                   </Link>
@@ -347,7 +341,7 @@ export function DashboardPage() {
             {stats.overdueTasks.length > 0 ? (
               <Link
                 to="/tasks?view=overdue"
-                className="flex items-center gap-2 border-t border-line px-5 py-2.5 text-[10.5px] text-accent transition-colors hover:bg-accent-soft/40"
+                className="flex items-center gap-2 border-t border-line px-5 py-2.5 text-[12px] text-accent transition-colors hover:bg-accent-soft/40"
               >
                 <Clock3 size={11} aria-hidden />
                 {stats.overdueTasks.length} overdue task
@@ -363,8 +357,8 @@ export function DashboardPage() {
           <section className="flex h-full flex-col border border-line bg-paper p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="eyebrow">Daily objectives · 日課</p>
-                <h2 className="mt-1 text-[16px]">Three small targets</h2>
+                <p className="eyebrow">Today&apos;s goals</p>
+                <h2 className="mt-1 text-[20px]">Three small targets</h2>
               </div>
               <Target size={15} className="text-muted" aria-hidden />
             </div>
@@ -384,7 +378,7 @@ export function DashboardPage() {
                       {done ? <Check size={9} strokeWidth={3} /> : null}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className={cn('text-[12px] leading-5', done ? 'text-muted line-through decoration-muted/40' : 'text-ink')}>
+                      <p className={cn('text-[14px] leading-5', done ? 'text-muted line-through decoration-muted/40' : 'text-ink')}>
                         {objective.description}
                       </p>
                       <div className="mt-1 flex items-center gap-2">
@@ -395,7 +389,7 @@ export function DashboardPage() {
                           className="flex-1"
                           label={objective.description}
                         />
-                        <span className="shrink-0 font-mono text-[9px] text-muted">
+                        <span className="shrink-0 font-mono text-[11px] text-muted">
                           {Math.min(objective.currentProgress, objective.target)}/{objective.target}
                         </span>
                       </div>
@@ -404,7 +398,7 @@ export function DashboardPage() {
                 );
               })}
             </ul>
-            <p className="mt-auto border-t border-line pt-3 text-[10px] leading-5 text-muted">
+            <p className="mt-auto border-t border-line pt-3 text-[12px] leading-5 text-muted">
               Each objective is worth {state.settings.xp.objective} XP. Progress comes from real
               completions, not check-ins.
             </p>
@@ -419,14 +413,14 @@ export function DashboardPage() {
           <section className="flex h-full flex-col border border-line bg-paper">
             <div className="flex items-start justify-between gap-3 px-5 py-4">
               <div>
-                <p className="eyebrow">Active projects · 進行中</p>
-                <h2 className="mt-1 text-[16px]">Work in motion</h2>
+                <p className="eyebrow">Active projects</p>
+                <h2 className="mt-1 text-[20px]">Active projects</h2>
               </div>
               <div className="flex items-center gap-2">
-                <button type="button" onClick={() => openProject()} className="text-[10px] text-muted hover:text-ink">
+                <button type="button" onClick={() => openProject()} className="text-[12px] text-muted hover:text-ink">
                   New
                 </button>
-                <Link to="/projects" className="text-[10px] text-muted underline decoration-line underline-offset-2 hover:text-ink">
+                <Link to="/projects" className="text-[12px] text-muted underline decoration-line underline-offset-2 hover:text-ink">
                   All
                 </Link>
               </div>
@@ -457,16 +451,16 @@ export function DashboardPage() {
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0">
-                            <p className="truncate text-[12.5px] text-ink">{project.title}</p>
+                            <p className="truncate text-[14px] text-ink">{project.title}</p>
                             <div className="mt-1 flex flex-wrap items-center gap-2.5">
                               <PriorityBadge priority={project.priority} />
-                              <span className="font-mono text-[9px] text-muted">
+                              <span className="font-mono text-[11px] text-muted">
                                 {progress.completed}/{progress.total} tasks
                               </span>
                               {info ? (
                                 <span
                                   className={cn(
-                                    'font-mono text-[9px]',
+                                    'font-mono text-[11px]',
                                     info.tone === 'overdue' ? 'text-accent' : 'text-muted',
                                   )}
                                 >
@@ -492,7 +486,7 @@ export function DashboardPage() {
               </ul>
             )}
             {activeSummaries.length > 4 ? (
-              <Link to="/projects" className="border-t border-line px-5 py-2 text-[10.5px] text-muted hover:text-ink">
+              <Link to="/projects" className="border-t border-line px-5 py-2 text-[12px] text-muted hover:text-ink">
                 {activeSummaries.length - 4} more active projects
               </Link>
             ) : null}
@@ -505,10 +499,10 @@ export function DashboardPage() {
           <section className="flex h-full flex-col border border-line bg-paper p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="eyebrow">Deadlines · 期限</p>
-                <h2 className="mt-1 text-[16px]">The nearest dates</h2>
+                <p className="eyebrow">Upcoming deadlines</p>
+                <h2 className="mt-1 text-[20px]">Coming up</h2>
               </div>
-              <Link to="/calendar" className="text-[10px] text-muted underline decoration-line underline-offset-2 hover:text-ink">
+              <Link to="/calendar" className="text-[12px] text-muted underline decoration-line underline-offset-2 hover:text-ink">
                 Calendar
               </Link>
             </div>
@@ -533,14 +527,14 @@ export function DashboardPage() {
                         className="flex w-full items-start justify-between gap-3 py-2.5 text-left transition-colors hover:text-accent"
                       >
                         <span className="min-w-0">
-                          <span className="block truncate text-[12px] text-ink">{task.title}</span>
-                          <span className="mt-0.5 block font-mono text-[9px] text-muted">
+                          <span className="block truncate text-[14px] text-ink">{task.title}</span>
+                          <span className="mt-0.5 block font-mono text-[11px] text-muted">
                             {formatDuration(task.estimatedMinutes)} · {task.priority}
                           </span>
                         </span>
                         <span
                           className={cn(
-                            'shrink-0 pt-0.5 font-mono text-[9.5px]',
+                            'shrink-0 pt-0.5 font-mono text-[11px]',
                             info.tone === 'soon' || info.tone === 'overdue' ? 'text-accent' : 'text-muted',
                           )}
                         >
@@ -560,17 +554,17 @@ export function DashboardPage() {
           <section className="flex h-full flex-col border border-line bg-paper p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="eyebrow">Focus · 集中</p>
-                <h2 className="mt-1 text-[16px]">Quiet work</h2>
+                <p className="eyebrow">Focus timer</p>
+                <h2 className="mt-1 text-[20px]">Focus timer</h2>
               </div>
               <Timer size={15} className="text-muted" aria-hidden />
             </div>
             <div className="mt-4 flex items-end gap-4">
               <span className="font-mono text-[36px] leading-none tracking-[-0.04em] text-ink">
                 {stats.todayFocusMinutes}
-                <span className="ml-1 text-[11px] text-muted">min</span>
+                <span className="ml-1 text-[13px] text-muted">min</span>
               </span>
-              <span className="pb-1 font-mono text-[10px] text-muted">
+              <span className="pb-1 font-mono text-[12px] text-muted">
                 {stats.todayFocusSessions} sessions today
               </span>
             </div>
@@ -584,7 +578,7 @@ export function DashboardPage() {
                       className={cn('w-full', day.focusMinutes > 0 ? 'bg-accent/75' : 'bg-stone/60')}
                       style={{ height }}
                     />
-                    <span className={cn('font-mono text-[8px]', isToday ? 'text-accent' : 'text-muted')}>
+                    <span className={cn('font-mono text-[10px]', isToday ? 'text-accent' : 'text-muted')}>
                       {formatDateKey(day.date, { weekday: 'narrow' })}
                     </span>
                   </div>
@@ -592,10 +586,10 @@ export function DashboardPage() {
               })}
             </div>
             <div className="mt-auto flex items-center justify-between border-t border-line pt-3">
-              <p className="font-mono text-[9px] text-muted">
+              <p className="font-mono text-[11px] text-muted">
                 {stats.weekFocusMinutes} min this week · avg {averageFocus} min
               </p>
-              <Link to="/focus" className="text-[10px] text-muted underline decoration-line underline-offset-2 hover:text-ink">
+              <Link to="/focus" className="text-[12px] text-muted underline decoration-line underline-offset-2 hover:text-ink">
                 Open
               </Link>
             </div>
@@ -607,8 +601,8 @@ export function DashboardPage() {
           <section className="flex h-full flex-col border border-line bg-paper p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="eyebrow">Achievements · 功績</p>
-                <h2 className="mt-1 text-[16px]">Recent marks</h2>
+                <p className="eyebrow">Achievements</p>
+                <h2 className="mt-1 text-[20px]">Recent marks</h2>
               </div>
               <Trophy size={15} className="text-muted" aria-hidden />
             </div>
@@ -620,7 +614,7 @@ export function DashboardPage() {
                   title="Your collection is just getting started."
                   description="Complete a task or a focus session to open the first mark."
                   action={
-                    <Link to="/achievements" className="text-[11px] text-accent underline decoration-accent/40 underline-offset-2">
+                    <Link to="/achievements" className="text-[13px] text-accent underline decoration-accent/40 underline-offset-2">
                       View all
                     </Link>
                   }
@@ -635,8 +629,8 @@ export function DashboardPage() {
                         <AchievementIcon name={definition.icon} size={14} />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[12px] text-ink">{definition.name}</p>
-                        <p className="font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted">
+                        <p className="truncate text-[14px] text-ink">{definition.name}</p>
+                        <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
                           {humanRelative(unlock.unlockedAt)} · +{definition.xpReward} XP
                         </p>
                       </div>
@@ -647,7 +641,7 @@ export function DashboardPage() {
             )}
             <Link
               to="/achievements"
-              className="mt-auto border-t border-line pt-3 text-[10px] text-muted underline decoration-line underline-offset-2 hover:text-ink"
+              className="mt-auto border-t border-line pt-3 text-[12px] text-muted underline decoration-line underline-offset-2 hover:text-ink"
             >
               {stats.unlockedAchievements.length} of {ACHIEVEMENTS.length} unlocked
             </Link>
@@ -659,23 +653,23 @@ export function DashboardPage() {
           <section className="flex h-full flex-col border border-line bg-paper p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="eyebrow">Companion note · 案内</p>
-                <h2 className="mt-1 text-[16px]">One observation</h2>
+                <p className="eyebrow">AI note</p>
+                <h2 className="mt-1 text-[20px]">One observation</h2>
               </div>
               <MessageCircle size={15} className="text-muted" aria-hidden />
             </div>
-            <p className="mt-4 text-[12.5px] leading-6 text-ink/85">{note}</p>
+            <p className="mt-4 text-[14px] leading-6 text-ink/85">{note}</p>
             {stats.nextTask ? (
               <div className="mt-3 border-l-2 border-accent/50 pl-3">
                 <p className="eyebrow mb-0.5">Next step</p>
-                <p className="text-[11.5px] leading-5 text-ink/80">{stats.nextTask.title}</p>
+                <p className="text-[13px] leading-5 text-ink/80">{stats.nextTask.title}</p>
               </div>
             ) : null}
             <div className="mt-auto flex items-center justify-between border-t border-line pt-3">
-              <span className="font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted">
+              <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
                 from your workspace
               </span>
-              <Link to="/companion" className="text-[10px] text-accent underline decoration-accent/40 underline-offset-2">
+              <Link to="/companion" className="text-[12px] text-accent underline decoration-accent/40 underline-offset-2">
                 Talk it through
               </Link>
             </div>
@@ -689,91 +683,66 @@ export function DashboardPage() {
 
   return (
     <div>
-      <section className="mb-4 grid border border-line bg-paper md:grid-cols-[1fr_184px]">
-        <div className="p-5 sm:p-7">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="font-mono text-[10px] tracking-[0.18em] text-accent">01</span>
-            <span className="h-px w-6 bg-line" aria-hidden />
-            <span className="eyebrow">Dashboard · 概観</span>
-            <span className="ml-auto hidden font-mono text-[9px] uppercase tracking-[0.1em] text-muted sm:inline">
-              {formatLongDate()}
-            </span>
+      <section className="mb-6 overflow-hidden border border-line bg-paper shadow-paper">
+        <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-end sm:justify-between sm:p-7">
+          <div className="min-w-0">
+            <p className="eyebrow">Dashboard</p>
+            <h1 className="mt-2 text-balance text-[34px] leading-[1.1] sm:text-[44px]">
+              {greetingForHour(now.getHours())}, {firstName}.
+            </h1>
+            <p className="mt-2 text-[15px] leading-6 text-muted">
+              {now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+              {' · '}One step at a time.
+            </p>
           </div>
-          <h1 className="mt-4 text-balance text-[30px] leading-[1.15] sm:text-[36px]">
-            {greetingForHour(now.getHours())}, {firstName}.
-          </h1>
-          <p className="mt-2 text-[12.5px] leading-6 text-muted">
-            {now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })} ·{' '}
-            {JP_DAYS[now.getDay()]}曜日 · One step at a time.
-          </p>
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            <Button variant="primary" onClick={() => openTask()}>
-              <Plus size={14} aria-hidden />
-              New task
-            </Button>
-            <Button variant="secondary" onClick={() => openProject()}>
-              <FolderOpen size={13} aria-hidden />
-              New project
-            </Button>
-            <Button variant="ghost" onClick={() => navigate('/focus')}>
-              <Timer size={13} aria-hidden />
-              Start focus
-            </Button>
-            <Button variant="ghost" onClick={openPlanner}>
-              <CalendarRange size={13} aria-hidden />
-              Plan day
-            </Button>
-            <Button variant="ghost" onClick={() => navigate('/companion')}>
-              <MessageCircle size={13} aria-hidden />
-              Ask companion
-            </Button>
+          <div className="flex shrink-0 items-end gap-4 self-start rounded-[12px] border border-line bg-ivory/60 px-4 py-3 sm:self-auto">
+            <div className="text-right">
+              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">Today</p>
+              <p className="font-serif text-[40px] leading-none tracking-[-0.04em] text-ink">
+                {formatDateKey(today, { day: 'numeric' })}
+              </p>
+              <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.12em] text-muted">
+                {formatDateKey(today, { month: 'long' })} {now.getFullYear()}
+              </p>
+            </div>
           </div>
         </div>
-        <aside className="hidden flex-col items-center justify-center border-l border-line py-6 md:flex">
-          <span className="font-mono text-[8.5px] uppercase tracking-[0.18em] text-muted">Today</span>
-          <span className="mt-1 font-serif text-[58px] leading-none tracking-[-0.04em] text-ink">
-            {formatDateKey(today, { day: 'numeric' })}
-          </span>
-          <span className="mt-1 font-mono text-[9px] uppercase tracking-[0.16em] text-muted">
-            {formatDateKey(today, { month: 'long' })}
-          </span>
-          <span className="mt-5 h-12 w-px bg-line" aria-hidden />
-          <span className="vertical-jp mt-4 text-[9px] text-muted">一歩ずつ</span>
-        </aside>
+        <div className="flex flex-wrap items-center gap-2 border-t border-line bg-ivory/40 px-6 py-4 sm:px-7">
+          <Button variant="primary" onClick={() => openTask()}>
+            <Plus size={14} aria-hidden />
+            New task
+          </Button>
+          <Button variant="secondary" onClick={() => openProject()}>
+            <FolderOpen size={13} aria-hidden />
+            New project
+          </Button>
+          <Button variant="ghost" onClick={() => navigate('/focus')}>
+            <Timer size={13} aria-hidden />
+            Focus timer
+          </Button>
+          <Button variant="ghost" onClick={openPlanner}>
+            <CalendarRange size={13} aria-hidden />
+            Plan my day
+          </Button>
+          <Button variant="ghost" onClick={() => navigate('/companion')}>
+            <MessageCircle size={13} aria-hidden />
+            Ask AI
+          </Button>
+        </div>
       </section>
-
-      {state.demoLoaded ? (
-        <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 border border-accent/30 bg-accent-soft/40 px-4 py-2.5">
-          <span className="inline-flex items-center gap-1.5 font-mono text-[8.5px] uppercase tracking-[0.14em] text-accent">
-            <span className="h-1 w-1 rounded-full bg-accent" aria-hidden />
-            Demo workspace
-          </span>
-          <p className="min-w-0 flex-1 text-[11px] leading-5 text-ink/75">
-            Four projects and a few weeks of history are loaded so you can try the whole loop.
-            Your own additions are kept if you remove the demo.
-          </p>
-          <button
-            type="button"
-            onClick={() => setRemoveDemoOpen(true)}
-            className="text-[10.5px] text-accent underline decoration-accent/40 underline-offset-2"
-          >
-            Remove demo data
-          </button>
-        </div>
-      ) : null}
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="eyebrow">Overview</span>
+          <span className="eyebrow">Dashboard</span>
           <span className="h-px w-6 bg-line" aria-hidden />
-          <span className="font-mono text-[9px] text-muted">
+          <span className="font-mono text-[11px] text-muted">
             {visibleWidgets.length} of {WIDGETS.length} panels
           </span>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => openDecompose()}>
             <Wand2 size={12} aria-hidden />
-            Break down
+            Split a big task
           </Button>
           <Button
             variant={customising ? 'primary' : 'quiet'}
@@ -792,7 +761,7 @@ export function DashboardPage() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
             <div>
               <p className="eyebrow">Dashboard layout</p>
-              <p className="mt-0.5 text-[11px] text-muted">
+              <p className="mt-0.5 text-[13px] text-muted">
                 Move panels up or down, hide what you do not need. Nothing else changes.
               </p>
             </div>
@@ -808,14 +777,14 @@ export function DashboardPage() {
               const isHidden = hidden.includes(id);
               return (
                 <li key={id} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
-                  <span className="w-5 font-mono text-[9px] text-muted">
+                  <span className="w-5 font-mono text-[11px] text-muted">
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className={cn('block text-[12px]', isHidden ? 'text-muted' : 'text-ink')}>
+                    <span className={cn('block text-[14px]', isHidden ? 'text-muted' : 'text-ink')}>
                       {widget.label}
                     </span>
-                    <span className="block text-[10px] text-muted">{widget.description}</span>
+                    <span className="block text-[12px] text-muted">{widget.description}</span>
                   </span>
                   <div className="flex items-center gap-0.5">
                     <button
@@ -839,7 +808,7 @@ export function DashboardPage() {
                     <button
                       type="button"
                       onClick={() => toggleHidden(id)}
-                      className="ml-1 inline-flex items-center gap-1 border border-line px-2 py-1 font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted transition-colors hover:text-ink"
+                      className="ml-1 inline-flex items-center gap-1 border border-line px-2 py-1 font-mono text-[10px] uppercase tracking-[0.08em] text-muted transition-colors hover:text-ink"
                       aria-label={isHidden ? `Show ${widget.label}` : `Hide ${widget.label}`}
                     >
                       {isHidden ? <Eye size={11} aria-hidden /> : <EyeOff size={11} aria-hidden />}
@@ -856,20 +825,18 @@ export function DashboardPage() {
       {state.projects.length === 0 && state.tasks.length === 0 && !state.demoLoaded ? (
         <section className="mb-4 flex flex-col gap-4 border border-line bg-paper p-5 sm:flex-row sm:items-center">
           <div className="flex-1">
-            <p className="eyebrow">Empty workspace · 空白</p>
-            <h2 className="mt-1 text-[20px]">Nothing on the board yet.</h2>
-            <p className="mt-1 text-[12px] leading-6 text-muted">
-              Start with something you have been putting off. Or load the demo workspace to see
-              the whole progression loop in action, then remove it.
+            <p className="eyebrow">Nothing here yet</p>
+            <h2 className="mt-1 text-[24px]">Nothing planned yet.</h2>
+            <p className="mt-1 text-[15px] leading-7 text-muted">
+              Add a task or create a project to get started.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="primary" onClick={() => openProject()}>
-              Create a project
+            <Button variant="primary" onClick={() => openTask()}>
+              Add a task
             </Button>
-            <Button variant="quiet" onClick={() => openDecompose()}>
-              <Sparkles size={13} aria-hidden />
-              Break down a task
+            <Button variant="secondary" onClick={() => openProject()}>
+              Create a project
             </Button>
             <Button
               variant="ghost"
@@ -878,13 +845,13 @@ export function DashboardPage() {
                 toast({ title: 'Demo workspace loaded', description: 'Four projects and several weeks of history.', tone: 'success' });
               }}
             >
-              Load demo
+              Try demo workspace
             </Button>
           </div>
         </section>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
         {visibleWidgets.map((id) => (
           <div key={id} className={SPANS[id]}>
             {renderWidget(id)}
@@ -905,32 +872,13 @@ export function DashboardPage() {
         />
       ) : null}
 
-      <ConfirmDialog
-        open={removeDemoOpen}
-        onClose={() => setRemoveDemoOpen(false)}
-        onConfirm={() => {
-          const snapshot = captureSnapshot();
-          dispatch({ type: 'REMOVE_DEMO' });
-          setRemoveDemoOpen(false);
-          offerUndo(
-            'Demo data removed',
-            snapshot,
-            'Demo projects, sessions and their XP were removed. Your own work is untouched.',
-          );
-        }}
-        title="Remove the demo workspace?"
-        description="Demo projects, tasks, focus history and the XP tied to them will be removed. Work you added yourself stays. You can undo immediately afterwards."
-        confirmLabel="Remove demo"
-        tone="danger"
-      />
-
-      <div className="mt-8 hidden items-center justify-between border-t border-line pt-4 font-mono text-[8.5px] uppercase tracking-[0.12em] text-muted lg:flex">
+      <div className="mt-8 hidden items-center justify-between border-t border-line pt-4 font-mono text-[10px] uppercase tracking-[0.12em] text-muted lg:flex">
         <span>{formatDateKey(today, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
         <Link to="/statistics" className="inline-flex items-center gap-1 hover:text-ink">
           <CheckCircle2 size={10} aria-hidden />
           Progress is calculated from real tasks
         </Link>
-        <span className={buttonClass('ghost', 'sm', 'pointer-events-none h-auto border-0 p-0 text-[8.5px]')}>
+        <span className={buttonClass('ghost', 'sm', 'pointer-events-none h-auto border-0 p-0 text-[10px]')}>
           <Target size={10} aria-hidden />
           One step at a time
         </span>

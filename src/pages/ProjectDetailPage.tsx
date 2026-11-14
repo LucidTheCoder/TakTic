@@ -23,7 +23,7 @@ import { FEEDBACK_OPTIONS } from '../data/feedback';
 import { formatDateKey, humanRelative } from '../utils/date';
 import { cn } from '../utils/cn';
 import { formatDuration } from '../utils/date';
-import { projectProgress, projectTasks } from '../utils/tasks';
+import { orderTasksByDependencies, projectProgress, projectTasks } from '../utils/tasks';
 
 export function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -37,9 +37,10 @@ export function ProjectDetailPage() {
   const roots = useMemo(() => {
     if (!project) return [];
     const tasks = projectTasks(state.tasks, project.id);
-    return tasks
-      .filter((task) => !task.parentTaskId)
-      .sort((a, b) => a.order - b.order || a.createdAt.localeCompare(b.createdAt));
+    return orderTasksByDependencies(
+      tasks.filter((task) => !task.parentTaskId),
+      tasks,
+    );
   }, [state.tasks, project]);
 
   const adaptations = useMemo(() => {
@@ -58,7 +59,7 @@ export function ProjectDetailPage() {
         title="That project is not here."
         description="It may have been deleted. Completed history and XP remain in your ledger."
         action={
-          <Link to="/projects" className="inline-flex h-9 items-center border border-line px-4 text-[12px] hover:border-ink/30">
+          <Link to="/projects" className="inline-flex h-9 items-center border border-line px-4 text-[14px] hover:border-ink/30">
             All projects
           </Link>
         }
@@ -98,7 +99,7 @@ export function ProjectDetailPage() {
       <div className="mb-4">
         <Link
           to="/projects"
-          className="inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted hover:text-ink"
+          className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-muted hover:text-ink"
         >
           <ArrowLeft size={11} aria-hidden />
           All projects
@@ -107,7 +108,7 @@ export function ProjectDetailPage() {
 
       <PageHeader
         index="03"
-        jp="計画 · 詳細"
+        jp=""
         title={project.title}
         description={project.description || undefined}
         actions={
@@ -118,7 +119,7 @@ export function ProjectDetailPage() {
             </Button>
             <Button variant="secondary" onClick={() => openDecompose({ projectId: project.id })}>
               <Wand2 size={13} aria-hidden />
-              Break down
+              Split a big task
             </Button>
             <Button variant="primary" onClick={() => openTask({ projectId: project.id })}>
               <Plus size={13} aria-hidden />
@@ -143,11 +144,11 @@ export function ProjectDetailPage() {
         <StatusPill tone={completed ? 'sage' : 'neutral'}>
           {completed ? 'Completed' : project.status}
         </StatusPill>
-        <span className="inline-flex items-center gap-1.5 text-[10.5px] text-muted">
+        <span className="inline-flex items-center gap-1.5 text-[12px] text-muted">
           <CalendarClock size={11} aria-hidden />
           {deadlineLabel}
         </span>
-        <span className="inline-flex items-center gap-1.5 text-[10.5px] text-muted">
+        <span className="inline-flex items-center gap-1.5 text-[12px] text-muted">
           <Clock3 size={11} aria-hidden />
           {formatDuration(totalEstimated)} estimated
         </span>
@@ -156,13 +157,13 @@ export function ProjectDetailPage() {
       {completed ? (
         <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 border border-sage/40 bg-sage-soft/50 px-4 py-3">
           <CheckCircle2 size={16} className="text-sage" aria-hidden />
-          <p className="text-[12px] text-ink">
+          <p className="text-[14px] text-ink">
             Project complete
             {project.completedAt
               ? ` on ${formatDateKey(project.completedAt.slice(0, 10), { day: 'numeric', month: 'long', year: 'numeric' })}`
               : ''}.
           </p>
-          <p className="font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+          <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">
             {state.settings.xp.project} XP awarded once · recorded in the ledger
           </p>
         </div>
@@ -171,7 +172,7 @@ export function ProjectDetailPage() {
       <section className="mb-6 border border-line bg-paper p-5 sm:p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="eyebrow mb-1">Completion · 完成度</p>
+            <p className="eyebrow mb-1">Completion</p>
             <p className="font-mono text-[48px] leading-none tracking-[-0.04em] text-ink">
               {progress.percent}
               <span className="ml-1 text-[16px] text-muted">%</span>
@@ -179,19 +180,19 @@ export function ProjectDetailPage() {
           </div>
           <div className="flex flex-wrap gap-x-8 gap-y-2 text-right">
             <div>
-              <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted">Completed</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">Completed</p>
               <p className="font-mono text-[18px] text-ink">{progress.completed}</p>
             </div>
             <div>
-              <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted">Remaining</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">Remaining</p>
               <p className="font-mono text-[18px] text-ink">{progress.remaining}</p>
             </div>
             <div>
-              <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted">Actionable</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">Actionable</p>
               <p className="font-mono text-[18px] text-ink">{progress.total}</p>
             </div>
             <div>
-              <p className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted">Adaptations</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">Adaptations</p>
               <p className="font-mono text-[18px] text-ink">{adaptations.length}</p>
             </div>
           </div>
@@ -203,7 +204,7 @@ export function ProjectDetailPage() {
           className="mt-4"
           label={`${project.title} completion`}
         />
-        <p className="mt-2 text-[10.5px] leading-5 text-muted">
+        <p className="mt-2 text-[12px] leading-5 text-muted">
           Parent tasks are containers and are never counted twice. {progress.hasTasks
             ? `Completion is ${progress.completed} leaf tasks out of ${progress.total}.`
             : 'Add an actionable task to begin measuring progress.'}
@@ -213,7 +214,7 @@ export function ProjectDetailPage() {
       <section className="mb-6 border border-line bg-paper">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
           <div>
-            <p className="eyebrow">Task hierarchy · 作業</p>
+            <p className="eyebrow">Task hierarchy</p>
             <h2 className="mt-0.5 text-[17px]">Steps and phases</h2>
           </div>
           <div className="flex items-center gap-2">
@@ -223,7 +224,7 @@ export function ProjectDetailPage() {
             </Button>
             <Button variant="secondary" size="sm" onClick={() => openDecompose({ projectId: project.id })}>
               <Wand2 size={12} aria-hidden />
-              Break down
+              Split a big task
             </Button>
           </div>
         </div>
@@ -240,7 +241,7 @@ export function ProjectDetailPage() {
                     Add a task
                   </Button>
                   <Button size="sm" variant="quiet" onClick={() => openDecompose({ projectId: project.id })}>
-                    Break down with AI
+                    Split with AI
                   </Button>
                 </div>
               }
@@ -254,7 +255,7 @@ export function ProjectDetailPage() {
           </div>
         )}
         {roots.length === 0 && tasks.length > 0 ? (
-          <p className="px-4 py-3 text-[11.5px] text-muted">
+          <p className="px-4 py-3 text-[13px] text-muted">
             All tasks in this project are nested. They are visible through their parent rows above
             after opening a task from the list.
           </p>
@@ -264,15 +265,15 @@ export function ProjectDetailPage() {
       <section className="border border-line bg-paper p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="eyebrow">Adaptation history · 適応</p>
+            <p className="eyebrow">Adaptation history</p>
             <h2 className="mt-1 text-[17px]">How the work changed shape</h2>
           </div>
-          <p className="font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+          <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">
             {adaptations.length} recent record{adaptations.length === 1 ? '' : 's'}
           </p>
         </div>
         {adaptations.length === 0 ? (
-          <p className="mt-3 border-t border-line pt-3 text-[11.5px] leading-6 text-muted">
+          <p className="mt-3 border-t border-line pt-3 text-[13px] leading-6 text-muted">
             No task in this project has been adapted yet. On any difficult step, choose “Having
             trouble?” and the task can be restructured while completed work is preserved.
           </p>
@@ -284,17 +285,17 @@ export function ProjectDetailPage() {
               return (
                 <li key={record.id} className="py-3">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[12px] text-ink">{task?.title ?? 'Deleted task'}</span>
-                    <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+                    <span className="text-[14px] text-ink">{task?.title ?? 'Deleted task'}</span>
+                    <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">
                       {feedback?.label ?? record.feedbackType}
                     </span>
-                    <span className="ml-auto font-mono text-[9px] text-muted">
+                    <span className="ml-auto font-mono text-[11px] text-muted">
                       {humanRelative(record.createdAt)}
                     </span>
                   </div>
-                  <p className="mt-1 text-[11px] leading-5 text-muted">{record.reasoning}</p>
+                  <p className="mt-1 text-[13px] leading-5 text-muted">{record.reasoning}</p>
                   {record.generatedTasks.length > 0 ? (
-                    <p className="mt-1 font-mono text-[9px] leading-5 text-muted/80">
+                    <p className="mt-1 font-mono text-[11px] leading-5 text-muted/80">
                       + {record.generatedTasks.slice(0, 4).join(' · ')}
                       {record.generatedTasks.length > 4 ? ' …' : ''}
                     </p>
@@ -306,7 +307,7 @@ export function ProjectDetailPage() {
         )}
       </section>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted">
         <span>Created {new Date(project.createdAt).toLocaleDateString('en-GB')}</span>
         <span>Updated {new Date(project.updatedAt).toLocaleDateString('en-GB')}</span>
         <span className={cn(completed ? 'text-sage' : '')}>Status: {project.status}</span>

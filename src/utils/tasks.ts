@@ -35,10 +35,109 @@ export const PROJECT_DEADLINE_TONE: Record<Priority, string> = {
   low: 'text-muted',
 };
 
+function taskRank(a: Task, b: Task): number {
+  if (a.status === 'completed' && b.status !== 'completed') return 1;
+  if (b.status === 'completed' && a.status !== 'completed') return -1;
+  return (
+    PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority] ||
+    (a.deadline ? new Date(a.deadline).getTime() : Number.MAX_SAFE_INTEGER) -
+      (b.deadline ? new Date(b.deadline).getTime() : Number.MAX_SAFE_INTEGER) ||
+    a.order - b.order ||
+    a.createdAt.localeCompare(b.createdAt)
+  );
+}
+
+/**
+ * Places prerequisites before the tasks that depend on them. Priority only
+ * decides between tasks that are ready at the same time. A cycle, or a blocker
+ * outside the visible list, pushes the remainder to the end instead of looping.
+ */
+export function orderTasksByDependencies(
+  tasks: Task[],
+  allTasks: Task[] = tasks,
+  rank: (a: Task, b: Task) => number = taskRank,
+): Task[] {
+  const ids = new Set(tasks.map((task) => task.id));
+  const byId = new Map(allTasks.map((task) => [task.id, task]));
+  const remaining = new Map(tasks.map((task) => [task.id, task]));
+  const placed = new Set<string>();
+  const ordered: Task[] = [];
+
+  const satisfied = (dependencyId: string): boolean => {
+    const dependency = byId.get(dependencyId);
+    if (!dependency) return true;
+    if (dependency.status === 'completed') return true;
+    if (!ids.has(dependencyId)) return false;
+    return placed.has(dependencyId);
+  };
+
+  while (remaining.size > 0) {
+    const ready = [...remaining.values()]
+      .filter((task) => task.dependencies.every((dependencyId) => dependencyId !== task.id && satisfied(dependencyId)))
+      .sort(rank);
+    if (ready.length === 0) {
+      ordered.push(...[...remaining.values()].sort(rank));
+      break;
+    }
+    const next = ready[0];
+    ordered.push(next);
+    placed.add(next.id);
+    remaining.delete(next.id);
+  }
+
+  return ordered;
+}
+
 export function childrenOf(tasks: Task[], taskId: string): Task[] {
-  return tasks
-    .filter((task) => task.parentTaskId === taskId)
-    .sort((a, b) => a.order - b.order || a.createdAt.localeCompare(b.createdAt));
+  return orderTasksByDependencies(
+    tasks.filter((task) => task.parentTaskId === taskId),
+    tasks,
+  );
+}
+
+/** True when adding these prerequisite edges would form a loop. */
+export function wouldCreateDependencyCycle(
+  taskId: string,
+  dependencyIds: string[],
+  tasks: Task[],
+): boolean {
+  const byId = new Map(tasks.map((task) => [task.id, task]));
+  const reachesTask = (fromId: string, seen: Set<string>): boolean => {
+    if (fromId === taskId) return true;
+    if (seen.has(fromId)) return false;
+    seen.add(fromId);
+    const from = byId.get(fromId);
+    if (!from) return false;
+    return from.dependencies.some((nextId) => reachesTask(nextId, seen));
+  };
+  return dependencyIds.some(
+    (dependencyId) => dependencyId === taskId || reachesTask(dependencyId, new Set()),
+  );
+}
+
+/** Drops self-references and edges that would create a cycle. */
+export function sanitizeDependencies(tasks: Task[]): Task[] {
+  const byId = new Map(tasks.map((task) => [task.id, task]));
+  const accepted = new Map<string, string[]>();
+  const reaches = (fromId: string, targetId: string, seen: Set<string>): boolean => {
+    if (fromId === targetId) return true;
+    if (seen.has(fromId)) return false;
+    seen.add(fromId);
+    return (accepted.get(fromId) ?? []).some((nextId) => reaches(nextId, targetId, seen));
+  };
+
+  for (const task of tasks) {
+    const valid = task.dependencies.filter((dependencyId) => {
+      if (dependencyId === task.id || !byId.has(dependencyId)) return false;
+      return !reaches(dependencyId, task.id, new Set());
+    });
+    accepted.set(task.id, valid);
+  }
+
+  return tasks.map((task) => ({
+    ...task,
+    dependencies: accepted.get(task.id) ?? [],
+  }));
 }
 
 export function hasChildren(tasks: Task[], taskId: string): boolean {
@@ -131,10 +230,12 @@ export function openLeaves(tasks: Task[]): Task[] {
 }
 
 export function nextTaskCandidate(tasks: Task[], projects: Project[]): Task | null {
-  const candidates = openLeaves(tasks);
+  const candidates = openLeaves(tasks).filter(
+    (task) => task.status !== 'blocked' && incompleteDependencies(task, tasks).length === 0,
+  );
   if (candidates.length === 0) return null;
   const projectMap = new Map(projects.map((project) => [project.id, project]));
-  return [...candidates].sort((a, b) => {
+  return orderTasksByDependencies(candidates, tasks, (a, b) => {
     const aDeadline = a.deadline ? new Date(a.deadline).getTime() : Number.MAX_SAFE_INTEGER;
     const bDeadline = b.deadline ? new Date(b.deadline).getTime() : Number.MAX_SAFE_INTEGER;
     if (a.scheduledDate === todayKey() && b.scheduledDate !== todayKey()) return -1;
@@ -186,7 +287,7 @@ export function sortProjects(projects: Project[]): Project[] {
 }
 
 export function incompleteDependencies(task: Task, tasks: Task[]): Task[] {
-  return task.dependencies
+  return (task.dependencies ?? [])
     .map((id) => tasks.find((candidate) => candidate.id === id))
     .filter((candidate): candidate is Task => Boolean(candidate) && candidate?.status !== 'completed');
 }

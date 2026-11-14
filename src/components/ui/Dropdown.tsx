@@ -110,7 +110,7 @@ export function Dropdown({
                       item.onSelect();
                     }}
                     className={cn(
-                      'flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[12.5px] transition-colors disabled:opacity-40',
+                      'flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[14px] transition-colors disabled:opacity-40',
                       item.danger
                         ? 'text-accent hover:bg-accent-soft'
                         : 'text-ink/85 hover:bg-surface2 hover:text-ink',
@@ -119,7 +119,7 @@ export function Dropdown({
                     {Icon ? <Icon size={14} className="shrink-0 opacity-70" aria-hidden /> : null}
                     <span className="flex-1">{item.label}</span>
                     {item.hint ? (
-                      <span className="font-mono text-[9px] text-muted">{item.hint}</span>
+                      <span className="font-mono text-[11px] text-muted">{item.hint}</span>
                     ) : null}
                   </button>
                 </div>

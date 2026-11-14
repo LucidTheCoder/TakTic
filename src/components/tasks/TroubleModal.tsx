@@ -213,7 +213,7 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
     >
       {loading ? (
         <div className="space-y-5 py-2">
-          <div className="flex items-center gap-2 text-[12px] text-muted">
+          <div className="flex items-center gap-2 text-[14px] text-muted">
             <span className="h-1.5 w-1.5 animate-soft-pulse rounded-full bg-accent" aria-hidden />
             Reworking the task around the difficulty you described…
           </div>
@@ -235,7 +235,7 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
           ) : null}
           <div className="border-l-2 border-accent/50 pl-3">
             <p className="eyebrow mb-1">Why this shape</p>
-            <p className="text-[12.5px] leading-6 text-ink/85">{preview.reasoning}</p>
+            <p className="text-[14px] leading-6 text-ink/85">{preview.reasoning}</p>
           </div>
 
           {completedSubtasks.length > 0 ? (
@@ -248,9 +248,9 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
           {preview.reframedTask && preview.reframedTask.title !== task?.title ? (
             <div className="border border-line bg-surface2/40 px-3 py-2.5">
               <p className="eyebrow mb-1">Proposed reframe</p>
-              <p className="text-[13px] font-medium text-ink">{preview.reframedTask.title}</p>
+              <p className="text-[15px] font-medium text-ink">{preview.reframedTask.title}</p>
               {preview.reframedTask.description ? (
-                <p className="mt-1 text-[11.5px] leading-5 text-muted">
+                <p className="mt-1 text-[13px] leading-5 text-muted">
                   {preview.reframedTask.description}
                 </p>
               ) : null}
@@ -260,7 +260,7 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
           <div>
             <div className="mb-2 flex items-center justify-between">
               <p className="eyebrow">Proposed steps</p>
-              <span className="font-mono text-[9.5px] text-muted">
+              <span className="font-mono text-[11px] text-muted">
                 {selected.filter(Boolean).length} selected · {totalMinutes} min
               </span>
             </div>
@@ -288,14 +288,14 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
                         className="mt-0.5 h-3.5 w-3.5 accent-[rgb(var(--accent))]"
                       />
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[12.5px] leading-5">{draft.title}</span>
+                        <span className="block text-[14px] leading-5">{draft.title}</span>
                         {draft.description ? (
-                          <span className="mt-0.5 block text-[11px] leading-5 text-muted">
+                          <span className="mt-0.5 block text-[13px] leading-5 text-muted">
                             {draft.description}
                           </span>
                         ) : null}
                       </span>
-                      <span className="shrink-0 pt-0.5 font-mono text-[9.5px] text-muted">
+                      <span className="shrink-0 pt-0.5 font-mono text-[11px] text-muted">
                         {draft.estimatedMinutes} min
                       </span>
                     </label>
@@ -305,7 +305,7 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
             </ul>
           </div>
 
-          <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-3 text-[11px] text-muted">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-3 text-[13px] text-muted">
             {preview.revisedEstimateMinutes ? (
               <span>
                 Revised estimate:{' '}
@@ -319,19 +319,19 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
               </span>
             ) : null}
             {preview.strategy ? (
-              <span className="font-mono text-[9.5px] uppercase tracking-[0.08em]">
+              <span className="font-mono text-[11px] uppercase tracking-[0.08em]">
                 {preview.strategy.replace('_', ' ')}
               </span>
             ) : null}
           </div>
-          {applyError ? <p className="text-[12px] text-accent">{applyError}</p> : null}
+          {applyError ? <p className="text-[14px] text-accent">{applyError}</p> : null}
         </div>
       ) : (
         <div className="space-y-5">
           {!aiReady ? (
             <div className="border border-line bg-surface2/40 px-4 py-3">
-              <p className="text-[12px] font-medium text-ink">AI adaptation is not configured</p>
-              <p className="mt-1 text-[11.5px] leading-5 text-muted">
+              <p className="text-[14px] font-medium text-ink">AI adaptation is not configured</p>
+              <p className="mt-1 text-[13px] leading-5 text-muted">
                 Add an OpenRouter API key in Settings to let the companion restructure this task.
                 You can still use a fixed structural template, clearly labelled as such.{' '}
                 <Link
@@ -377,8 +377,8 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
                       <Icon size={13} aria-hidden />
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-[12px] leading-5 text-ink">{option.label}</span>
-                      <span className="mt-0.5 block text-[10.5px] leading-4 text-muted">
+                      <span className="block text-[14px] leading-5 text-ink">{option.label}</span>
+                      <span className="mt-0.5 block text-[12px] leading-4 text-muted">
                         {option.description}
                       </span>
                     </span>
@@ -394,7 +394,7 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
           <div>
             <label
               htmlFor="trouble-explanation"
-              className="mb-1.5 block text-[11.5px] font-medium text-ink/80"
+              className="mb-1.5 block text-[13px] font-medium text-ink/80"
             >
               Anything else? <span className="font-normal text-muted">(optional)</span>
             </label>
@@ -413,7 +413,7 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
               }
             />
             {feedback === 'time' ? (
-              <p className="mt-1.5 text-[11px] leading-5 text-muted">
+              <p className="mt-1.5 text-[13px] leading-5 text-muted">
                 If you do not say whether the estimate was too short or too long, TakTic will make
                 a cautious revision and explain the assumption.
               </p>
@@ -422,18 +422,18 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
 
           {error ? (
             <div className="border-l-2 border-accent pl-3">
-              <p className="text-[12px] leading-5 text-ink">{error}</p>
+              <p className="text-[14px] leading-5 text-ink">{error}</p>
               <button
                 type="button"
                 onClick={() => void generateWithAi()}
-                className="mt-1 text-[11.5px] text-accent underline decoration-accent/40 underline-offset-2"
+                className="mt-1 text-[13px] text-accent underline decoration-accent/40 underline-offset-2"
               >
                 Try again
               </button>
             </div>
           ) : null}
 
-          <p className="border-t border-line pt-3 text-[10.5px] leading-5 text-muted">
+          <p className="border-t border-line pt-3 text-[12px] leading-5 text-muted">
             <Wand2 size={11} className="mr-1 inline" aria-hidden />
             Your completed work and the original task are preserved. Nothing is applied until you
             review the proposal.

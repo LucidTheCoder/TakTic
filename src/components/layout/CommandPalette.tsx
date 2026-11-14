@@ -187,8 +187,8 @@ export function CommandPalette({
       },
       {
         id: 'action-decompose',
-        label: 'Break down a large task',
-        sublabel: 'AI decomposition into phases and steps',
+        label: 'Split a big task',
+        sublabel: 'Turn it into small steps',
         icon: Wand2,
         onSelect: () => {
           onClose();
@@ -197,7 +197,7 @@ export function CommandPalette({
       },
       {
         id: 'action-plan',
-        label: 'Plan today',
+        label: 'Plan my day',
         sublabel: 'Build a realistic schedule',
         icon: CalendarRange,
         onSelect: () => {
@@ -207,15 +207,15 @@ export function CommandPalette({
       },
       {
         id: 'action-focus',
-        label: 'Open the focus room',
-        sublabel: 'Start a structured session',
+        label: 'Start the focus timer',
+        sublabel: 'Work in a quiet view',
         icon: Timer,
         onSelect: go('/focus'),
       },
       {
         id: 'action-companion',
-        label: 'Ask the AI companion',
-        sublabel: 'Context-aware guidance',
+        label: 'Ask AI',
+        sublabel: 'Help with what is in front of you',
         icon: MessageCircle,
         onSelect: go('/companion'),
       },
@@ -356,7 +356,7 @@ export function CommandPalette({
                 aria-expanded
                 autoComplete="off"
               />
-              <kbd className="hidden shrink-0 border border-line px-1.5 py-0.5 font-mono text-[9px] text-muted sm:block">
+              <kbd className="hidden shrink-0 border border-line px-1.5 py-0.5 font-mono text-[11px] text-muted sm:block">
                 Esc
               </kbd>
             </div>
@@ -370,14 +370,14 @@ export function CommandPalette({
               {flat.length === 0 ? (
                 <div className="px-4 py-10 text-center">
                   <p className="font-serif text-[17px] text-ink">Nothing matches that.</p>
-                  <p className="mt-1.5 text-[12px] leading-5 text-muted">
+                  <p className="mt-1.5 text-[14px] leading-5 text-muted">
                     Try a shorter phrase, a project name, or a section.
                   </p>
                 </div>
               ) : (
                 groups.map((group) => (
                   <div key={group.title} className="mb-1.5">
-                    <p className="px-2.5 pb-1 pt-2 font-mono text-[8.5px] uppercase tracking-[0.16em] text-muted">
+                    <p className="px-2.5 pb-1 pt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
                       {group.title}
                     </p>
                     {group.items.map((item) => {
@@ -408,17 +408,17 @@ export function CommandPalette({
                             <Icon size={13} aria-hidden />
                           </span>
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate text-[12.5px] text-ink">
+                            <span className="block truncate text-[14px] text-ink">
                               {item.label}
                             </span>
                             {item.sublabel ? (
-                              <span className="mt-0.5 block truncate text-[10.5px] text-muted">
+                              <span className="mt-0.5 block truncate text-[12px] text-muted">
                                 {item.sublabel}
                               </span>
                             ) : null}
                           </span>
                           {item.trailing ? (
-                            <span className="shrink-0 font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted">
+                            <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
                               {item.trailing}
                             </span>
                           ) : null}
@@ -433,7 +433,7 @@ export function CommandPalette({
               )}
             </div>
 
-            <div className="flex items-center justify-between border-t border-line px-4 py-2 font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted">
+            <div className="flex items-center justify-between border-t border-line px-4 py-2 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
               <span className="inline-flex items-center gap-3">
                 <span className="inline-flex items-center gap-1">
                   <ArrowUpRight size={10} aria-hidden /> Navigate

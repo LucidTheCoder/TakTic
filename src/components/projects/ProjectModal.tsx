@@ -155,7 +155,7 @@ export function ProjectModal({ open, projectId, onClose, onCreated }: ProjectMod
           </Field>
         </div>
         {project ? (
-          <p className="border-t border-line pt-3 font-mono text-[9.5px] leading-5 text-muted">
+          <p className="border-t border-line pt-3 font-mono text-[11px] leading-5 text-muted">
             Created {new Date(project.createdAt).toLocaleDateString('en-GB')} · Last updated{' '}
             {new Date(project.updatedAt).toLocaleDateString('en-GB')}
           </p>

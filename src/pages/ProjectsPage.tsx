@@ -43,8 +43,8 @@ export function ProjectsPage() {
         }
       : filter === 'active'
         ? {
-            title: 'Nothing on the board yet.',
-            description: 'Start with something you have been putting off. A project can hold work that is still vague.',
+            title: 'No active projects.',
+            description: 'Create a project for work that still feels vague, then add a first step.',
             action: (
               <div className="flex flex-wrap justify-center gap-2">
                 <Button variant="primary" onClick={() => openProject()}>
@@ -52,7 +52,7 @@ export function ProjectsPage() {
                   Create a project
                 </Button>
                 <Button variant="quiet" onClick={() => openDecompose()}>
-                  Break down a large task
+                  Split a big task
                 </Button>
               </div>
             ),
@@ -71,9 +71,9 @@ export function ProjectsPage() {
     <div>
       <PageHeader
         index="03"
-        jp="計画"
+        jp=""
         title="Projects"
-        description="The larger containers. Completion is calculated from actionable tasks, never from parents and children twice."
+        description="Projects hold related work. Progress counts finished steps, not folders or phases."
         actions={
           <>
             <Button variant="secondary" onClick={() => openTask()}>
@@ -129,7 +129,7 @@ export function ProjectsPage() {
         )}
       </div>
 
-      <p className="mt-6 border-t border-line pt-4 text-[10.5px] leading-5 text-muted">
+      <p className="mt-6 border-t border-line pt-4 text-[12px] leading-5 text-muted">
         A project closes when all of its leaf tasks are complete. Reopening one task reopens the
         project without removing any XP that was already earned.
       </p>

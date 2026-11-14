@@ -14,7 +14,7 @@ import { buildProject, buildTask } from '../../utils/factories';
 import { describeAiError, isAiConfigured } from '../../services/ai/client';
 import { adaptTask, decomposeTask } from '../../services/ai';
 import { templateAdaptation, templateDecomposition } from '../../services/ai/templates';
-import { childrenOf } from '../../utils/tasks';
+import { childrenOf, sanitizeDependencies } from '../../utils/tasks';
 
 interface DecomposeModalProps {
   open: boolean;
@@ -246,7 +246,7 @@ export function DecomposeModal({
     });
     onClose();
     offerUndo(
-      'Task broken down',
+      'Your task was split into smaller steps',
       snapshot,
       `${chosen.length} new step${chosen.length === 1 ? '' : 's'} added beneath the original task.`,
     );
@@ -287,7 +287,9 @@ export function DecomposeModal({
       dispatch({ type: 'ADD_PROJECT', project });
     }
 
-    const tasks: Task[] = [];
+    let tasks: Task[] = [];
+    const keyToTaskId = new Map<string, string>();
+    const draftByTaskId = new Map<string, TaskDraft>();
     phases.forEach((phase, phaseIndex) => {
       const phaseTask = buildTask({
         projectId: project.id,
@@ -302,22 +304,34 @@ export function DecomposeModal({
       });
       tasks.push(phaseTask);
       phase.tasks.forEach((draft, taskIndex) => {
-        tasks.push(
-          buildTask({
-            projectId: project.id,
-            parentTaskId: phaseTask.id,
-            title: draft.title,
-            description: draft.description,
-            estimatedMinutes: draft.estimatedMinutes,
-            difficulty: draft.difficulty,
-            priority: draft.priority ?? project.priority,
-            order: phaseIndex * 100 + (taskIndex + 1) * 10,
-            createdAt: timestamp,
-            xp: state.settings.xp,
-          }),
-        );
+        const child = buildTask({
+          projectId: project.id,
+          parentTaskId: phaseTask.id,
+          title: draft.title,
+          description: draft.description,
+          estimatedMinutes: draft.estimatedMinutes,
+          difficulty: draft.difficulty,
+          priority: draft.priority ?? project.priority,
+          order: phaseIndex * 100 + (taskIndex + 1) * 10,
+          createdAt: timestamp,
+          xp: state.settings.xp,
+        });
+        tasks.push(child);
+        draftByTaskId.set(child.id, draft);
+        const key = draft.key?.trim();
+        if (key && !keyToTaskId.has(key)) keyToTaskId.set(key, child.id);
       });
     });
+
+    tasks = sanitizeDependencies(
+      tasks.map((task) => {
+        const draft = draftByTaskId.get(task.id);
+        const dependencies = (draft?.dependsOn ?? [])
+          .map((key) => keyToTaskId.get(key.trim()))
+          .filter((id): id is string => Boolean(id));
+        return dependencies.length > 0 ? { ...task, dependencies } : task;
+      }),
+    );
 
     dispatch({ type: 'ADD_TASKS', tasks, projectId: project.id });
     onClose();
@@ -327,8 +341,8 @@ export function DecomposeModal({
       `${tasks.filter((candidate) => candidate.parentTaskId).length} actionable steps across ${phases.length} phases.`,
     );
     toast({
-      title: targetProject ? 'Breakdown added' : 'Project created',
-      description: `“${project.title}” now has a working structure.`,
+      title: targetProject ? 'Steps added' : 'Project created',
+      description: `“${project.title}” now has a clear order.`,
       tone: 'success',
     });
     if (!targetProject) {
@@ -357,16 +371,16 @@ export function DecomposeModal({
               ? `Add steps to ${targetProject.title}`
               : 'Your new project'
           : task
-            ? 'Break this task down'
-            : 'Break down a large task'
+            ? 'Split this task'
+            : 'Split a big task'
       }
-      eyebrow={task ? 'Individual task breakdown' : 'AI task decomposition'}
+      eyebrow={task ? 'Task breakdown' : 'Smart task breakdown'}
       description={
         preview
           ? 'Nothing is created until you apply this. Uncheck steps you do not need.'
           : task
             ? 'The original task stays in place. New steps are added underneath it, preserving completed work.'
-            : 'Describe the overwhelming thing. TakTic will turn it into phases and small, startable steps.'
+            : 'Describe the big thing. TakTic will split it into small steps in a sensible order.'
       }
       width="lg"
       footer={
@@ -395,7 +409,7 @@ export function DecomposeModal({
             </Button>
             <Button variant="primary" onClick={() => void generateWithAi()} disabled={!aiReady}>
               <Sparkles size={13} aria-hidden />
-              Break down with AI
+              Split with AI
             </Button>
           </>
         )
@@ -403,7 +417,7 @@ export function DecomposeModal({
     >
       {loading ? (
         <div className="space-y-5 py-2">
-          <div className="flex items-center gap-2 text-[12px] text-muted">
+          <div className="flex items-center gap-2 text-[14px] text-muted">
             <span className="h-1.5 w-1.5 animate-soft-pulse rounded-full bg-accent" aria-hidden />
             Finding the shape of this work…
           </div>
@@ -428,7 +442,7 @@ export function DecomposeModal({
           ) : null}
           <div className="border-l-2 border-accent/50 pl-3">
             <p className="eyebrow mb-1">Why this shape</p>
-            <p className="text-[12.5px] leading-6 text-ink/85">{preview.reasoning}</p>
+            <p className="text-[14px] leading-6 text-ink/85">{preview.reasoning}</p>
           </div>
 
           {preview.kind === 'task' ? (
@@ -462,14 +476,14 @@ export function DecomposeModal({
                         className="mt-0.5 h-3.5 w-3.5 accent-[rgb(var(--accent))]"
                       />
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[12.5px] leading-5">{draft.title}</span>
+                        <span className="block text-[14px] leading-5">{draft.title}</span>
                         {draft.description ? (
-                          <span className="mt-0.5 block text-[11px] leading-5 text-muted">
+                          <span className="mt-0.5 block text-[13px] leading-5 text-muted">
                             {draft.description}
                           </span>
                         ) : null}
                       </span>
-                      <span className="font-mono text-[9.5px] text-muted">
+                      <span className="font-mono text-[11px] text-muted">
                         {draft.estimatedMinutes} min
                       </span>
                     </label>
@@ -477,7 +491,7 @@ export function DecomposeModal({
                 ))}
               </ul>
               {preview.revisedEstimateMinutes ? (
-                <p className="text-[11px] text-muted">
+                <p className="text-[13px] text-muted">
                   Parent estimate will become{' '}
                   <span className="font-mono text-ink">{preview.revisedEstimateMinutes} min</span>.
                 </p>
@@ -508,10 +522,10 @@ export function DecomposeModal({
                       <section key={`${phase.title}-${phaseIndex}`} className="border border-line">
                         <header className="flex items-center justify-between gap-3 border-b border-line bg-surface2/30 px-3 py-2">
                           <div className="flex min-w-0 items-center gap-2">
-                            <span className="font-mono text-[9px] text-accent">
+                            <span className="font-mono text-[11px] text-accent">
                               {String(phaseIndex + 1).padStart(2, '0')}
                             </span>
-                            <h3 className="truncate text-[12.5px] text-ink">{phase.title}</h3>
+                            <h3 className="truncate text-[14px] text-ink">{phase.title}</h3>
                           </div>
                           <button
                             type="button"
@@ -524,7 +538,7 @@ export function DecomposeModal({
                                 return next;
                               })
                             }
-                            className="shrink-0 font-mono text-[9px] uppercase tracking-[0.1em] text-muted hover:text-ink"
+                            className="shrink-0 font-mono text-[11px] uppercase tracking-[0.1em] text-muted hover:text-ink"
                           >
                             {allSelected ? 'Deselect' : 'Select'}
                           </button>
@@ -552,10 +566,10 @@ export function DecomposeModal({
                                     }
                                     className="mt-0.5 h-3.5 w-3.5 accent-[rgb(var(--accent))]"
                                   />
-                                  <span className="min-w-0 flex-1 text-[12px] leading-5">
+                                  <span className="min-w-0 flex-1 text-[14px] leading-5">
                                     {draft.title}
                                   </span>
-                                  <span className="font-mono text-[9.5px] text-muted">
+                                  <span className="font-mono text-[11px] text-muted">
                                     {draft.estimatedMinutes} min
                                   </span>
                                 </label>
@@ -568,14 +582,14 @@ export function DecomposeModal({
                   });
                 })()}
               </div>
-              <p className="font-mono text-[9.5px] uppercase tracking-[0.08em] text-muted">
+              <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">
                 {preview.phases.length} phases · {previewTaskCount} steps generated
               </p>
             </>
           )}
 
-          {applyError ? <p className="text-[12px] text-accent">{applyError}</p> : null}
-          <p className="border-t border-line pt-3 text-[10.5px] leading-5 text-muted">
+          {applyError ? <p className="text-[14px] text-accent">{applyError}</p> : null}
+          <p className="border-t border-line pt-3 text-[12px] leading-5 text-muted">
             <Wand2 size={11} className="mr-1 inline" aria-hidden />
             You can edit, move or delete every generated step afterwards. Nothing happens without
             your confirmation.
@@ -585,8 +599,8 @@ export function DecomposeModal({
         <div className="space-y-5">
           {!aiReady ? (
             <div className="border border-line bg-surface2/40 px-4 py-3">
-              <p className="text-[12px] font-medium text-ink">AI is not configured</p>
-              <p className="mt-1 text-[11.5px] leading-5 text-muted">
+              <p className="text-[14px] font-medium text-ink">AI is not configured</p>
+              <p className="mt-1 text-[13px] leading-5 text-muted">
                 Add an OpenRouter key to let TakTic decompose tasks. Without one, you can use a
                 fixed structural template — clearly labelled, and fully editable.{' '}
                 <Link to="/settings#ai" className="text-accent underline decoration-accent/40 underline-offset-2">
@@ -641,23 +655,23 @@ export function DecomposeModal({
           )}
 
           {targetProject ? (
-            <p className="font-mono text-[9.5px] uppercase tracking-[0.1em] text-muted">
+            <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">
               Target project · {targetProject.title}
             </p>
           ) : (
-            <p className="font-mono text-[9.5px] uppercase tracking-[0.1em] text-muted">
+            <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">
               A new project will be created
             </p>
           )}
 
           {error ? (
             <div className="border-l-2 border-accent pl-3">
-              <p className="text-[12px] leading-5 text-ink">{error}</p>
+              <p className="text-[14px] leading-5 text-ink">{error}</p>
               {aiReady ? (
                 <button
                   type="button"
                   onClick={() => void generateWithAi()}
-                  className="mt-1 text-[11.5px] text-accent underline decoration-accent/40 underline-offset-2"
+                  className="mt-1 text-[13px] text-accent underline decoration-accent/40 underline-offset-2"
                 >
                   Try again
                 </button>
@@ -669,12 +683,12 @@ export function DecomposeModal({
             <button
               type="button"
               onClick={generateTemplate}
-              className="inline-flex items-center gap-1.5 text-[11.5px] text-muted underline decoration-line underline-offset-2 hover:text-ink"
+              className="inline-flex items-center gap-1.5 text-[13px] text-muted underline decoration-line underline-offset-2 hover:text-ink"
             >
               <Check size={11} aria-hidden />
               Use a fixed template instead
             </button>
-            <span className="ml-auto font-mono text-[9px] text-muted/70">
+            <span className="ml-auto font-mono text-[11px] text-muted/70">
               never applied automatically
             </span>
           </div>

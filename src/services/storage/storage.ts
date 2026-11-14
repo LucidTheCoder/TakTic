@@ -170,6 +170,7 @@ const ProfileSchema = z.object({
   preferences: z.object({
     theme: z.enum(['light', 'dark']),
     accent: z.enum(['vermilion', 'indigo', 'matcha', 'ochre']),
+    accentChanged: z.boolean().default(false),
     reducedMotion: z.boolean(),
   }),
 });
@@ -183,6 +184,7 @@ const FocusSettingsSchema = z.object({
   sessionsBeforeLongBreak: z.number().min(1).max(12).default(defaults.focus.sessionsBeforeLongBreak),
   autoStartBreaks: z.boolean().default(defaults.focus.autoStartBreaks),
   sound: z.boolean().default(defaults.focus.sound),
+  soundVolume: z.number().min(0).max(1).default(defaults.focus.soundVolume),
   ambient: z.enum(['silent', 'brown', 'rain']).default(defaults.focus.ambient),
   distractionFree: z.boolean().default(defaults.focus.distractionFree),
 });
@@ -231,6 +233,7 @@ const SettingsSchema = z.object({
     .object({
       order: z.array(widgetId).default(defaults.dashboard.order),
       hidden: z.array(widgetId).default(defaults.dashboard.hidden),
+      customized: z.boolean().default(false),
     })
     .default(defaults.dashboard),
   shortcutsEnabled: z.boolean().default(defaults.shortcutsEnabled),

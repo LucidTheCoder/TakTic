@@ -96,13 +96,13 @@ export function StatisticsPage() {
     <div>
       <PageHeader
         index="07"
-        jp="記録"
+        jp=""
         title="Statistics"
         description="A factual record of what you actually did. No comparisons with other people, and no invented trends."
         actions={
           <Link
             to="/achievements"
-            className="inline-flex items-center gap-1.5 border border-line px-3 py-2 text-[11.5px] text-muted hover:text-ink"
+            className="inline-flex items-center gap-1.5 border border-line px-3 py-2 text-[13px] text-muted hover:text-ink"
           >
             Achievements
             <ArrowRight size={12} aria-hidden />
@@ -120,7 +120,7 @@ export function StatisticsPage() {
           <div key={item.label} className="bg-paper px-4 py-4">
             <p className="eyebrow mb-1.5">{item.label}</p>
             <p className="font-mono text-[22px] leading-none text-ink">{item.value}</p>
-            <p className="mt-1.5 font-mono text-[8px] uppercase tracking-[0.08em] text-muted">
+            <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
               {item.note}
             </p>
           </div>
@@ -137,14 +137,14 @@ export function StatisticsPage() {
           <div key={item.label} className="bg-paper px-4 py-3">
             <p className="eyebrow mb-1">{item.label}</p>
             <p className="font-mono text-[15px] text-ink">{item.value}</p>
-            <p className="font-mono text-[8px] uppercase tracking-[0.06em] text-muted">{item.note}</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-muted">{item.note}</p>
           </div>
         ))}
       </div>
 
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         <ChartCard
-          eyebrow="Task completion · 完了"
+          eyebrow="Task completion"
           title="Last seven days"
           aside={`${tasksThisWeek} completed`}
         >
@@ -154,7 +154,7 @@ export function StatisticsPage() {
               const isToday = day.key === today;
               return (
                 <div key={day.key} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
-                  <span className="font-mono text-[8.5px] text-muted">
+                  <span className="font-mono text-[10px] text-muted">
                     {day.completed > 0 ? day.completed : ''}
                   </span>
                   <div
@@ -167,7 +167,7 @@ export function StatisticsPage() {
                   />
                   <span
                     className={cn(
-                      'font-mono text-[8px] uppercase tracking-[0.05em]',
+                      'font-mono text-[10px] uppercase tracking-[0.05em]',
                       isToday ? 'text-accent' : 'text-muted',
                     )}
                   >
@@ -177,14 +177,14 @@ export function StatisticsPage() {
               );
             })}
           </div>
-          <p className="mt-3 text-[10.5px] leading-5 text-muted">
+          <p className="mt-3 text-[12px] leading-5 text-muted">
             Counts leaf tasks completed on each local calendar day. Reopening a task does not erase
             the record.
           </p>
         </ChartCard>
 
         <ChartCard
-          eyebrow="Focus · 集中"
+          eyebrow="Focus"
           title="Fourteen-day rhythm"
           aside={`${focusThisWeek} min · last 7 days`}
         >
@@ -203,7 +203,7 @@ export function StatisticsPage() {
                     title={`${day.focusMinutes} focus minutes on ${formatDateKey(day.key, { day: 'numeric', month: 'short' })}`}
                   />
                   {day.key === today || day === days[0] || day === days[6] ? (
-                    <span className="font-mono text-[7px] text-muted">
+                    <span className="font-mono text-[10px] text-muted">
                       {formatDateKey(day.key, { day: 'numeric' })}
                     </span>
                   ) : (
@@ -213,7 +213,7 @@ export function StatisticsPage() {
               );
             })}
           </div>
-          <div className="mt-3 flex items-center justify-between font-mono text-[9px] text-muted">
+          <div className="mt-3 flex items-center justify-between font-mono text-[11px] text-muted">
             <span>{days[0] ? formatDateKey(days[0].key, { day: 'numeric', month: 'short' }) : ''}</span>
             <span>{stats.weekFocusMinutes} min this calendar week</span>
             <span>{formatDateKey(today, { day: 'numeric', month: 'short' })}</span>
@@ -225,12 +225,12 @@ export function StatisticsPage() {
         <section className="border border-line bg-paper">
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-4 py-3">
             <div>
-              <p className="eyebrow">Estimates vs reality · 見積</p>
+              <p className="eyebrow">Estimates vs reality</p>
               <h2 className="mt-0.5 text-[16px]">How long things actually took</h2>
             </div>
             <span
               className={cn(
-                'border px-2 py-1 font-mono text-[8.5px] uppercase tracking-[0.08em]',
+                'border px-2 py-1 font-mono text-[10px] uppercase tracking-[0.08em]',
                 stats.estimateAccuracy.samples === 0
                   ? 'border-line text-muted'
                   : stats.estimateAccuracy.direction === 'balanced'
@@ -258,10 +258,10 @@ export function StatisticsPage() {
                 return (
                   <div key={task.id} className="px-4 py-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="min-w-0 truncate text-[11.5px] text-ink">{task.title}</p>
+                      <p className="min-w-0 truncate text-[13px] text-ink">{task.title}</p>
                       <span
                         className={cn(
-                          'font-mono text-[9px]',
+                          'font-mono text-[11px]',
                           Math.abs(difference) <= 5
                             ? 'text-sage'
                             : difference > 0
@@ -275,20 +275,20 @@ export function StatisticsPage() {
                     </div>
                     <div className="mt-1.5 space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="w-8 font-mono text-[7.5px] uppercase tracking-[0.06em] text-muted">est</span>
+                        <span className="w-8 font-mono text-[10px] uppercase tracking-[0.06em] text-muted">est</span>
                         <div className="h-1.5 flex-1 bg-stone/50">
                           <div className="h-full bg-muted/50" style={{ width: `${(task.estimatedMinutes / max) * 100}%` }} />
                         </div>
-                        <span className="w-12 text-right font-mono text-[8.5px] text-muted">
+                        <span className="w-12 text-right font-mono text-[10px] text-muted">
                           {task.estimatedMinutes}m
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="w-8 font-mono text-[7.5px] uppercase tracking-[0.06em] text-muted">act</span>
+                        <span className="w-8 font-mono text-[10px] uppercase tracking-[0.06em] text-muted">act</span>
                         <div className="h-1.5 flex-1 bg-stone/50">
                           <div className="h-full bg-accent/75" style={{ width: `${(task.actualMinutes / max) * 100}%` }} />
                         </div>
-                        <span className="w-12 text-right font-mono text-[8.5px] text-ink/70">
+                        <span className="w-12 text-right font-mono text-[10px] text-ink/70">
                           {task.actualMinutes}m
                         </span>
                       </div>
@@ -298,7 +298,7 @@ export function StatisticsPage() {
               })}
             </div>
           )}
-          <p className="border-t border-line px-4 py-2.5 text-[10px] leading-5 text-muted">
+          <p className="border-t border-line px-4 py-2.5 text-[12px] leading-5 text-muted">
             Estimates inform future planning. TakTic does not assume every task should become
             easier — only more accurately estimated.
           </p>
@@ -308,11 +308,11 @@ export function StatisticsPage() {
           <div className="flex items-center gap-2">
             <TrendingUp size={14} className="text-accent" aria-hidden />
             <div>
-              <p className="eyebrow">Insights · 気づき</p>
+              <p className="eyebrow">Insights</p>
               <h2 className="mt-0.5 text-[15px]">Read from real data</h2>
             </div>
           </div>
-          <ul className="mt-3 space-y-3 text-[11px] leading-5">
+          <ul className="mt-3 space-y-3 text-[13px] leading-5">
             <li className="border-b border-line pb-2.5">
               <p className="text-ink">You completed {tasksThisWeek} task{tasksThisWeek === 1 ? '' : 's'} in the last seven days.</p>
               <p className="text-muted">That is {focusThisWeek} minutes of focus in the same window.</p>
@@ -348,7 +348,7 @@ export function StatisticsPage() {
               <p className="text-muted">Based only on tasks with recorded actual minutes.</p>
             </li>
           </ul>
-          <div className="mt-4 flex flex-wrap gap-3 border-t border-line pt-3 font-mono text-[9px] text-muted">
+          <div className="mt-4 flex flex-wrap gap-3 border-t border-line pt-3 font-mono text-[11px] text-muted">
             <span className="inline-flex items-center gap-1">
               <Flame size={10} aria-hidden /> {state.streak.longestStreak}d longest
             </span>
@@ -362,10 +362,10 @@ export function StatisticsPage() {
       <section className="mt-5 border border-line bg-paper">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3">
           <div>
-            <p className="eyebrow">Session history · 履歴</p>
+            <p className="eyebrow">Session history</p>
             <h2 className="mt-0.5 text-[16px]">Recent focus sessions</h2>
           </div>
-          <Link to="/focus" className="text-[10px] text-muted underline decoration-line underline-offset-2 hover:text-ink">
+          <Link to="/focus" className="text-[12px] text-muted underline decoration-line underline-offset-2 hover:text-ink">
             Open focus room
           </Link>
         </div>
@@ -386,7 +386,7 @@ export function StatisticsPage() {
                   {['Date', 'Task', 'Planned', 'Actual', 'Status', 'XP'].map((heading) => (
                     <th
                       key={heading}
-                      className="px-4 py-2 font-mono text-[8px] uppercase tracking-[0.1em] text-muted"
+                      className="px-4 py-2 font-mono text-[10px] uppercase tracking-[0.1em] text-muted"
                     >
                       {heading}
                     </th>
@@ -401,20 +401,20 @@ export function StatisticsPage() {
                   );
                   return (
                     <tr key={session.id} className="border-b border-line/70 last:border-b-0">
-                      <td className="whitespace-nowrap px-4 py-2.5 font-mono text-[9px] text-muted">
+                      <td className="whitespace-nowrap px-4 py-2.5 font-mono text-[11px] text-muted">
                         {formatDateKey(toDateKey(session.startTime), {
                           day: 'numeric',
                           month: 'short',
                         })}{' '}
                         {formatTime(session.startTime)}
                       </td>
-                      <td className="max-w-[220px] truncate px-4 py-2.5 text-[11px] text-ink">
+                      <td className="max-w-[220px] truncate px-4 py-2.5 text-[13px] text-ink">
                         {task?.title ?? 'Unattached focus'}
                       </td>
-                      <td className="px-4 py-2.5 font-mono text-[9.5px] text-muted">
+                      <td className="px-4 py-2.5 font-mono text-[11px] text-muted">
                         {Math.round(session.plannedSeconds / 60)}m
                       </td>
-                      <td className="px-4 py-2.5 font-mono text-[9.5px] text-ink">
+                      <td className="px-4 py-2.5 font-mono text-[11px] text-ink">
                         {Math.round(session.actualSeconds / 60)}m
                       </td>
                       <td className="px-4 py-2.5">
@@ -422,7 +422,7 @@ export function StatisticsPage() {
                           {session.status === 'completed' ? 'complete' : 'ended'}
                         </StatusPill>
                       </td>
-                      <td className="px-4 py-2.5 font-mono text-[9.5px] text-muted">
+                      <td className="px-4 py-2.5 font-mono text-[11px] text-muted">
                         {xp ? `+${state.settings.xp.focus}` : '—'}
                       </td>
                     </tr>
@@ -434,7 +434,7 @@ export function StatisticsPage() {
         )}
       </section>
 
-      <p className="mt-5 border-t border-line pt-3 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted">
+      <p className="mt-5 border-t border-line pt-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted">
         Every figure derives from local task, session and XP records · no benchmarks
       </p>
     </div>
@@ -459,7 +459,7 @@ function ChartCard({
           <p className="eyebrow">{eyebrow}</p>
           <h2 className="mt-0.5 text-[16px]">{title}</h2>
         </div>
-        <span className="font-mono text-[9px] text-muted">{aside}</span>
+        <span className="font-mono text-[11px] text-muted">{aside}</span>
       </div>
       <div className="mt-4">{children}</div>
     </section>

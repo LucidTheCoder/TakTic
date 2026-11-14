@@ -193,9 +193,9 @@ ${adaptations || '- none'}`;
     <div>
       <PageHeader
         index="05"
-        jp="案内"
-        title="AI companion"
-        description="A calm, context-aware assistant. It can read your real workspace and suggest next steps; it cannot change tasks or award XP."
+        jp=""
+        title="Ask AI"
+        description="Ask about your work and get a practical next step. It can read your workspace, but cannot change tasks or award XP."
         actions={
           <>
             {state.companionMessages.length > 0 ? (
@@ -205,14 +205,14 @@ ${adaptations || '- none'}`;
               </Button>
             ) : null}
             {aiReady ? (
-              <span className="inline-flex items-center gap-1.5 border border-line px-2 py-1.5 font-mono text-[8.5px] uppercase tracking-[0.1em] text-muted">
+              <span className="inline-flex items-center gap-1.5 border border-line px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted">
                 <span className="h-1 w-1 rounded-full bg-sage" aria-hidden />
                 {state.settings.ai.model}
               </span>
             ) : (
               <Link
                 to="/settings#ai"
-                className="inline-flex items-center gap-1.5 border border-accent/40 px-2 py-1.5 font-mono text-[8.5px] uppercase tracking-[0.1em] text-accent"
+                className="inline-flex items-center gap-1.5 border border-accent/40 px-2 py-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-accent"
               >
                 AI not configured
               </Link>
@@ -224,8 +224,8 @@ ${adaptations || '- none'}`;
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <section className="flex h-[calc(100dvh-280px)] min-h-[500px] max-h-[760px] flex-col border border-line bg-paper">
           <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
-            <span className="eyebrow">Conversation · 対話</span>
-            <span className="font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted">
+            <span className="eyebrow">Conversation</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
               {state.companionMessages.length} message{state.companionMessages.length === 1 ? '' : 's'}
             </span>
           </div>
@@ -233,24 +233,24 @@ ${adaptations || '- none'}`;
           <div className="scroll-thin flex-1 overflow-y-auto px-4 py-5 sm:px-5">
             {state.companionMessages.length === 0 ? (
               <div className="mx-auto max-w-md py-4 text-center">
-                <span className="mx-auto flex h-12 w-12 items-center justify-center border border-accent font-serif text-[22px] text-accent">
-                  歩
+                <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-[12px] border border-accent font-serif text-[22px] text-accent">
+                  T
                 </span>
                 <h2 className="mt-4 text-[22px] leading-snug">A calm place to think out loud.</h2>
-                <p className="mx-auto mt-2 max-w-sm text-[12px] leading-6 text-muted">
+                <p className="mx-auto mt-2 max-w-sm text-[14px] leading-6 text-muted">
                   The companion reads only what is in this workspace: your projects, tasks,
                   deadlines, focus history and streak. Ask it what to do next, or how to recover
                   when everything feels behind.
                 </p>
                 {!aiReady ? (
                   <div className="mt-5 border border-line bg-surface2/40 px-4 py-3 text-left">
-                    <p className="text-[12px] font-medium text-ink">Connect OpenRouter to chat</p>
-                    <p className="mt-1 text-[11px] leading-5 text-muted">
+                    <p className="text-[14px] font-medium text-ink">Connect OpenRouter to chat</p>
+                    <p className="mt-1 text-[13px] leading-5 text-muted">
                       Add your own API key in Settings. Nothing is sent until you write a message.
                     </p>
                     <Link
                       to="/settings#ai"
-                      className="mt-2 inline-flex items-center gap-1 text-[11px] text-accent underline decoration-accent/40 underline-offset-2"
+                      className="mt-2 inline-flex items-center gap-1 text-[13px] text-accent underline decoration-accent/40 underline-offset-2"
                     >
                       Open AI settings <ArrowRight size={11} aria-hidden />
                     </Link>
@@ -262,7 +262,7 @@ ${adaptations || '- none'}`;
                         key={prompt}
                         type="button"
                         onClick={() => void send(prompt)}
-                        className="group flex items-center justify-between gap-3 border border-line px-3 py-2.5 text-left text-[11.5px] text-ink/80 transition-colors hover:border-ink/25 hover:bg-surface2/40"
+                        className="group flex items-center justify-between gap-3 border border-line px-3 py-2.5 text-left text-[13px] text-ink/80 transition-colors hover:border-ink/25 hover:bg-surface2/40"
                       >
                         {prompt}
                         <ArrowRight
@@ -287,10 +287,10 @@ ${adaptations || '- none'}`;
                   message.role === 'user' ? (
                     <li key={message.id} className="flex justify-end">
                       <div className="max-w-[88%] border border-line bg-surface2/55 px-3.5 py-2.5 sm:max-w-[75%]">
-                        <p className="whitespace-pre-wrap text-[12.5px] leading-6 text-ink">
+                        <p className="whitespace-pre-wrap text-[14px] leading-6 text-ink">
                           {message.content}
                         </p>
-                        <p className="mt-1 text-right font-mono text-[8px] uppercase tracking-[0.06em] text-muted">
+                        <p className="mt-1 text-right font-mono text-[10px] uppercase tracking-[0.06em] text-muted">
                           {formatTime(message.createdAt)}
                         </p>
                       </div>
@@ -299,18 +299,18 @@ ${adaptations || '- none'}`;
                     <li key={message.id} className="flex items-start gap-2.5">
                       <span
                         className={cn(
-                          'mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center border font-serif text-[13px]',
+                          'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] border font-serif text-[15px]',
                           message.isError
                             ? 'border-accent/50 text-accent'
                             : 'border-line text-accent',
                         )}
                       >
-                        歩
+                        T
                       </span>
                       <div className="min-w-0 max-w-[92%]">
                         <p
                           className={cn(
-                            'whitespace-pre-wrap text-[12.5px] leading-6',
+                            'whitespace-pre-wrap text-[14px] leading-6',
                             message.isError ? 'text-accent' : 'text-ink/90',
                           )}
                         >
@@ -324,14 +324,14 @@ ${adaptations || '- none'}`;
                                 type="button"
                                 onClick={() => void send(suggestion.label)}
                                 disabled={sending}
-                                className="border border-line px-2 py-1 text-left text-[10.5px] text-muted transition-colors hover:border-accent/40 hover:text-ink disabled:opacity-50"
+                                className="border border-line px-2 py-1 text-left text-[12px] text-muted transition-colors hover:border-accent/40 hover:text-ink disabled:opacity-50"
                               >
                                 {suggestion.label}
                               </button>
                             ))}
                           </div>
                         ) : null}
-                        <p className="mt-1 font-mono text-[8px] uppercase tracking-[0.06em] text-muted">
+                        <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.06em] text-muted">
                           {humanRelative(message.createdAt)}
                         </p>
                       </div>
@@ -340,10 +340,10 @@ ${adaptations || '- none'}`;
                 )}
                 {sending ? (
                   <li className="flex items-center gap-2.5">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center border border-line font-serif text-[13px] text-accent">
-                      歩
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] border border-line font-serif text-[15px] text-accent">
+                      T
                     </span>
-                    <span className="inline-flex items-center gap-2 text-[11.5px] text-muted">
+                    <span className="inline-flex items-center gap-2 text-[13px] text-muted">
                       <Spinner className="h-3.5 w-3.5" />
                       Thinking with your real tasks…
                     </span>
@@ -379,7 +379,7 @@ ${adaptations || '- none'}`;
               className="min-h-[54px] resize-none border-0 bg-transparent px-1 focus:shadow-none"
             />
             <div className="mt-1.5 flex items-center justify-between gap-3 border-t border-line pt-2">
-              <p className="text-[9.5px] leading-4 text-muted">
+              <p className="text-[11px] leading-4 text-muted">
                 Suggestions only. No task changes without your action.
               </p>
               <Button
@@ -399,7 +399,7 @@ ${adaptations || '- none'}`;
           <section className="border border-line bg-paper p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="eyebrow">Context · 文脈</p>
+                <p className="eyebrow">Context</p>
                 <h2 className="mt-0.5 text-[15px]">What the companion can see</h2>
               </div>
               <MessageCircle size={15} className="text-muted" aria-hidden />
@@ -417,7 +417,7 @@ ${adaptations || '- none'}`;
                 </div>
               ))}
             </div>
-            <div className="mt-3 font-mono text-[9px] leading-5 text-muted">
+            <div className="mt-3 font-mono text-[11px] leading-5 text-muted">
               <p>Focus today · {stats.todayFocusMinutes} min</p>
               <p>Focus this week · {stats.weekFocusMinutes} min</p>
               <p>Streak · {state.streak.currentStreak} days</p>
@@ -427,9 +427,9 @@ ${adaptations || '- none'}`;
                 <p className="eyebrow mb-1.5">Nearest deadlines</p>
                 <ul className="space-y-1.5">
                   {upcoming.map((task) => (
-                    <li key={task.id} className="text-[10.5px] leading-4 text-ink/80">
+                    <li key={task.id} className="text-[12px] leading-4 text-ink/80">
                       <span className="block truncate">{task.title}</span>
-                      <span className="font-mono text-[8.5px] text-muted">
+                      <span className="font-mono text-[10px] text-muted">
                         {formatDateKey(toDateKey(task.deadline as string), {
                           day: 'numeric',
                           month: 'short',
@@ -440,7 +440,7 @@ ${adaptations || '- none'}`;
                 </ul>
               </div>
             ) : null}
-            <p className="mt-3 border-t border-line pt-2.5 text-[9.5px] leading-4 text-muted">
+            <p className="mt-3 border-t border-line pt-2.5 text-[11px] leading-4 text-muted">
               Only the summary above is sent. Your full data never leaves this device apart from
               that context when you send a message.
             </p>
@@ -452,23 +452,23 @@ ${adaptations || '- none'}`;
               <h2 className="mt-0.5 text-[14px] leading-snug">{nextTask.title}</h2>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <PriorityBadge priority={nextTask.priority} />
-                <span className="font-mono text-[9px] text-muted">
+                <span className="font-mono text-[11px] text-muted">
                   {nextTask.estimatedMinutes} min
                 </span>
               </div>
               {nextProject ? (
-                <p className="mt-1.5 font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted">
+                <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
                   {nextProject.title}
                 </p>
               ) : null}
-              <p className="mt-2 text-[10.5px] leading-5 text-muted">
+              <p className="mt-2 text-[12px] leading-5 text-muted">
                 Chosen locally from deadlines, priority and today&apos;s schedule. Not an AI
                 recommendation.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Link
                   to={`/focus?task=${nextTask.id}`}
-                  className="inline-flex h-8 items-center gap-1.5 border border-accent bg-accent px-3 text-[11px] text-paper"
+                  className="inline-flex h-8 items-center gap-1.5 border border-accent bg-accent px-3 text-[13px] text-paper"
                 >
                   <Timer size={11} aria-hidden />
                   Start focus
@@ -483,15 +483,15 @@ ${adaptations || '- none'}`;
           <section className="border border-line bg-paper p-4">
             <div className="flex items-center gap-2">
               <ShieldCheck size={14} className="text-sage" aria-hidden />
-              <h2 className="text-[13px]">What it will not do</h2>
+              <h2 className="text-[15px]">What it will not do</h2>
             </div>
-            <ul className="mt-2 space-y-1.5 text-[10.5px] leading-5 text-muted">
+            <ul className="mt-2 space-y-1.5 text-[12px] leading-5 text-muted">
               <li>· Invent tasks, deadlines, progress or history.</li>
               <li>· Mark anything complete or award XP.</li>
               <li>· Change a project without a confirmation interface.</li>
               <li>· Claim to have found resources it cannot access.</li>
             </ul>
-            <p className="mt-2 border-t border-line pt-2 text-[9.5px] leading-4 text-muted">
+            <p className="mt-2 border-t border-line pt-2 text-[11px] leading-4 text-muted">
               <Sparkles size={10} className="mr-1 inline" aria-hidden />
               Powered by your own OpenRouter key, stored in this browser only.
             </p>
