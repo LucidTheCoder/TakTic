@@ -40,7 +40,8 @@ export interface Project {
 
 export interface Task {
   id: string;
-  projectId: string;
+  /** Null for a standalone task that is not attached to a project. */
+  projectId: string | null;
   parentTaskId: string | null;
   title: string;
   description: string;

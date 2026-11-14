@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowDown,
@@ -9,11 +9,11 @@ import {
   Check,
   CheckCircle2,
   Clock3,
+  Compass,
   Eye,
   EyeOff,
   Flame,
   FolderOpen,
-  LifeBuoy,
   MessageCircle,
   PenLine,
   Play,
@@ -32,13 +32,15 @@ import { useToast } from '../components/ui/ToastProvider';
 import { Button, buttonClass } from '../components/ui/Button';
 import { ProgressBar, EmptyState } from '../components/ui/Feedback';
 import { AchievementIcon } from '../components/gamification/AchievementIcon';
-import { PriorityBadge } from '../components/ui/Badges';
+import { DeadlineLabel, PriorityBadge } from '../components/ui/Badges';
 import { TaskRow } from '../components/tasks/TaskRow';
 import { ACHIEVEMENTS } from '../services/gamification/achievements';
 import { defaultSettings } from '../services/gamification/xp';
 import { formatDateKey, greetingForHour, humanRelative, todayKey, formatDuration } from '../utils/date';
 import { deadlineInfo } from '../utils/date';
 import { cn } from '../utils/cn';
+
+const WELCOME_SEEN_KEY = 'taktic.dashboard.welcome.v1';
 
 const WIDGETS: Array<{ id: DashboardWidgetId; label: string; description: string }> = [
   { id: 'dailyProgress', label: "Today's progress", description: 'Completion of tasks scheduled today' },
@@ -51,6 +53,8 @@ const WIDGETS: Array<{ id: DashboardWidgetId; label: string; description: string
   { id: 'recentAchievements', label: 'Recent achievements', description: 'Your latest unlocks' },
   { id: 'companionNote', label: 'AI note', description: 'A note drawn from your workspace' },
 ];
+
+const TODAY_TASKS_PREVIEW = 4;
 
 const SPANS: Record<DashboardWidgetId, string> = {
   dailyProgress: 'lg:col-span-5',
@@ -156,22 +160,25 @@ export function DashboardPage() {
   } = useTakTic();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { openTask, openProject, openDecompose, openPlanner, openCatchUp, openUnstuck, openTour } =
+  const { openTask, openProject, openDecompose, openPlanner, openCatchUp, openTour } =
     useAppActions();
   const [customising, setCustomising] = useState(false);
-
-  const openUnstuckWithContext = () => {
-    if (state.tasks.length === 0) {
-      toast({
-        title: 'Add one small task first',
-        description:
-          'Once there is a task, TakTic can adapt it around what is actually blocking you.',
-      });
-      openTask();
-      return;
+  const [welcomeSeen] = useState(() => {
+    try {
+      return Boolean(window.localStorage.getItem(WELCOME_SEEN_KEY));
+    } catch {
+      return false;
     }
-    openUnstuck({ taskId: stats.nextTask?.id ?? null });
-  };
+  });
+
+  useEffect(() => {
+    if (welcomeSeen) return;
+    try {
+      window.localStorage.setItem(WELCOME_SEEN_KEY, '1');
+    } catch {
+      // The welcome card is optional; blocked storage must not break the dashboard.
+    }
+  }, [welcomeSeen]);
 
   const openCatchUpWithContext = () => {
     if (stats.openTasks.length === 0) {
@@ -297,14 +304,11 @@ export function DashboardPage() {
                     Catch up
                   </Button>
                 ) : null}
-                <Button variant="ghost" size="sm" onClick={openPlannerWithContext}>
-                  <CalendarRange size={12} aria-hidden />
-                  Plan
-                </Button>
+
               </div>
             </div>
             <div className="mt-5 flex items-end gap-4">
-              <span className="font-mono text-[56px] leading-none tracking-[-0.05em] text-ink">
+              <span className="font-mono text-[40px] leading-none tracking-[-0.04em] text-ink">
                 {stats.todayProgress.percent}
                 <span className="ml-0.5 text-[20px] text-muted">%</span>
               </span>
@@ -344,7 +348,7 @@ export function DashboardPage() {
               </div>
               <div>
                 <p className="eyebrow mb-1">Overdue</p>
-                <p className={cn('font-mono text-[15px]', stats.overdueTasks.length > 0 ? 'text-accent' : 'text-ink')}>
+                <p className={cn('font-mono text-[15px]', stats.overdueTasks.length > 0 ? 'text-danger' : 'text-ink')}>
                   {stats.overdueTasks.length}
                 </p>
               </div>
@@ -360,14 +364,14 @@ export function DashboardPage() {
                 <p className="eyebrow">Your progress</p>
                 <h2 className="mt-1 text-[20px]">Your progress</h2>
               </div>
-              <Link to="/statistics" className="text-[12px] text-muted underline decoration-line underline-offset-2 hover:text-ink">
+              <Link to="/progress?tab=statistics" className="text-[12px] text-muted underline decoration-line underline-offset-2 hover:text-ink">
                 Statistics
               </Link>
             </div>
             <div className="mt-5 flex items-end justify-between gap-4">
               <div>
                 <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">Level</p>
-                <p className="font-mono text-[46px] leading-none tracking-[-0.04em] text-ink">
+                <p className="font-mono text-[36px] leading-none tracking-[-0.03em] text-ink">
                   {String(stats.level.level).padStart(2, '0')}
                 </p>
               </div>
@@ -436,30 +440,20 @@ export function DashboardPage() {
                   compact
                   icon={<CalendarRange size={17} aria-hidden />}
                   title="Your next step starts here."
-                  description="Nothing is scheduled for today. Add one task, or open the planner to shape the day around what is already open."
-                  action={
-                    <div className="flex flex-wrap justify-center gap-2">
-                      <Button size="sm" variant="primary" onClick={() => openTask()}>
-                        New task
-                      </Button>
-                      <Button size="sm" variant="quiet" onClick={openPlannerWithContext}>
-                        Plan my day
-                      </Button>
-                    </div>
-                  }
+                  description="Nothing is scheduled for today. Add one task from the header, or use Plan my day to shape the day around what is already open."
                 />
               </div>
             ) : (
               <div className="flex-1">
-                {todayRoots.slice(0, 5).map((task) => (
+                {todayRoots.slice(0, TODAY_TASKS_PREVIEW).map((task) => (
                   <TaskRow key={task.id} task={task} compact showProject />
                 ))}
-                {todayRoots.length > 5 ? (
+                {todayRoots.length > TODAY_TASKS_PREVIEW ? (
                   <Link
                     to="/tasks?view=today"
                     className="block px-5 py-2.5 text-[13px] text-muted transition-colors hover:text-ink"
                   >
-                    + {todayRoots.length - 5} more scheduled
+                    + {todayRoots.length - TODAY_TASKS_PREVIEW} more scheduled
                   </Link>
                 ) : null}
               </div>
@@ -559,7 +553,7 @@ export function DashboardPage() {
                   title="Nothing on the board yet."
                   description="Start with something you have been putting off. A project can be broad; the steps will become smaller."
                   action={
-                    <Button size="sm" variant="primary" onClick={() => openProject()}>
+                    <Button size="sm" variant="secondary" onClick={() => openProject()}>
                       Create a project
                     </Button>
                   }
@@ -587,7 +581,7 @@ export function DashboardPage() {
                                 <span
                                   className={cn(
                                     'font-mono text-[11px]',
-                                    info.tone === 'overdue' ? 'text-accent' : 'text-muted',
+                                    info.tone === 'overdue' ? 'text-danger' : 'text-muted',
                                   )}
                                 >
                                   {info.label}
@@ -661,7 +655,7 @@ export function DashboardPage() {
                         <span
                           className={cn(
                             'shrink-0 pt-0.5 font-mono text-[11px]',
-                            info.tone === 'soon' || info.tone === 'overdue' ? 'text-accent' : 'text-muted',
+                            info.tone === 'overdue' ? 'text-danger' : info.tone === 'soon' ? 'text-warning' : 'text-muted',
                           )}
                         >
                           {info.label}
@@ -680,8 +674,8 @@ export function DashboardPage() {
           <section className="relative flex h-full flex-col overflow-hidden border border-line bg-paper">
             <span className="absolute inset-y-0 left-0 w-[3px] bg-accent/80" aria-hidden />
             <div className="flex flex-1 flex-col p-6 sm:p-7">
-              <div className="flex flex-wrap items-start justify-between gap-5">
-                <div className="min-w-0 max-w-[440px]">
+              <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-5">
+                <div className="min-w-0 max-w-[440px] sm:flex-1">
                   <p className="eyebrow">Focus room / The next block</p>
                   <h2 className="mt-2 line-clamp-3 text-[26px] leading-[1.14] text-ink sm:text-[31px]">
                     {stats.nextTask?.title ?? 'One clear step is enough.'}
@@ -707,7 +701,7 @@ export function DashboardPage() {
                 </div>
                 <div className="shrink-0 text-right">
                   <p className="eyebrow">Focused today</p>
-                  <p className="mt-1 font-serif text-[48px] leading-none tracking-[-0.05em] text-ink">
+                  <p className="mt-1 font-serif text-[44px] leading-none tracking-[-0.04em] text-ink">
                     {stats.todayFocusMinutes}
                     <span className="ml-1 font-mono text-[11px] tracking-normal text-muted">min</span>
                   </p>
@@ -720,7 +714,7 @@ export function DashboardPage() {
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <Link
                   to={stats.nextTask ? `/focus?task=${stats.nextTask.id}` : '/focus'}
-                  className={buttonClass('primary', 'lg', 'min-w-[150px]')}
+                  className={buttonClass('secondary', 'lg', 'min-w-[150px]')}
                 >
                   <Play size={14} aria-hidden />
                   Start focus
@@ -791,7 +785,7 @@ export function DashboardPage() {
                   title="Your collection is just getting started."
                   description="Complete a task or a focus session to open the first mark."
                   action={
-                    <Link to="/achievements" className="text-[13px] text-accent underline decoration-accent/40 underline-offset-2">
+                    <Link to="/progress?tab=achievements" className="text-[13px] text-accent underline decoration-accent/40 underline-offset-2">
                       View all
                     </Link>
                   }
@@ -817,7 +811,7 @@ export function DashboardPage() {
               </ul>
             )}
             <Link
-              to="/achievements"
+              to="/progress?tab=achievements"
               className="mt-auto border-t border-line pt-3 text-[12px] text-muted underline decoration-line underline-offset-2 hover:text-ink"
             >
               {stats.unlockedAchievements.length} of {ACHIEVEMENTS.length} unlocked
@@ -860,80 +854,103 @@ export function DashboardPage() {
 
   return (
     <div>
-      <section className="relative mb-7 overflow-hidden border border-line bg-paper shadow-paper">
-        <span
-          className="pointer-events-none absolute inset-y-0 right-0 hidden w-[33%] border-l border-line/60 bg-surface2/10 lg:block"
-          aria-hidden
-        />
-        <span className="pointer-events-none absolute right-6 top-4 font-mono text-[8px] uppercase tracking-[0.24em] text-muted/50 sm:right-8 sm:top-5 lg:right-10">
-          No. 01 / Daily edition
-        </span>
-        <div className="relative flex flex-col gap-8 p-6 pt-9 sm:p-8 sm:pt-10 lg:flex-row lg:items-end lg:justify-between lg:p-10 lg:pt-11">
-          <div className="min-w-0 max-w-[700px]">
+      <section className="mb-7 border-b border-line pb-6">
+        <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between md:gap-8">
+          <div className="min-w-0 max-w-[680px]">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="eyebrow">The daily edition</span>
-              <span className="h-px w-8 bg-accent/50" aria-hidden />
-              <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted">
+              <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted">
                 {formatDateKey(today, { weekday: 'long', day: 'numeric', month: 'long' })}
               </span>
+              <span className="h-px w-6 bg-line" aria-hidden />
+              <span className="text-[11px] text-muted">Level {stats.level.level}</span>
             </div>
-            <h1 className="mt-4 text-balance text-[40px] leading-[0.98] tracking-[-0.04em] sm:text-[56px] lg:text-[64px]">
-              {greetingForHour(now.getHours())},{' '}
-              <span className="text-accent italic">{firstName}.</span>
+            <h1 className="mt-2 text-balance text-[28px] leading-[1.12] tracking-[-0.03em] md:text-[32px]">
+              {greetingForHour(now.getHours())}, {firstName}.
             </h1>
-            <p className="mt-4 max-w-[540px] text-[15px] leading-7 text-ink/60 sm:text-[16px]">
+            <p className="mt-2 max-w-[620px] text-[15px] leading-6 text-ink/70">
               {dailyLine}
             </p>
-            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line pt-4 font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-muted">
               <span>
-                <span className="text-ink">{stats.todayProgress.completed}/{stats.todayProgress.total}</span>{' '}
+                <span className="font-medium text-ink">{stats.todayProgress.completed}/{stats.todayProgress.total}</span>{' '}
                 steps today
               </span>
-              <span className="hidden h-3 w-px bg-line sm:block" aria-hidden />
-              <span>Level {stats.level.level}</span>
-              <span className="hidden h-3 w-px bg-line sm:block" aria-hidden />
+              <span className="h-3 w-px bg-line" aria-hidden />
               <span>{state.streak.currentStreak} day streak</span>
-              <span className="hidden h-3 w-px bg-line sm:block" aria-hidden />
+              <span className="h-3 w-px bg-line" aria-hidden />
               <span>{nextDeadlineLabel ?? 'No deadline pressure'}</span>
             </div>
           </div>
-          <div className="hidden shrink-0 items-end gap-4 self-start sm:flex lg:self-auto lg:border-l lg:border-line/70 lg:pb-1 lg:pl-8">
-            <div className="text-left lg:text-right">
-              <p className="eyebrow">Today</p>
-              <p className="mt-1 font-serif text-[64px] leading-[0.8] tracking-[-0.055em] text-ink">
-                {formatDateKey(today, { day: 'numeric' })}
-              </p>
-              <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-muted">
-                {formatDateKey(today, { month: 'long' })} <span className="text-ink/50">{now.getFullYear()}</span>
-              </p>
-            </div>
-          </div>
         </div>
-        <div className="relative flex flex-wrap items-center gap-2 border-t border-line bg-ivory/35 px-6 py-4 sm:px-8 lg:px-10">
+        <div className="mt-5 flex flex-wrap items-center gap-2">
           <Button variant="primary" onClick={() => openTask()}>
-            <Plus size={14} aria-hidden />
+            <Plus size={15} aria-hidden />
             New task
           </Button>
           <Button variant="secondary" onClick={() => navigate('/focus')}>
-            <Timer size={13} aria-hidden />
-            Focus timer
-          </Button>
-          <Button variant="ghost" onClick={openUnstuckWithContext}>
-            <LifeBuoy size={13} aria-hidden />
-            I&apos;m stuck
-          </Button>
-          <Button variant="ghost" onClick={openCatchUpWithContext}>
-            <CalendarClock size={13} aria-hidden />
-            Help me catch up
+            <Timer size={14} aria-hidden />
+            Start focus
           </Button>
           <Button variant="ghost" onClick={openPlannerWithContext}>
-            <CalendarRange size={13} aria-hidden />
+            <CalendarRange size={14} aria-hidden />
             Plan my day
           </Button>
-          <Button variant="ghost" onClick={() => openProject()}>
-            <FolderOpen size={13} aria-hidden />
-            New project
+          <Button variant="ghost" onClick={openTour}>
+            <Compass size={14} aria-hidden />
+            Help
           </Button>
+        </div>
+
+        <div className="mt-5 flex flex-col gap-3 border border-line bg-paper px-4 py-3.5 sm:flex-row sm:items-center">
+          {stats.nextTask ? (
+            <>
+              <div className="min-w-0 flex-1">
+                <p className="eyebrow">Next step</p>
+                <button
+                  type="button"
+                  onClick={() => openTask({ taskId: stats.nextTask?.id })}
+                  className="mt-0.5 block max-w-full truncate text-left text-[15px] font-medium text-ink hover:text-accent"
+                >
+                  {stats.nextTask.title}
+                </button>
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted">
+                  {stats.nextTask.projectId ? (
+                    <span className="truncate">
+                      {state.projects.find((project) => project.id === stats.nextTask?.projectId)?.title ??
+                        'Project'}
+                    </span>
+                  ) : (
+                    <span>Personal</span>
+                  )}
+                  <span>{formatDuration(stats.nextTask.estimatedMinutes)}</span>
+                  <PriorityBadge priority={stats.nextTask.priority} />
+                  <DeadlineLabel task={stats.nextTask} />
+                </div>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="shrink-0"
+                onClick={() => navigate(`/focus?task=${stats.nextTask?.id ?? ''}`)}
+              >
+                <Play size={12} aria-hidden />
+                Focus on this
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="min-w-0 flex-1">
+                <p className="eyebrow">Next step</p>
+                <p className="mt-0.5 text-[14px] text-ink">
+                  Nothing is waiting. Add one clear action when you are ready.
+                </p>
+              </div>
+              <Button variant="ghost" size="sm" className="shrink-0" onClick={() => openTask()}>
+                <Plus size={12} aria-hidden />
+                Add a task
+              </Button>
+            </>
+          )}
         </div>
       </section>
 
@@ -1028,13 +1045,13 @@ export function DashboardPage() {
         </section>
       ) : null}
 
-      {state.projects.length === 0 && state.tasks.length === 0 && !state.demoLoaded ? (
+      {!welcomeSeen && state.projects.length === 0 && state.tasks.length === 0 && !state.demoLoaded ? (
         <section className="paper-panel relative mb-4 overflow-hidden border border-line bg-paper p-6 sm:p-8">
           <span className="absolute inset-y-0 left-0 w-[3px] bg-accent/75" aria-hidden />
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-[650px]">
               <p className="eyebrow">Start here / A blank page</p>
-              <h2 className="mt-2 text-balance text-[28px] leading-[1.08] sm:text-[34px]">
+              <h2 className="mt-2 text-balance text-[22px] leading-[1.15] sm:text-[26px]">
                 Start with one overwhelming thing.
               </h2>
               <p className="mt-2 max-w-[560px] text-[15px] leading-7 text-muted">
@@ -1048,38 +1065,17 @@ export function DashboardPage() {
               </div>
             </div>
             <div className="flex flex-wrap gap-2 lg:justify-end">
-              <Button variant="primary" onClick={() => openTask()}>
-                Add a task
-              </Button>
               <Button variant="secondary" onClick={openTour}>
                 Take a quick tour
-              </Button>
-              <Button variant="ghost" onClick={() => openProject()}>
-                Create a project
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  dispatch({ type: 'LOAD_DEMO' });
-                  toast({ title: 'Demo workspace loaded', description: 'A Biology assignment, exam revision and weeks of history.', tone: 'success' });
-                }}
-              >
-                Try demo workspace
               </Button>
             </div>
           </div>
         </section>
       ) : null}
 
-      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12 lg:items-stretch">
         {visibleWidgets.map((id) => (
-          <div
-            key={id}
-            className={cn(
-              SPANS[id],
-              (id === 'dailyProgress' || id === 'activeProjects') && 'lg:self-stretch',
-            )}
-          >
+          <div key={id} className={SPANS[id]}>
             {renderWidget(id)}
           </div>
         ))}
@@ -1101,8 +1097,8 @@ export function DashboardPage() {
       <DailyReflection />
 
       <div className="mt-8 hidden items-center justify-between border-t border-line pt-4 font-mono text-[10px] uppercase tracking-[0.12em] text-muted lg:flex">
-        <span>{formatDateKey(today, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
-        <Link to="/statistics" className="inline-flex items-center gap-1 hover:text-ink">
+        <span>Local workspace · saved on this device</span>
+        <Link to="/progress?tab=statistics" className="inline-flex items-center gap-1 hover:text-ink">
           <CheckCircle2 size={10} aria-hidden />
           Progress is calculated from real tasks
         </Link>

@@ -110,10 +110,11 @@ export function Modal({
             role="dialog"
             aria-modal="true"
             aria-label={typeof title === 'string' ? title : undefined}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16, transition: { duration: 0.16 } }}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, scale: 0.985 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.99, transition: { duration: 0.16 } }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            style={{ transformOrigin: 'center bottom' }}
             className={cn(
               'paper-panel relative flex max-h-[94dvh] w-full flex-col overflow-hidden border border-line bg-paper shadow-lift sm:max-h-[88vh]',
               'rounded-t-[18px] border-b-0 sm:rounded-[16px] sm:border-b',
@@ -131,7 +132,7 @@ export function Modal({
                     </p>
                   ) : null}
                   {title ? (
-                    <h2 className="text-balance text-[23px] leading-snug text-ink sm:text-[26px]">
+                    <h2 className="text-balance text-[20px] leading-snug text-ink sm:text-[22px]">
                       {title}
                     </h2>
                   ) : null}

@@ -376,7 +376,7 @@ ${adaptations || '- none'}`;
             <div className="mt-1.5 flex items-center justify-between gap-3 border-t border-line pt-2">
               <p className="text-[11px] leading-4 text-muted">
                 Suggestions only. No task changes without your action. If a step feels stuck,
-                choose “I&apos;m stuck” beside it.
+                choose “Having trouble?” beside it.
               </p>
               <Button
                 variant="primary"
@@ -474,7 +474,7 @@ ${adaptations || '- none'}`;
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => openUnstuck({ taskId: nextTask.id })}>
                   <LifeBuoy size={11} aria-hidden />
-                  I&apos;m stuck
+                  Having trouble?
                 </Button>
               </div>
             </section>

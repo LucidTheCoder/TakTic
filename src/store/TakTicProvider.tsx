@@ -27,7 +27,7 @@ import { ACHIEVEMENTS } from '../services/gamification/achievements';
 import { toDateKey, todayKey } from '../utils/date';
 
 /**
- * Moves untouched workspaces onto the current editorial defaults: vermilion
+ * Moves untouched workspaces onto the current editorial defaults: Matcha
  * ink and a focus-first dashboard. Explicit arrangements and chosen accents
  * are never overwritten.
  */
@@ -40,7 +40,7 @@ function migrateLegacyDefaults(state: TakTicState): TakTicState {
       dashboard.hidden.join('|') !== defaults.hidden.join('|'));
   const needsAccentMigration =
     !state.profile.preferences.accentChanged &&
-    state.profile.preferences.accent === 'matcha';
+    state.profile.preferences.accent === 'vermilion';
   if (!needsDashboardMigration && !needsAccentMigration) return state;
 
   return {
@@ -50,7 +50,7 @@ function migrateLegacyDefaults(state: TakTicState): TakTicState {
           ...state.profile,
           preferences: {
             ...state.profile.preferences,
-            accent: 'vermilion',
+            accent: 'matcha',
             accentChanged: false,
           },
         }

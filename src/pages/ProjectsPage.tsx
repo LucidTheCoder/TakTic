@@ -73,7 +73,7 @@ export function ProjectsPage() {
         index="03"
         jp=""
         title="Projects"
-        description="Projects hold related work. Progress counts finished steps, not folders or phases."
+        description="A project is the larger goal; its tasks are the steps. Progress counts real completed work."
         actions={
           <>
             <Button variant="secondary" onClick={() => openTask()}>

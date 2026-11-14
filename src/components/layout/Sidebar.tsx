@@ -1,10 +1,9 @@
 import { Link, NavLink } from 'react-router-dom';
-import { Command, Settings } from 'lucide-react';
-import { NAV_ITEMS } from '../../data/navigation';
+import { Command, Compass, Settings } from 'lucide-react';
+import { NAV_GROUPS } from '../../data/navigation';
 import { useTakTic } from '../../store/TakTicProvider';
 import { ProgressBar } from '../ui/Feedback';
 import { cn } from '../../utils/cn';
-import { formatLongDate } from '../../utils/date';
 import { TakTicLogo } from '../brand/TakTicLogo';
 
 function initials(name: string): string {
@@ -16,9 +15,10 @@ function initials(name: string): string {
 
 interface SidebarProps {
   onOpenPalette: () => void;
+  onOpenTour: () => void;
 }
 
-export function Sidebar({ onOpenPalette }: SidebarProps) {
+export function Sidebar({ onOpenPalette, onOpenTour }: SidebarProps) {
   const { state, stats } = useTakTic();
   const level = stats.level;
 
@@ -28,75 +28,91 @@ export function Sidebar({ onOpenPalette }: SidebarProps) {
         <Link to="/" className="group inline-flex" aria-label="TakTic home">
           <TakTicLogo markClassName="h-10 w-10 transition-transform duration-200 group-hover:-translate-y-0.5" />
         </Link>
-        <div className="mt-6 border-t border-line pt-3">
-          <p className="text-[12px] leading-5 text-ink/55">{formatLongDate()}</p>
-          <div className="mt-2 flex items-center justify-between gap-2">
-            <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted/80">
-              Personal edition
+        <div className="mt-5 flex items-center justify-between gap-2 border-t border-line pt-3">
+          <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted/80">
+            Personal edition
+          </span>
+          {state.demoLoaded ? (
+            <span className="inline-flex items-center gap-1.5 rounded-[5px] border border-accent/30 bg-accent-soft/25 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-accent">
+              <span className="h-1 w-1 rounded-full bg-accent" aria-hidden />
+              Demo
             </span>
-            {state.demoLoaded ? (
-              <span className="inline-flex items-center gap-1.5 border border-accent/30 bg-accent-soft/25 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-accent">
-                <span className="h-1 w-1 rounded-full bg-accent" aria-hidden />
-                Demo
-              </span>
-            ) : null}
-          </div>
+          ) : null}
         </div>
       </div>
 
-      <nav className="scroll-thin flex-1 overflow-y-auto px-3" aria-label="Main">
-        <div className="mb-2 flex items-center gap-2 px-2.5">
-          <span className="eyebrow">Contents</span>
-          <span className="h-px flex-1 bg-line" aria-hidden />
+      <nav className="scroll-thin flex-1 overflow-y-auto px-3 pb-3" aria-label="Main">
+        {NAV_GROUPS.map((group, groupIndex) => (
+          <div key={group.label} className={groupIndex === 0 ? '' : 'mt-4 border-t border-line/80 pt-3'}>
+            <div className="mb-1.5 flex items-center gap-2 px-2.5">
+              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted/80">
+                {group.label}
+              </span>
+              <span className="h-px flex-1 bg-line/70" aria-hidden />
+            </div>
+            <ul className="space-y-0.5">
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <li key={item.path}>
+                    <NavLink
+                      to={item.path}
+                      end={item.path === '/'}
+                      className={({ isActive }) =>
+                        cn(
+                          'group relative flex items-center gap-3 rounded-[8px] px-2.5 py-2 text-[13px] transition-colors duration-200',
+                          isActive
+                            ? 'bg-accent/[0.09] font-medium text-ink'
+                            : 'text-muted hover:bg-paper/65 hover:text-ink',
+                        )
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <span
+                            className={cn(
+                              'absolute inset-y-2 left-0 w-[2px] rounded-full transition-colors',
+                              isActive ? 'bg-accent' : 'bg-transparent',
+                            )}
+                            aria-hidden
+                          />
+                          <Icon
+                            size={16}
+                            className={isActive ? 'text-accent' : 'text-muted group-hover:text-ink'}
+                            strokeWidth={1.7}
+                            aria-hidden
+                          />
+                          <span className="flex-1">{item.label}</span>
+                          <span
+                            className={cn(
+                              'font-mono text-[9px] tracking-[0.08em]',
+                              isActive ? 'text-accent/80' : 'text-muted/50',
+                            )}
+                          >
+                            {item.index}
+                          </span>
+                        </>
+                      )}
+                    </NavLink>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+        <div className="mt-4 border-t border-line/80 pt-3">
+          <button
+            type="button"
+            onClick={onOpenTour}
+            className="group flex w-full items-center gap-3 rounded-[8px] px-2.5 py-2 text-left text-[13px] text-muted transition-colors hover:bg-paper/65 hover:text-ink"
+          >
+            <Compass size={16} strokeWidth={1.7} aria-hidden />
+            <span className="flex-1">Help</span>
+            <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-muted/50">
+              Tour
+            </span>
+          </button>
         </div>
-        <ul className="space-y-1">
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            return (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  end={item.path === '/'}
-                  className={({ isActive }) =>
-                    cn(
-                      'group relative flex items-center gap-3 rounded-[9px] px-3 py-2.5 text-[13px] transition-colors duration-200',
-                      isActive
-                        ? 'bg-paper text-ink shadow-paper'
-                        : 'text-muted hover:bg-paper/60 hover:text-ink',
-                    )
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <span
-                        className={cn(
-                          'absolute inset-y-2.5 left-0 w-[2px] rounded-full transition-colors',
-                          isActive ? 'bg-accent' : 'bg-transparent',
-                        )}
-                        aria-hidden
-                      />
-                      <Icon
-                        size={14}
-                        className={isActive ? 'text-accent' : 'text-muted group-hover:text-ink'}
-                        strokeWidth={1.6}
-                        aria-hidden
-                      />
-                      <span className="flex-1">{item.label}</span>
-                      <span
-                        className={cn(
-                          'font-mono text-[9px] tracking-[0.08em]',
-                          isActive ? 'text-accent/70' : 'text-muted/55',
-                        )}
-                      >
-                        {item.index}
-                      </span>
-                    </>
-                  )}
-                </NavLink>
-              </li>
-            );
-          })}
-        </ul>
       </nav>
 
       <div className="border-t border-line px-4 pb-4 pt-3.5">

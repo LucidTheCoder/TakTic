@@ -63,9 +63,9 @@ const SECTIONS = [
 ];
 
 const ACCENTS: Array<{ value: AccentName; label: string; hex: string }> = [
+  { value: 'matcha', label: 'Matcha', hex: '#5F7355' },
   { value: 'vermilion', label: 'Vermilion', hex: '#B94B3A' },
   { value: 'indigo', label: 'Indigo', hex: '#41556F' },
-  { value: 'matcha', label: 'Matcha', hex: '#5F7355' },
   { value: 'ochre', label: 'Ochre', hex: '#A4772F' },
 ];
 
@@ -349,7 +349,7 @@ export function SettingsPage() {
                   onClick={() =>
                     dispatch({ type: 'UPDATE_PREFERENCES', patch: { theme: 'light' } })
                   }
-                  swatches={['#F5F1E8', '#FCFAF5', '#B94B3A', '#292B29']}
+                  swatches={['#F5F1E8', '#FCFAF5', '#5F7355', '#292B29']}
                 />
                 <ThemeCard
                   label="Dark"
@@ -358,7 +358,7 @@ export function SettingsPage() {
                   onClick={() =>
                     dispatch({ type: 'UPDATE_PREFERENCES', patch: { theme: 'dark' } })
                   }
-                  swatches={['#232522', '#2C2E2A', '#C96A56', '#E8E2D4']}
+                  swatches={['#232522', '#2C2E2A', '#A0B293', '#E8E2D4']}
                 />
               </div>
             </div>

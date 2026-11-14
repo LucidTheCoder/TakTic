@@ -350,7 +350,7 @@ export function FocusRoomPage() {
             <span className="eyebrow">Focus room</span>
           </div>
           <h1 className="mt-3 text-[32px] leading-[1.02] sm:text-[44px]">A single block of time.</h1>
-          <p className="mt-2 hidden max-w-[520px] text-[15px] leading-7 text-ink/60 sm:block">
+          <p className="mt-2 hidden max-w-[520px] text-[15px] leading-7 text-ink/75 sm:block">
             One step at a time. The timer keeps running even if you look away.
           </p>
         </div>

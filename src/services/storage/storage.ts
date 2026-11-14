@@ -13,7 +13,11 @@ const difficulty = z.enum(['easy', 'medium', 'hard']);
 
 export const TaskSchema = z.object({
   id: z.string().min(1),
-  projectId: z.string().min(1),
+  // Older saves may not contain the key at all; empty values load as standalone.
+  projectId: z.preprocess(
+    (value) => (value === '' ? null : value),
+    z.string().min(1).nullable().default(null),
+  ),
   parentTaskId: z.string().nullable(),
   title: z.string().min(1),
   description: z.string().default(''),

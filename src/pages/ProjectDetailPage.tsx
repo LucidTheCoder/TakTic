@@ -154,7 +154,7 @@ export function ProjectDetailPage() {
               size="icon"
               aria-label="Delete project"
               onClick={() => setDeleteOpen(true)}
-              className="text-accent hover:text-accent"
+              className="text-danger hover:text-danger"
             >
               <Trash2 size={14} aria-hidden />
             </Button>

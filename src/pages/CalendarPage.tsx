@@ -117,7 +117,7 @@ export function CalendarPage() {
               key={task.id}
               className={cn(
                 'h-1 w-1 rounded-full',
-                task.priority === 'urgent' ? 'bg-accent' : task.priority === 'high' ? 'bg-accent/60' : 'bg-muted/60',
+                task.priority === 'urgent' ? 'bg-danger' : task.priority === 'high' ? 'bg-warning' : 'bg-muted/60',
               )}
             />
           ))}
@@ -138,7 +138,7 @@ export function CalendarPage() {
             <span
               className={cn(
                 'h-1 w-1 shrink-0 rounded-full',
-                task.priority === 'urgent' ? 'bg-accent' : 'bg-muted/60',
+                task.priority === 'urgent' ? 'bg-danger' : 'bg-muted/60',
               )}
               aria-hidden
             />
@@ -373,7 +373,7 @@ export function CalendarPage() {
                               <span
                                 className={cn(
                                   'h-1 w-1 rounded-full',
-                                  task.priority === 'urgent' ? 'bg-accent' : 'bg-muted/60',
+                                  task.priority === 'urgent' ? 'bg-danger' : 'bg-muted/60',
                                 )}
                                 aria-hidden
                               />
@@ -479,7 +479,7 @@ function UpcomingList({ tasks, onOpen }: { tasks: Task[]; onOpen: (options: { ta
                   <span
                     className={cn(
                       'shrink-0 font-mono text-[10px]',
-                      info.tone === 'overdue' ? 'text-accent' : 'text-muted',
+                      info.tone === 'overdue' ? 'text-danger' : 'text-muted',
                     )}
                   >
                     {info.label}

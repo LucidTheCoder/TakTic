@@ -13,7 +13,7 @@ import { TakTicLogo } from '../brand/TakTicLogo';
 
 export function AppLayout() {
   const { state } = useTakTic();
-  const { openPalette } = useAppActions();
+  const { openPalette, openTour } = useAppActions();
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
@@ -65,7 +65,10 @@ export function AppLayout() {
   return (
     <div className="relative min-h-screen bg-ivory">
       <div className="grain pointer-events-none fixed inset-0 z-0" aria-hidden />
-      <Sidebar onOpenPalette={() => openPalette('command')} />
+      <Sidebar
+        onOpenPalette={() => openPalette('command')}
+        onOpenTour={openTour}
+      />
 
       <div className="relative z-10 lg:pl-[264px]">
         <header className="sticky top-0 z-30 border-b border-line bg-ivory/92 backdrop-blur-xl lg:hidden">
@@ -143,7 +146,10 @@ export function AppLayout() {
         </footer>
       </div>
 
-      <MobileNav onOpenPalette={() => openPalette('command')} />
+      <MobileNav
+        onOpenPalette={() => openPalette('command')}
+        onOpenTour={openTour}
+      />
       <LevelUpOverlay />
     </div>
   );

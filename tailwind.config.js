@@ -17,11 +17,15 @@ export default {
         'sage-soft': 'rgb(var(--sage-soft) / <alpha-value>)',
         accent: 'rgb(var(--accent) / <alpha-value>)',
         'accent-soft': 'rgb(var(--accent-soft) / <alpha-value>)',
+        danger: 'rgb(var(--danger) / <alpha-value>)',
+        'danger-soft': 'rgb(var(--danger-soft) / <alpha-value>)',
+        warning: 'rgb(var(--warning) / <alpha-value>)',
+        'warning-soft': 'rgb(var(--warning-soft) / <alpha-value>)',
       },
       fontFamily: {
         serif: ['"Noto Serif Display"', '"Noto Serif JP"', 'Georgia', 'serif'],
         sans: ['Inter', '"Noto Sans JP"', 'system-ui', 'sans-serif'],
-        mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        mono: ['Inter', '"Noto Sans JP"', 'system-ui', 'sans-serif'],
       },
       letterSpacing: {
         editorial: '0.22em',

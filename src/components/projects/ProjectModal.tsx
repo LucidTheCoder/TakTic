@@ -94,7 +94,7 @@ export function ProjectModal({ open, projectId, onClose, onCreated }: ProjectMod
       description={
         project
           ? 'Projects gather related tasks and track completion without double-counting.'
-          : 'A project is a container for work that belongs together. It can be broad.'
+          : 'Organise a larger goal into smaller tasks. A project is the goal; the tasks are the steps.'
       }
       width="md"
       footer={
@@ -122,7 +122,11 @@ export function ProjectModal({ open, projectId, onClose, onCreated }: ProjectMod
             maxLength={140}
           />
         </Field>
-        <Field label="Description" htmlFor="project-description" hint="What is this project for?">
+        <Field
+          label="Description"
+          htmlFor="project-description"
+          hint="What outcome are you working toward? Optional."
+        >
           <Textarea
             id="project-description"
             value={description}

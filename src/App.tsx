@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { ToastProvider } from './components/ui/ToastProvider';
 import { TakTicProvider, useTakTic } from './store/TakTicProvider';
@@ -12,8 +12,7 @@ import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { FocusRoomPage } from './pages/FocusRoomPage';
 import { CompanionPage } from './pages/CompanionPage';
 import { CalendarPage } from './pages/CalendarPage';
-import { StatisticsPage } from './pages/StatisticsPage';
-import { AchievementsPage } from './pages/AchievementsPage';
+import { ProgressPage } from './pages/ProgressPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { EmptyState } from './components/ui/Feedback';
 import { Link } from 'react-router-dom';
@@ -80,8 +79,9 @@ export default function App() {
                   <Route path="/focus" element={<FocusRoomPage />} />
                   <Route path="/companion" element={<CompanionPage />} />
                   <Route path="/calendar" element={<CalendarPage />} />
-                  <Route path="/statistics" element={<StatisticsPage />} />
-                  <Route path="/achievements" element={<AchievementsPage />} />
+                  <Route path="/progress" element={<ProgressPage />} />
+                  <Route path="/statistics" element={<Navigate to="/progress?tab=statistics" replace />} />
+                  <Route path="/achievements" element={<Navigate to="/progress?tab=achievements" replace />} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>

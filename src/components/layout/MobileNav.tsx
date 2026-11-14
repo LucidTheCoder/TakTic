@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  Compass,
   FolderOpen,
   LayoutGrid,
   ListChecks,
@@ -24,9 +25,10 @@ const primary = [
 
 interface MobileNavProps {
   onOpenPalette: () => void;
+  onOpenTour: () => void;
 }
 
-export function MobileNav({ onOpenPalette }: MobileNavProps) {
+export function MobileNav({ onOpenPalette, onOpenTour }: MobileNavProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const location = useLocation();
   const moreActive =
@@ -147,12 +149,26 @@ export function MobileNav({ onOpenPalette }: MobileNavProps) {
                       onClick={() => setSheetOpen(false)}
                       className="flex items-center gap-2 bg-paper px-4 py-3.5 text-[14px] text-ink"
                     >
-                      <Icon size={15} className="text-muted" aria-hidden />
+                      <Icon size={16} className="text-muted" aria-hidden />
                       <span className="flex-1">{item.label}</span>
                       <span className="font-mono text-[10px] text-muted/60">{item.index}</span>
                     </Link>
                   );
                 })}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSheetOpen(false);
+                    onOpenTour();
+                  }}
+                  className="col-span-2 flex items-center gap-2 border-t border-line bg-paper px-4 py-3.5 text-left text-[14px] text-ink"
+                >
+                  <Compass size={16} className="text-muted" aria-hidden />
+                  <span className="flex-1">Help</span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted/60">
+                    Quick tour
+                  </span>
+                </button>
               </div>
               <p className="px-5 pt-4 text-[12px] leading-5 text-muted">
                 TakTic keeps everything on this device. Export a backup from Settings whenever

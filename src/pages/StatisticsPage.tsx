@@ -16,7 +16,7 @@ import {
 import { focusMinutesOn, leafTasks } from '../utils/tasks';
 import { cn } from '../utils/cn';
 
-export function StatisticsPage() {
+export function StatisticsPage({ embedded = false }: { embedded?: boolean }) {
   const { state, stats } = useTakTic();
   const today = todayKey();
 
@@ -68,7 +68,11 @@ export function StatisticsPage() {
   const completedThisWeek = completedLeaves.filter(
     (task) => task.completedAt && lastSevenKeys.has(toDateKey(task.completedAt)),
   );
-  const projectsTouched = new Set(completedThisWeek.map((task) => task.projectId)).size;
+  const projectsTouched = new Set(
+    completedThisWeek
+      .map((task) => task.projectId)
+      .filter((id): id is string => Boolean(id)),
+  ).size;
   const shortTasks = completedThisWeek.filter((task) => task.estimatedMinutes <= 20).length;
   const taskDifference = Math.abs(tasksThisWeek - tasksPrior);
   const focusDifference = Math.abs(focusThisWeek - focusPrior);
@@ -93,21 +97,22 @@ export function StatisticsPage() {
 
   return (
     <div>
-      <PageHeader
-        index="07"
-        jp=""
-        title="Statistics"
-        description="A factual record of what you actually did. No comparisons with other people, and no invented trends."
-        actions={
-          <Link
-            to="/achievements"
-            className="inline-flex items-center gap-1.5 rounded-[8px] border border-line bg-paper px-3 py-2 text-[13px] text-muted transition-colors hover:border-ink/25 hover:text-ink"
-          >
-            Achievements
-            <ArrowRight size={12} aria-hidden />
-          </Link>
-        }
-      />
+      {embedded ? null : (
+        <PageHeader
+          index="06"
+          title="Statistics"
+          description="A factual record of what you actually did. No comparisons with other people, and no invented trends."
+          actions={
+            <Link
+              to="/progress?tab=achievements"
+              className="inline-flex items-center gap-1.5 rounded-[8px] border border-line bg-paper px-3 py-2 text-[13px] text-muted transition-colors hover:border-ink/25 hover:text-ink"
+            >
+              Achievements
+              <ArrowRight size={12} aria-hidden />
+            </Link>
+          }
+        />
+      )}
 
       <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
         {[
@@ -167,8 +172,16 @@ export function StatisticsPage() {
       <div className="mt-4 grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: 'Level', value: `Lv ${stats.level.level}`, note: stats.level.title },
-          { label: 'Current streak', value: `${state.streak.currentStreak} days`, note: 'grace if today is quiet' },
-          { label: 'Longest streak', value: `${state.streak.longestStreak} days`, note: `${state.streak.totalActiveDays} active days` },
+          {
+            label: 'Current streak',
+            value: `${state.streak.currentStreak} ${state.streak.currentStreak === 1 ? 'day' : 'days'}`,
+            note: 'grace if today is quiet',
+          },
+          {
+            label: 'Longest streak',
+            value: `${state.streak.longestStreak} ${state.streak.longestStreak === 1 ? 'day' : 'days'}`,
+            note: `${state.streak.totalActiveDays} active ${state.streak.totalActiveDays === 1 ? 'day' : 'days'}`,
+          },
           { label: 'Average session', value: `${averageSession} min`, note: `${focusSessions.length} completed sessions` },
         ].map((item) => (
           <div key={item.label} className="bg-paper px-4 py-3">

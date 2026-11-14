@@ -19,22 +19,22 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   return (
-    <header className={cn('relative mb-8 border-b border-line pb-7 md:mb-10 md:pb-9', className)}>
+    <header className={cn('relative mb-6 border-b border-line pb-5 md:mb-7 md:pb-6', className)}>
       <div className="flex items-center gap-3">
-        <span className="font-mono text-[12px] tracking-[0.18em] text-accent">{index}</span>
+        <span className="font-mono text-[11px] tracking-[0.16em] text-accent">{index}</span>
         <span className="h-px w-8 bg-accent/35" aria-hidden />
         <span className="eyebrow">TakTic journal</span>
         <span className="ml-auto hidden font-mono text-[9px] uppercase tracking-[0.24em] text-muted/70 sm:block">
           One step at a time
         </span>
       </div>
-      <div className="mt-4 flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-8">
-        <div className="min-w-0 flex-1 lg:max-w-[620px]">
-          <h1 className="text-balance text-[38px] leading-[1.02] tracking-[-0.035em] md:text-[50px]">
+      <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-8">
+        <div className="min-w-0 flex-1 lg:max-w-[720px]">
+          <h1 className="text-balance text-[26px] leading-[1.1] tracking-[-0.03em] md:text-[30px]">
             {title}
           </h1>
           {description ? (
-            <p className="mt-3 max-w-[620px] text-[15px] leading-7 text-ink/60 md:text-[16px]">
+            <p className="mt-2 max-w-[680px] text-[14px] leading-6 text-ink/75 md:text-[15px]">
               {description}
             </p>
           ) : null}
@@ -62,7 +62,7 @@ export function SectionHeading({
     <div className={cn('mb-4 flex items-start justify-between gap-4', className)}>
       <div>
         {eyebrow ? <p className="eyebrow mb-1.5">{eyebrow}</p> : null}
-        <h2 className="text-[23px] leading-snug text-ink">{title}</h2>
+        <h2 className="text-[19px] leading-snug text-ink">{title}</h2>
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>

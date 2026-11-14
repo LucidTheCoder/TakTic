@@ -168,7 +168,7 @@ export function CommandPalette({
       trailing: 'achievement',
       onSelect: () => {
         onClose();
-        navigate(`/achievements#${achievement.id}`);
+        navigate(`/progress?tab=achievements#${achievement.id}`);
       },
     }));
 
@@ -271,12 +271,11 @@ export function CommandPalette({
       (item) =>
         !q ||
         matches(item.label) ||
-        matches(item.jp) ||
         matches(item.path.replace('/', '')),
     ).map((item) => ({
       id: `page-${item.path}`,
       label: item.label,
-      sublabel: item.jp,
+      sublabel: `Go to ${item.label}`,
       icon: item.icon,
       trailing: item.index,
       onSelect: go(item.path),

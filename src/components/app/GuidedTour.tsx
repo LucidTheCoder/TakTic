@@ -3,6 +3,7 @@ import {
   ArrowRight,
   Check,
   Clock3,
+  FolderOpen,
   ListTree,
   LifeBuoy,
   Route,
@@ -16,7 +17,7 @@ import { cn } from '../../utils/cn';
 
 const TOUR_KEY = 'taktic.onboarding.v1';
 const TOUR_VERSION = 1;
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 interface TourRecord {
   version: number;
@@ -66,6 +67,30 @@ interface StepDefinition {
 }
 
 const STEPS: StepDefinition[] = [
+  {
+    eyebrow: 'Start with one action',
+    title: 'A task is one step. A project is the larger goal.',
+    description:
+      'Create a task with only a title. Add it to a project when that helps, or leave it in Personal. You never need a project first.',
+    icon: FolderOpen,
+    visual: (
+      <div className="grid gap-2 sm:grid-cols-2">
+        <div className="border border-line bg-paper px-4 py-4">
+          <p className="eyebrow">Task</p>
+          <p className="mt-2 text-[15px] text-ink">Revise immunity</p>
+          <p className="mt-1 text-[12px] text-muted">One action · 25 min · Personal</p>
+        </div>
+        <div className="border border-line bg-paper px-4 py-4">
+          <p className="eyebrow">Project</p>
+          <p className="mt-2 text-[15px] text-ink">Biology revision</p>
+          <p className="mt-1 text-[12px] text-muted">A group of related tasks</p>
+        </div>
+        <p className="text-[12px] leading-5 text-muted sm:col-span-2">
+          New Task is always available. The project field is optional.
+        </p>
+      </div>
+    ),
+  },
   {
     eyebrow: 'Start with the whole thing',
     title: 'Bring the overwhelming assignment, not a perfect plan.',
@@ -211,8 +236,8 @@ const STEPS: StepDefinition[] = [
           );
         })}
         <p className="border-t border-line pt-3 text-[13px] leading-5 text-muted sm:col-span-3">
-          Start with the first step on your own dashboard. You can reopen this tour from the command
-          palette whenever you want it.
+          Start with the first step on your own dashboard. You can reopen this tour from Help in the
+          sidebar at any time.
         </p>
       </div>
     ),

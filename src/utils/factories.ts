@@ -3,7 +3,7 @@ import { uid } from './id';
 import { xpForDifficulty } from '../services/gamification/xp';
 
 interface TaskInput {
-  projectId: string;
+  projectId?: string | null;
   title: string;
   description?: string;
   parentTaskId?: string | null;
@@ -28,7 +28,7 @@ export function buildTask(input: TaskInput): Task {
   const difficulty = input.difficulty ?? 'medium';
   return {
     id: input.id ?? uid('task'),
-    projectId: input.projectId,
+    projectId: input.projectId ?? null,
     parentTaskId: input.parentTaskId ?? null,
     title: input.title.trim(),
     description: input.description?.trim() ?? '',

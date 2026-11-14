@@ -22,14 +22,14 @@ export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 };
 
 export const PRIORITY_DOT: Record<Priority, string> = {
-  urgent: 'bg-accent',
-  high: 'bg-accent/60',
+  urgent: 'bg-danger',
+  high: 'bg-warning',
   medium: 'bg-muted',
   low: 'bg-transparent border border-muted/60',
 };
 
 export const PROJECT_DEADLINE_TONE: Record<Priority, string> = {
-  urgent: 'text-accent',
+  urgent: 'text-danger',
   high: 'text-ink',
   medium: 'text-muted',
   low: 'text-muted',
@@ -243,8 +243,8 @@ export function nextTaskCandidate(tasks: Task[], projects: Project[]): Task | nu
     if (aDeadline !== bDeadline) return aDeadline - bDeadline;
     const priority = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
     if (priority !== 0) return priority;
-    const aProject = projectMap.get(a.projectId);
-    const bProject = projectMap.get(b.projectId);
+    const aProject = a.projectId ? projectMap.get(a.projectId) : undefined;
+    const bProject = b.projectId ? projectMap.get(b.projectId) : undefined;
     const pA = aProject ? PRIORITY_ORDER[aProject.priority] : 4;
     const pB = bProject ? PRIORITY_ORDER[bProject.priority] : 4;
     return pA - pB || a.order - b.order;

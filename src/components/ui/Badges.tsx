@@ -36,7 +36,14 @@ export function PriorityBadge({ priority }: { priority: Priority }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-[12px] uppercase tracking-[0.1em] text-muted">
       <span className={cn('h-1.5 w-1.5 rounded-full', PRIORITY_DOT[priority])} aria-hidden />
-      <span className="font-mono">{PRIORITY_LABEL[priority]}</span>
+      <span
+        className={cn(
+          'font-mono',
+          priority === 'urgent' ? 'text-danger' : priority === 'high' ? 'text-warning' : undefined,
+        )}
+      >
+        {PRIORITY_LABEL[priority]}
+      </span>
     </span>
   );
 }
@@ -45,8 +52,9 @@ export function DifficultyBadge({ difficulty }: { difficulty: Difficulty }) {
   const filled = difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3;
   return (
     <span
-      className="inline-flex items-center gap-1.5 text-[12px] uppercase tracking-[0.08em] text-muted"
+      className="inline-flex items-center gap-1.5 text-[12px] text-muted"
       title={`Difficulty: ${DIFFICULTY_LABEL[difficulty]}`}
+      aria-label={`Difficulty: ${DIFFICULTY_LABEL[difficulty]}`}
     >
       <span className="flex items-end gap-[2px]" aria-hidden>
         {[0, 1, 2].map((index) => (
@@ -60,7 +68,7 @@ export function DifficultyBadge({ difficulty }: { difficulty: Difficulty }) {
           />
         ))}
       </span>
-      <span className="font-mono">{DIFFICULTY_LABEL[difficulty]}</span>
+      <span className="sr-only">{DIFFICULTY_LABEL[difficulty]}</span>
     </span>
   );
 }
@@ -80,7 +88,7 @@ export function DeadlineLabel({
       className={cn(
         'inline-flex items-center gap-1 text-[12px]',
         info.tone === 'overdue'
-          ? 'text-accent'
+          ? 'font-medium text-danger'
           : info.tone === 'soon'
             ? 'text-ink/75'
             : 'text-muted',

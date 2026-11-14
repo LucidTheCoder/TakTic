@@ -8,7 +8,6 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
-  Clock3,
   Copy,
   LifeBuoy,
   Lock,
@@ -24,16 +23,10 @@ import { useToast } from '../ui/ToastProvider';
 import { useAppActions } from '../app/AppActionsProvider';
 import { Dropdown } from '../ui/Dropdown';
 import { ConfirmDialog } from '../ui/Modal';
-import {
-  DeadlineLabel,
-  DifficultyBadge,
-  PriorityBadge,
-  StatusPill,
-  TaskCount,
-} from '../ui/Badges';
+import { DifficultyBadge, PriorityBadge, StatusPill, TaskCount } from '../ui/Badges';
+import { InlineDeadline, InlineDuration } from './InlineTaskTime';
 import { ProgressBar } from '../ui/Feedback';
 import { cn } from '../../utils/cn';
-import { formatDuration } from '../../utils/date';
 import {
   childrenOf,
   descendantsOf,
@@ -209,7 +202,7 @@ export function TaskRow({
     ...(!hasChildren && !completed
       ? [
           {
-            label: 'I\'m stuck',
+            label: 'Having trouble?',
             icon: LifeBuoy,
             onSelect: () => openUnstuck({ taskId: task.id }),
           },
@@ -261,7 +254,8 @@ export function TaskRow({
     <div id={`task-${task.id}`} className="scroll-mt-24">
       <div
         className={cn(
-          'group relative mx-2 my-2 flex items-start gap-2 rounded-[11px] border px-3 py-3 transition-[border-color,background-color,box-shadow] duration-200 md:gap-3 md:px-3.5',
+          'group relative flex items-start gap-2 rounded-[11px] border transition-[border-color,background-color,box-shadow] duration-200 md:gap-3',
+          compact ? 'mx-2 my-1.5 px-3 py-2.5' : 'mx-2 my-2 px-3 py-3 md:px-3.5',
           completed
             ? 'border-line/55 bg-surface2/25'
             : blocked
@@ -273,9 +267,9 @@ export function TaskRow({
           className={cn(
             'absolute inset-y-3 left-0 w-[2px] rounded-full',
             task.priority === 'urgent'
-              ? 'bg-accent'
+              ? 'bg-danger'
               : task.priority === 'high'
-                ? 'bg-accent/50'
+                ? 'bg-warning/80'
                 : task.priority === 'medium'
                   ? 'bg-sage/60'
                   : 'bg-line',
@@ -373,36 +367,42 @@ export function TaskRow({
                 <button
                   type="button"
                   onClick={() => openUnstuck({ taskId: task.id })}
-                  className="flex items-center gap-1 px-1 py-0.5 text-[12px] text-muted transition-colors hover:text-accent"
-                  title="I'm stuck — adapt this task"
-                  aria-label="I'm stuck — adapt this task"
+                  className="flex items-center gap-1 rounded-[4px] px-1 py-0.5 text-[12px] text-muted transition-colors hover:bg-accent/10 hover:text-accent"
+                  title="Having trouble? Adapt this task"
+                  aria-label="Having trouble? Adapt this task"
                 >
                   <LifeBuoy size={12} aria-hidden />
-                  <span className="hidden sm:inline">I&apos;m stuck</span>
+                  <span className="hidden sm:inline">Having trouble?</span>
                 </button>
               ) : null}
               <Dropdown items={menuItems} label={`Actions for ${task.title}`} />
             </div>
           </div>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            {showProject && project ? (
-              <Link
-                to={`/projects/${project.id}`}
-                className="inline-flex items-center gap-1.5 text-[12px] text-muted transition-colors hover:text-ink"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <span className="h-1 w-1 rounded-full bg-accent" aria-hidden />
-                <span className="max-w-[180px] truncate">{project.title}</span>
-              </Link>
+          <div className={cn('flex flex-wrap items-center gap-y-1.5', compact ? 'mt-1 gap-x-2' : 'mt-1.5 gap-x-3')}>
+            {showProject ? (
+              project ? (
+                <Link
+                  to={`/projects/${project.id}`}
+                  className="inline-flex items-center gap-1.5 text-[12px] text-muted transition-colors hover:text-ink"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <span className="h-1 w-1 rounded-full bg-accent" aria-hidden />
+                  <span className={cn('truncate', compact ? 'max-w-[140px]' : 'max-w-[180px]')}>
+                    {project.title}
+                  </span>
+                </Link>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-[12px] text-muted">
+                  <span className="h-1 w-1 rounded-full bg-line" aria-hidden />
+                  Personal
+                </span>
+              )
             ) : null}
-            <span className="inline-flex items-center gap-1 text-[12px] text-muted">
-              <Clock3 size={10} aria-hidden />
-              <span className="font-mono">{formatDuration(task.estimatedMinutes)}</span>
-            </span>
+            <InlineDuration task={task} />
             {!compact ? <PriorityBadge priority={task.priority} /> : null}
             {!compact ? <DifficultyBadge difficulty={task.difficulty} /> : null}
-            <DeadlineLabel task={task} />
+            <InlineDeadline task={task} />
             {hasChildren ? (
               <>
                 <TaskCount count={children.length} />
@@ -416,7 +416,7 @@ export function TaskRow({
             ) : null}
             {blocked ? (
               <span
-                className="inline-flex items-center gap-1 text-[12px] text-accent"
+                className="inline-flex items-center gap-1 text-[12px] text-warning"
                 title={task.blockedReason ?? 'Marked as blocked'}
               >
                 <Lock size={10} aria-hidden />
@@ -439,7 +439,7 @@ export function TaskRow({
               <StatusPill tone="accent">in progress</StatusPill>
             ) : null}
             {dependencies.length > 0 && !completed ? (
-              <span className="inline-flex items-center gap-1 text-[12px] text-accent/90" title={`Waiting on: ${dependencies.map((dependency) => dependency.title).join(', ')}`}>
+              <span className="inline-flex items-center gap-1 text-[12px] text-warning" title={`Waiting on: ${dependencies.map((dependency) => dependency.title).join(', ')}`}>
                 <AlertTriangle size={10} aria-hidden />
                 Waiting on {dependencies.length === 1 ? dependencies[0].title : `${dependencies.length} tasks`}
               </span>

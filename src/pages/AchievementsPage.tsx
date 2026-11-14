@@ -9,7 +9,7 @@ import { ProgressBar } from '../components/ui/Feedback';
 import { ACHIEVEMENTS } from '../services/gamification/achievements';
 import { formatDateKey } from '../utils/date';
 
-export function AchievementsPage() {
+export function AchievementsPage({ embedded = false }: { embedded?: boolean }) {
   const { state, stats } = useTakTic();
 
   const entries = useMemo(
@@ -38,21 +38,22 @@ export function AchievementsPage() {
 
   return (
     <div>
-      <PageHeader
-        index="08"
-        jp=""
-        title="Achievements"
-        description="Marks of real progress. Unlocks happen once, are never removed, and carry XP through the transaction ledger."
-        actions={
-          <Link
-            to="/statistics"
-            className="inline-flex items-center gap-1.5 rounded-[8px] border border-line bg-paper px-3 py-2 text-[13px] text-muted transition-colors hover:border-ink/25 hover:text-ink"
-          >
-            Statistics
-            <ArrowRight size={12} aria-hidden />
-          </Link>
-        }
-      />
+      {embedded ? null : (
+        <PageHeader
+          index="06"
+          title="Achievements"
+          description="Marks of real progress. Unlocks happen once, are never removed, and carry XP through the transaction ledger."
+          actions={
+            <Link
+              to="/progress?tab=statistics"
+              className="inline-flex items-center gap-1.5 rounded-[8px] border border-line bg-paper px-3 py-2 text-[13px] text-muted transition-colors hover:border-ink/25 hover:text-ink"
+            >
+              Statistics
+              <ArrowRight size={12} aria-hidden />
+            </Link>
+          }
+        />
+      )}
 
       <div className="grid gap-px border border-line bg-line sm:grid-cols-3">
         <div className="bg-paper px-4 py-4">

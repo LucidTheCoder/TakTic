@@ -1,15 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import {
-  CalendarClock,
-  Filter,
-  LifeBuoy,
-  ListChecks,
-  Search,
-  SlidersHorizontal,
-  Wand2,
-  X,
-} from 'lucide-react';
+import { ArrowUpDown, Filter, ListChecks, Search, Wand2, X } from 'lucide-react';
 import type { Difficulty, Priority, Task } from '../types';
 import { useTakTic } from '../store/TakTicProvider';
 import { useAppActions } from '../components/app/AppActionsProvider';
@@ -87,7 +78,7 @@ function compareTasks(a: Task, b: Task, sort: SortKey): number {
 
 export function TasksPage() {
   const { state, stats } = useTakTic();
-  const { openTask, openDecompose, openPlanner, openCatchUp, openUnstuck } = useAppActions();
+  const { openTask, openDecompose, openPlanner } = useAppActions();
   const [searchParams, setSearchParams] = useSearchParams();
   const [view, setView] = useState<View>(() => {
     const fromUrl = searchParams.get('view');
@@ -143,8 +134,14 @@ export function TasksPage() {
     setDeadlineFilter('all');
   };
 
-  const activeFilterCount =
-    (query.trim() ? 1 : 0) +
+  const clearFilterFields = () => {
+    setProjectFilter('');
+    setPriorityFilter('');
+    setDifficultyFilter('');
+    setDeadlineFilter('all');
+  };
+
+  const filterCount =
     (projectFilter ? 1 : 0) +
     (priorityFilter ? 1 : 0) +
     (difficultyFilter ? 1 : 0) +
@@ -157,7 +154,10 @@ export function TasksPage() {
     const matchesFilters = (task: Task) => {
       const searchable = `${task.title} ${task.description}`.toLowerCase();
       if (query.trim() && !searchable.includes(query.trim().toLowerCase())) return false;
-      if (projectFilter && task.projectId !== projectFilter) return false;
+      if (projectFilter === '__personal__' && task.projectId) return false;
+      if (projectFilter && projectFilter !== '__personal__' && task.projectId !== projectFilter) {
+        return false;
+      }
       if (priorityFilter && task.priority !== priorityFilter) return false;
       if (difficultyFilter && task.difficulty !== difficultyFilter) return false;
       if (deadlineFilter === 'none' && task.deadline) return false;
@@ -268,6 +268,11 @@ export function TasksPage() {
     });
   }, [state.projects, sortedMatched]);
 
+  const personalTasks = sortedMatched.filter((task) => !task.projectId);
+  const personalRoots = personalTasks.filter(
+    (task) => !task.parentTaskId || !personalTasks.some((candidate) => candidate.id === task.parentTaskId),
+  );
+
   const counts: Record<View, number> = {
     all: state.tasks.length,
     today: tasksForDate(state.tasks, today).length,
@@ -282,7 +287,9 @@ export function TasksPage() {
       (task) => task.status !== 'completed' && task.deadline && isOverdue(task.deadline, task.deadlineHasTime, false),
     ).length,
     completed: leafTasks(state.tasks).filter((task) => task.status === 'completed').length,
-    byProject: state.projects.filter((project) => projectTasks(state.tasks, project.id).length > 0).length,
+    byProject:
+      state.projects.filter((project) => projectTasks(state.tasks, project.id).length > 0).length +
+      (state.tasks.some((task) => !task.projectId) ? 1 : 0),
   };
 
   const emptyCopy = (() => {
@@ -374,21 +381,10 @@ export function TasksPage() {
         index="02"
         jp=""
         title="My tasks"
-        description="Every step in one place. Filter the noise out, or follow the plan you already made."
+        description="A task is one action. A project groups related tasks — and a task can stand alone in Personal."
         actions={
           <>
-            <Button
-              variant="secondary"
-              onClick={() => openUnstuck({ taskId: stats.nextTask?.id ?? null })}
-            >
-              <LifeBuoy size={13} aria-hidden />
-              I&apos;m stuck
-            </Button>
-            <Button variant="ghost" onClick={openCatchUp}>
-              <CalendarClock size={13} aria-hidden />
-              Catch up
-            </Button>
-            <Button variant="ghost" onClick={() => openDecompose()}>
+            <Button variant="secondary" onClick={() => openDecompose()}>
               <Wand2 size={13} aria-hidden />
               Split a big task
             </Button>
@@ -426,8 +422,8 @@ export function TasksPage() {
       />
 
       <div className="mt-3 border border-line bg-paper">
-        <div className="flex flex-wrap items-center gap-2 px-3 py-2.5">
-          <div className="relative min-w-[190px] flex-1">
+        <div className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center">
+          <div className="relative min-w-0 flex-1">
             <Search
               size={13}
               className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted"
@@ -451,123 +447,69 @@ export function TasksPage() {
               </button>
             ) : null}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={() => setFiltersOpen((current) => !current)}
-          >
-            <Filter size={12} aria-hidden />
-            Filters
-            {activeFilterCount > 0 ? (
-              <span className="ml-1 border border-accent/30 px-1 font-mono text-[10px] text-accent">
-                {activeFilterCount}
-              </span>
-            ) : null}
-          </Button>
-          <div className="hidden items-center gap-2 md:flex">
-            <Select
-              value={projectFilter}
-              onChange={(event) => setProjectFilter(event.target.value)}
-              aria-label="Filter by project"
-              className="h-8 w-[160px] py-1 text-[13px]"
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant={filtersOpen ? 'secondary' : 'ghost'}
+              size="md"
+              onClick={() => setFiltersOpen((current) => !current)}
+              aria-expanded={filtersOpen}
+              aria-controls="task-filters"
+              className={cn(filterCount > 0 && !filtersOpen && 'text-ink')}
             >
-              <option value="">All projects</option>
-              {[...state.projects]
-                .sort((a, b) => a.title.localeCompare(b.title))
-                .map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.title}
-                  </option>
-                ))}
-            </Select>
-            <Select
-              value={priorityFilter}
-              onChange={(event) => setPriorityFilter(event.target.value as Priority | '')}
-              aria-label="Filter by priority"
-              className="h-8 w-[118px] py-1 text-[13px]"
-            >
-              <option value="">Priority</option>
-              <option value="urgent">Urgent</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </Select>
-            <Select
-              value={difficultyFilter}
-              onChange={(event) => setDifficultyFilter(event.target.value as Difficulty | '')}
-              aria-label="Filter by difficulty"
-              className="h-8 w-[118px] py-1 text-[13px]"
-            >
-              <option value="">Difficulty</option>
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-            </Select>
-            <Select
-              value={deadlineFilter}
-              onChange={(event) => setDeadlineFilter(event.target.value as DeadlineFilter)}
-              aria-label="Filter by deadline"
-              className="h-8 w-[128px] py-1 text-[13px]"
-            >
-              <option value="all">Any deadline</option>
-              <option value="overdue">Overdue</option>
-              <option value="today">Due today</option>
-              <option value="week">Next 7 days</option>
-              <option value="none">No deadline</option>
-            </Select>
+              <Filter size={13} aria-hidden />
+              Filters
+              {filterCount > 0 ? (
+                <span className="rounded-[4px] bg-accent/10 px-1.5 font-mono text-[10px] text-accent">
+                  {filterCount}
+                </span>
+              ) : null}
+            </Button>
+
+            <div className="ml-auto flex items-center gap-1.5 sm:ml-0">
+              <ArrowUpDown size={13} className="text-muted" aria-hidden />
+              <Select
+                value={sort}
+                onChange={(event) => setSort(event.target.value as SortKey)}
+                aria-label="Sort tasks"
+                className="h-10 min-h-0 w-[132px] py-1 text-[13px]"
+              >
+                <option value="priority">Priority</option>
+                <option value="deadline">Deadline</option>
+                <option value="duration">Duration</option>
+                <option value="created">Newest</option>
+                <option value="difficulty">Difficulty</option>
+              </Select>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <SlidersHorizontal size={12} className="text-muted" aria-hidden />
-            <Select
-              value={sort}
-              onChange={(event) => setSort(event.target.value as SortKey)}
-              aria-label="Sort tasks"
-              className="h-8 w-[132px] py-1 text-[13px]"
-            >
-              <option value="priority">Priority</option>
-              <option value="deadline">Deadline</option>
-              <option value="duration">Duration</option>
-              <option value="created">Newest</option>
-              <option value="difficulty">Difficulty</option>
-            </Select>
-          </div>
-          {activeFilterCount > 0 ? (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="text-[12px] text-accent underline decoration-accent/40 underline-offset-2"
-            >
-              Clear {activeFilterCount}
-            </button>
-          ) : null}
         </div>
 
         {filtersOpen ? (
-          <div className="grid gap-2 border-t border-line px-3 py-3 md:hidden">
-            <Select
-              value={projectFilter}
-              onChange={(event) => setProjectFilter(event.target.value)}
-              aria-label="Filter by project"
-              className="h-9 text-[14px]"
-            >
-              <option value="">All projects</option>
-              {[...state.projects]
-                .sort((a, b) => a.title.localeCompare(b.title))
-                .map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.title}
-                  </option>
-                ))}
-            </Select>
-            <div className="grid grid-cols-3 gap-2">
+          <div id="task-filters" className="border-t border-line px-3 py-3">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <Select
+                value={projectFilter}
+                onChange={(event) => setProjectFilter(event.target.value)}
+                aria-label="Filter by project"
+                className="h-10 min-h-0 text-[13px]"
+              >
+                <option value="">All projects</option>
+                <option value="__personal__">Personal — no project</option>
+                {[...state.projects]
+                  .sort((a, b) => a.title.localeCompare(b.title))
+                  .map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.title}
+                    </option>
+                  ))}
+              </Select>
               <Select
                 value={priorityFilter}
                 onChange={(event) => setPriorityFilter(event.target.value as Priority | '')}
                 aria-label="Filter by priority"
-                className="h-9 text-[13px]"
+                className="h-10 min-h-0 text-[13px]"
               >
-                <option value="">Priority</option>
+                <option value="">Any priority</option>
                 <option value="urgent">Urgent</option>
                 <option value="high">High</option>
                 <option value="medium">Medium</option>
@@ -577,9 +519,9 @@ export function TasksPage() {
                 value={difficultyFilter}
                 onChange={(event) => setDifficultyFilter(event.target.value as Difficulty | '')}
                 aria-label="Filter by difficulty"
-                className="h-9 text-[13px]"
+                className="h-10 min-h-0 text-[13px]"
               >
-                <option value="">Difficulty</option>
+                <option value="">Any difficulty</option>
                 <option value="easy">Easy</option>
                 <option value="medium">Medium</option>
                 <option value="hard">Hard</option>
@@ -588,15 +530,26 @@ export function TasksPage() {
                 value={deadlineFilter}
                 onChange={(event) => setDeadlineFilter(event.target.value as DeadlineFilter)}
                 aria-label="Filter by deadline"
-                className="h-9 text-[13px]"
+                className="h-10 min-h-0 text-[13px]"
               >
-                <option value="all">Deadline</option>
+                <option value="all">Any deadline</option>
                 <option value="overdue">Overdue</option>
-                <option value="today">Today</option>
-                <option value="week">7 days</option>
-                <option value="none">None</option>
+                <option value="today">Due today</option>
+                <option value="week">Next 7 days</option>
+                <option value="none">No deadline</option>
               </Select>
             </div>
+            {filterCount > 0 ? (
+              <div className="mt-3 flex justify-end border-t border-line/70 pt-2.5">
+                <button
+                  type="button"
+                  onClick={clearFilterFields}
+                  className="text-[12px] text-accent underline decoration-accent/40 underline-offset-2"
+                >
+                  Clear filters
+                </button>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -612,6 +565,24 @@ export function TasksPage() {
           />
         ) : view === 'byProject' ? (
           <div className="space-y-5">
+            {personalTasks.length > 0 ? (
+              <section className="border border-line bg-paper">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
+                  <div className="min-w-0">
+                    <p className="text-[14px] text-ink">Personal</p>
+                    <p className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.08em] text-muted">
+                      Standalone tasks · no project needed
+                    </p>
+                  </div>
+                  <span className="font-mono text-[11px] text-muted">
+                    {personalTasks.length} shown
+                  </span>
+                </div>
+                {personalRoots.map((task) => (
+                  <TaskRow key={task.id} task={task} showProject={false} />
+                ))}
+              </section>
+            ) : null}
             {grouped.map(({ project, tasks, roots: groupRoots }) => {
               const progress = projectProgress(project, state.tasks);
               return (

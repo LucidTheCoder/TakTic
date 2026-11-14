@@ -104,7 +104,7 @@ export function TaskModal({
       setForm({
         title: task.title,
         description: task.description,
-        projectId: task.projectId,
+        projectId: task.projectId ?? '',
         parentTaskId: task.parentTaskId ?? '',
         estimatedMinutes: String(task.estimatedMinutes),
         difficulty: task.difficulty,
@@ -119,7 +119,7 @@ export function TaskModal({
     } else {
       setForm({
         ...emptyForm,
-        projectId: projectId ?? state.projects.find((project) => project.status === 'active')?.id ?? state.projects[0]?.id ?? '',
+        projectId: projectId ?? '',
         parentTaskId: parentTaskId ?? '',
         deadlineDate: initialDeadlineDate ?? '',
         scheduledDate: '',
@@ -139,6 +139,7 @@ export function TaskModal({
   );
 
   const project = state.projects.find((candidate) => candidate.id === form.projectId);
+  const targetProjectId = form.projectId || null;
 
   const parentOptions = useMemo(() => {
     const excluded = new Set<string>();
@@ -149,10 +150,10 @@ export function TaskModal({
     return state.tasks
       .filter(
         (candidate) =>
-          candidate.projectId === form.projectId && !excluded.has(candidate.id),
+          candidate.projectId === targetProjectId && !excluded.has(candidate.id),
       )
       .sort((a, b) => a.title.localeCompare(b.title));
-  }, [state.tasks, form.projectId, task]);
+  }, [state.tasks, targetProjectId, task]);
 
   const dependencyOptions = useMemo(() => {
     const excluded = new Set<string>();
@@ -163,12 +164,12 @@ export function TaskModal({
     return state.tasks
       .filter(
         (candidate) =>
-          candidate.projectId === form.projectId &&
+          candidate.projectId === targetProjectId &&
           !excluded.has(candidate.id) &&
           candidate.status !== 'completed',
       )
       .sort((a, b) => a.title.localeCompare(b.title));
-  }, [state.tasks, form.projectId, task]);
+  }, [state.tasks, targetProjectId, task]);
 
   const childCount = task ? childrenOf(state.tasks, task.id).length : 0;
 
@@ -185,7 +186,6 @@ export function TaskModal({
   const validate = (): boolean => {
     const nextErrors: Record<string, string> = {};
     if (form.title.trim().length < 2) nextErrors.title = 'Give the task a name of at least two characters.';
-    if (!form.projectId) nextErrors.projectId = 'Choose a project for this task.';
     const estimate = Number(form.estimatedMinutes);
     if (!Number.isFinite(estimate) || estimate < 5) nextErrors.estimatedMinutes = 'Use at least 5 minutes.';
     if (estimate > 600) nextErrors.estimatedMinutes = 'Keep estimates under 10 hours; split larger work.';
@@ -220,11 +220,11 @@ export function TaskModal({
         blockedReason: form.blocked ? form.blockedReason.trim() || 'Marked as blocked' : null,
       };
       dispatch({ type: 'UPDATE_TASK', id: task.id, patch });
-      if (task.projectId !== form.projectId || (task.parentTaskId ?? '') !== form.parentTaskId) {
+      if (task.projectId !== targetProjectId || (task.parentTaskId ?? '') !== form.parentTaskId) {
         dispatch({
           type: 'MOVE_TASK',
           id: task.id,
-          projectId: form.projectId,
+          projectId: targetProjectId,
           parentTaskId: form.parentTaskId || null,
         });
       }
@@ -237,7 +237,7 @@ export function TaskModal({
       toast({ title: 'Task updated', tone: 'success' });
     } else {
       const newTask = buildTask({
-        projectId: form.projectId,
+        projectId: targetProjectId,
         parentTaskId: form.parentTaskId || null,
         title: form.title,
         description: form.description,
@@ -329,7 +329,7 @@ export function TaskModal({
         description={
           task
             ? 'Small, concrete steps are easier to start than large ones.'
-            : 'Aim for something you can finish in one sitting.'
+            : 'A task is one action. A project is optional; a clear title is enough to start.'
         }
         width="lg"
         footer={
@@ -343,7 +343,7 @@ export function TaskModal({
                 {task.status !== 'completed' ? (
                   <Button variant="ghost" size="sm" onClick={() => onUnstuck(task.id)}>
                     <LifeBuoy size={13} aria-hidden />
-                    I&apos;m stuck
+                    Having trouble?
                   </Button>
                 ) : null}
                 {task.status !== 'completed' ? (
@@ -354,7 +354,7 @@ export function TaskModal({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-accent hover:text-accent"
+                  className="text-danger hover:text-danger"
                   onClick={() => setDeleteOpen(true)}
                 >
                   <Trash2 size={13} aria-hidden />
@@ -372,7 +372,13 @@ export function TaskModal({
         }
       >
         <div className="space-y-4">
-          <Field label="Task" htmlFor="task-title" required error={errors.title}>
+                      <Field
+              label="Task title"
+              htmlFor="task-title"
+              required
+              error={errors.title}
+              hint="What do you need to get done? A task is one action; a project is optional."
+            >
             <Input
               id="task-title"
               value={form.title}
@@ -399,42 +405,49 @@ export function TaskModal({
           </Field>
 
           <div className="grid gap-4">
-            <Field label="Project" htmlFor="task-project" required error={errors.projectId}>
+            <Field
+              label="Project"
+              htmlFor="task-project"
+              hint="Add to a project (optional). Leave it as Personal for a standalone task."
+            >
+              <Select
+                id="task-project"
+                value={form.projectId}
+                onChange={(event) => {
+                  update('projectId', event.target.value);
+                  update('parentTaskId', '');
+                  update('dependencies', []);
+                }}
+              >
+                <option value="">Personal — no project</option>
+                {sortedProjects.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.title}
+                    {item.status === 'completed' ? ' (completed)' : ''}
+                  </option>
+                ))}
+              </Select>
               {sortedProjects.length === 0 ? (
-                <div className="border border-line bg-surface2/50 px-3 py-2 text-[14px] leading-5 text-muted">
-                  No projects yet.{' '}
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[12px] text-muted">
+                  <span>You can save this task without creating a project.</span>
                   <button
                     type="button"
                     className="text-accent underline decoration-accent/40 underline-offset-2"
                     onClick={onRequestProject}
                   >
-                    Create one first
+                    Create a project instead
                   </button>
-                  .
                 </div>
-              ) : (
-                <Select
-                  id="task-project"
-                  value={form.projectId}
-                  onChange={(event) => {
-                    update('projectId', event.target.value);
-                    update('parentTaskId', '');
-                    update('dependencies', []);
-                  }}
-                >
-                  <option value="">Choose a project</option>
-                  {sortedProjects.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.title}
-                      {item.status === 'completed' ? ' (completed)' : ''}
-                    </option>
-                  ))}
-                </Select>
-              )}
+              ) : null}
             </Field>
           </div>
 
-          <Field label="Due date" htmlFor="task-deadline" error={errors.deadlineDate}>
+                        <Field
+                label="Due date"
+                htmlFor="task-deadline"
+                hint="Optional. You can change it later directly on the task."
+                error={errors.deadlineDate}
+              >
             <Input
               id="task-deadline"
               type="date"
@@ -468,13 +481,13 @@ export function TaskModal({
             <Field
               label="Parent task"
               htmlFor="task-parent"
-              hint="Leave empty for a top-level task."
+              hint="Leave empty for a top-level task. Personal tasks can have subtasks too."
             >
               <Select
                 id="task-parent"
                 value={form.parentTaskId}
                 onChange={(event) => update('parentTaskId', event.target.value)}
-                disabled={!form.projectId || parentOptions.length === 0}
+                disabled={parentOptions.length === 0}
               >
                 <option value="">None</option>
                 {parentOptions.map((item) => (

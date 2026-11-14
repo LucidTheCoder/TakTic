@@ -9,13 +9,13 @@ const base =
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    'border-accent bg-accent text-paper shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_24px_-18px_rgba(185,75,58,0.9)] hover:border-accent/90 hover:bg-accent/90',
+    'border-accent bg-accent text-paper shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_24px_-18px_rgba(41,43,41,0.55)] hover:border-accent/90 hover:bg-accent/90',
   secondary:
     'border-line bg-paper text-ink hover:border-ink/25 hover:bg-surface2/60 hover:shadow-paper',
   ghost:
     'border-transparent bg-transparent text-muted hover:bg-surface2/60 hover:text-ink',
   danger:
-    'border-accent/40 bg-transparent text-accent hover:border-accent hover:bg-accent-soft/70',
+    'border-danger/40 bg-transparent text-danger hover:border-danger hover:bg-danger-soft/70',
   quiet:
     'border-line bg-transparent text-ink hover:border-ink/25 hover:bg-surface2/60',
 };

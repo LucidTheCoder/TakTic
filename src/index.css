@@ -13,8 +13,12 @@
   --stone: 220 214 202;
   --sage: 137 149 129;
   --sage-soft: 232 237 227;
-  --accent: 185 75 58;
-  --accent-soft: 243 230 224;
+  --accent: 95 115 85;
+  --accent-soft: 233 237 228;
+  --danger: 172 58 48;
+  --danger-soft: 246 231 226;
+  --warning: 161 111 35;
+  --warning-soft: 247 239 219;
   --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)' opacity='0.045'/%3E%3C/svg%3E");
   color-scheme: light;
 }
@@ -30,8 +34,12 @@
   --stone: 56 57 50;
   --sage: 166 178 154;
   --sage-soft: 44 50 41;
-  --accent: 205 111 93;
-  --accent-soft: 60 41 35;
+  --accent: 160 178 147;
+  --accent-soft: 38 47 36;
+  --danger: 224 132 117;
+  --danger-soft: 61 38 34;
+  --warning: 218 174 105;
+  --warning-soft: 58 47 30;
   color-scheme: dark;
 }
 
@@ -45,7 +53,7 @@
 }
 
 [data-accent='matcha'] {
-  --accent: 95 122 88;
+  --accent: 95 115 85;
   --accent-soft: 233 237 228;
 }
 .dark[data-accent='matcha'] {
@@ -86,6 +94,12 @@
   h4 {
     @apply font-serif text-ink;
     font-feature-settings: 'palt' 1;
+  }
+
+  /* Numerals stay aligned without a second typeface taking over the UI. */
+  .font-mono {
+    font-feature-settings: 'tnum' 1, 'zero' 1;
+    letter-spacing: 0.01em;
   }
 
   h1,

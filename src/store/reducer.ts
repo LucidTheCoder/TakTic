@@ -40,7 +40,7 @@ export type Action =
   | { type: 'DELETE_TASK'; id: string }
   | { type: 'TOGGLE_TASK'; id: string; cascade?: boolean }
   | { type: 'SET_BLOCKED'; id: string; blocked: boolean; reason?: string }
-  | { type: 'MOVE_TASK'; id: string; projectId: string; parentTaskId: string | null }
+  | { type: 'MOVE_TASK'; id: string; projectId: string | null; parentTaskId: string | null }
   | { type: 'DUPLICATE_TASK'; id: string }
   | { type: 'REORDER_TASK'; id: string; direction: 'up' | 'down' }
   | {
@@ -252,7 +252,8 @@ function rebuildStreakCurrent(streak: TakTicState['streak']): number {
   return count;
 }
 
-function touchProject(projects: Project[], projectId: string): Project[] {
+function touchProject(projects: Project[], projectId: string | null | undefined): Project[] {
+  if (!projectId) return projects;
   const timestamp = nowIso();
   return projects.map((project) =>
     project.id === projectId ? { ...project, updatedAt: timestamp } : project,
@@ -616,8 +617,10 @@ export function reducer(state: TakTicState, action: Action): TakTicState {
       ) {
         return state;
       }
-      const targetProject = state.projects.find((project) => project.id === action.projectId);
-      if (!targetProject) return state;
+      const targetProject = action.projectId
+        ? state.projects.find((project) => project.id === action.projectId)
+        : null;
+      if (action.projectId && !targetProject) return state;
 
       const tasks = state.tasks.map((candidate) => {
         if (candidate.id === action.id) {
