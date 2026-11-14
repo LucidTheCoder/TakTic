@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, Trash2, Wand2 } from 'lucide-react';
+import { LifeBuoy, Sparkles, Trash2, Wand2 } from 'lucide-react';
 import type { Difficulty, Priority, Task } from '../../types';
 import { useTakTic } from '../../store/TakTicProvider';
 import { useToast } from '../ui/ToastProvider';
@@ -28,6 +28,7 @@ interface TaskModalProps {
   onClose: () => void;
   onRequestProject: () => void;
   onBreakDown: (taskId: string) => void;
+  onUnstuck: (taskId: string) => void;
   onStartFocus: (taskId: string) => void;
 }
 
@@ -71,6 +72,7 @@ export function TaskModal({
   onClose,
   onRequestProject,
   onBreakDown,
+  onUnstuck,
   onStartFocus,
 }: TaskModalProps) {
   const { state, dispatch, captureSnapshot, offerUndo } = useTakTic();
@@ -335,6 +337,12 @@ export function TaskModal({
                   <Wand2 size={13} aria-hidden />
                   Split task
                 </Button>
+                {task.status !== 'completed' ? (
+                  <Button variant="ghost" size="sm" onClick={() => onUnstuck(task.id)}>
+                    <LifeBuoy size={13} aria-hidden />
+                    I&apos;m stuck
+                  </Button>
+                ) : null}
                 {task.status !== 'completed' ? (
                   <Button variant="ghost" size="sm" onClick={() => onStartFocus(task.id)}>
                     Focus

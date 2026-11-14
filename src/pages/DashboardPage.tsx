@@ -4,6 +4,7 @@ import {
   ArrowDown,
   ArrowRight,
   ArrowUp,
+  CalendarClock,
   CalendarRange,
   Check,
   CheckCircle2,
@@ -12,6 +13,7 @@ import {
   EyeOff,
   Flame,
   FolderOpen,
+  LifeBuoy,
   MessageCircle,
   Plus,
   RotateCcw,
@@ -89,7 +91,8 @@ export function DashboardPage() {
   } = useTakTic();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { openTask, openProject, openDecompose, openPlanner } = useAppActions();
+  const { openTask, openProject, openDecompose, openPlanner, openCatchUp, openUnstuck } =
+    useAppActions();
   const [customising, setCustomising] = useState(false);
 
   const firstName = state.profile.displayName.split(/\s+/)[0] || 'there';
@@ -172,10 +175,18 @@ export function DashboardPage() {
                 <p className="eyebrow">Today&apos;s progress</p>
                 <h2 className="mt-1 text-[20px]">Today&apos;s progress</h2>
               </div>
-              <Button variant="ghost" size="sm" onClick={openPlanner}>
-                <CalendarRange size={12} aria-hidden />
-                Plan
-              </Button>
+              <div className="flex items-center gap-1">
+                {stats.todayProgress.remaining > 0 || stats.overdueTasks.length > 0 ? (
+                  <Button variant="ghost" size="sm" onClick={openCatchUp}>
+                    <CalendarClock size={12} aria-hidden />
+                    Catch up
+                  </Button>
+                ) : null}
+                <Button variant="ghost" size="sm" onClick={openPlanner}>
+                  <CalendarRange size={12} aria-hidden />
+                  Plan
+                </Button>
+              </div>
             </div>
             <div className="mt-5 flex items-end gap-4">
               <span className="font-mono text-[56px] leading-none tracking-[-0.05em] text-ink">
@@ -716,6 +727,17 @@ export function DashboardPage() {
             <FolderOpen size={13} aria-hidden />
             New project
           </Button>
+          <Button
+            variant="secondary"
+            onClick={() => openUnstuck({ taskId: stats.nextTask?.id ?? null })}
+          >
+            <LifeBuoy size={13} aria-hidden />
+            I&apos;m stuck
+          </Button>
+          <Button variant="ghost" onClick={openCatchUp}>
+            <CalendarClock size={13} aria-hidden />
+            Help me catch up
+          </Button>
           <Button variant="ghost" onClick={() => navigate('/focus')}>
             <Timer size={13} aria-hidden />
             Focus timer
@@ -723,10 +745,6 @@ export function DashboardPage() {
           <Button variant="ghost" onClick={openPlanner}>
             <CalendarRange size={13} aria-hidden />
             Plan my day
-          </Button>
-          <Button variant="ghost" onClick={() => navigate('/companion')}>
-            <MessageCircle size={13} aria-hidden />
-            Ask AI
           </Button>
         </div>
       </section>
@@ -825,11 +843,17 @@ export function DashboardPage() {
       {state.projects.length === 0 && state.tasks.length === 0 && !state.demoLoaded ? (
         <section className="mb-4 flex flex-col gap-4 border border-line bg-paper p-5 sm:flex-row sm:items-center">
           <div className="flex-1">
-            <p className="eyebrow">Nothing here yet</p>
-            <h2 className="mt-1 text-[24px]">Nothing planned yet.</h2>
-            <p className="mt-1 text-[15px] leading-7 text-muted">
-              Add a task or create a project to get started.
+            <p className="eyebrow">Start here</p>
+            <h2 className="mt-1 text-[24px]">Start with one overwhelming thing.</h2>
+            <p className="mt-1 max-w-[620px] text-[15px] leading-7 text-muted">
+              Describe the assignment in one sentence. TakTic splits it into phases, shows what
+              comes first, and changes the plan when you get stuck.
             </p>
+            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
+              <span>01 Describe it</span>
+              <span>02 See the steps</span>
+              <span>03 Start where it makes sense</span>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="primary" onClick={() => openTask()}>
@@ -842,7 +866,7 @@ export function DashboardPage() {
               variant="ghost"
               onClick={() => {
                 dispatch({ type: 'LOAD_DEMO' });
-                toast({ title: 'Demo workspace loaded', description: 'Four projects and several weeks of history.', tone: 'success' });
+                toast({ title: 'Demo workspace loaded', description: 'A Biology assignment, exam revision and weeks of history.', tone: 'success' });
               }}
             >
               Try demo workspace

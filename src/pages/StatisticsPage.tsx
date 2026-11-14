@@ -56,23 +56,22 @@ export function StatisticsPage() {
   }, [completedLeaves, state, today]);
 
   const lastSeven = days.slice(-7);
+  const priorSeven = days.slice(0, 7);
   const tasksThisWeek = lastSeven.reduce((sum, day) => sum + day.completed, 0);
   const focusThisWeek = lastSeven.reduce((sum, day) => sum + day.focusMinutes, 0);
+  const tasksPrior = priorSeven.reduce((sum, day) => sum + day.completed, 0);
+  const focusPrior = priorSeven.reduce((sum, day) => sum + day.focusMinutes, 0);
   const maxCompleted = Math.max(1, ...lastSeven.map((day) => day.completed));
   const maxFocus = Math.max(5, ...days.map((day) => day.focusMinutes));
 
-  const topProject = useMemo(() => {
-    const weekKeys = new Set(lastSeven.map((day) => day.key));
-    const counts = new Map<string, number>();
-    for (const task of completedLeaves) {
-      if (!task.completedAt || !weekKeys.has(toDateKey(task.completedAt))) continue;
-      counts.set(task.projectId, (counts.get(task.projectId) ?? 0) + 1);
-    }
-    const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
-    if (sorted.length === 0) return null;
-    const project = state.projects.find((candidate) => candidate.id === sorted[0][0]);
-    return project ? { project, count: sorted[0][1] } : null;
-  }, [completedLeaves, lastSeven, state.projects]);
+  const lastSevenKeys = new Set(lastSeven.map((day) => day.key));
+  const completedThisWeek = completedLeaves.filter(
+    (task) => task.completedAt && lastSevenKeys.has(toDateKey(task.completedAt)),
+  );
+  const projectsTouched = new Set(completedThisWeek.map((task) => task.projectId)).size;
+  const shortTasks = completedThisWeek.filter((task) => task.estimatedMinutes <= 20).length;
+  const taskDifference = Math.abs(tasksThisWeek - tasksPrior);
+  const focusDifference = Math.abs(focusThisWeek - focusPrior);
 
   const timedTasks = completedLeaves
     .filter((task) => task.actualMinutes > 0 && task.estimatedMinutes > 0)
@@ -308,31 +307,49 @@ export function StatisticsPage() {
           <div className="flex items-center gap-2">
             <TrendingUp size={14} className="text-accent" aria-hidden />
             <div>
-              <p className="eyebrow">Insights</p>
+              <p className="eyebrow">Your patterns</p>
               <h2 className="mt-0.5 text-[15px]">Read from real data</h2>
             </div>
           </div>
           <ul className="mt-3 space-y-3 text-[13px] leading-5">
             <li className="border-b border-line pb-2.5">
               <p className="text-ink">You completed {tasksThisWeek} task{tasksThisWeek === 1 ? '' : 's'} in the last seven days.</p>
-              <p className="text-muted">That is {focusThisWeek} minutes of focus in the same window.</p>
-            </li>
-            <li className="border-b border-line pb-2.5">
-              <p className="text-ink">
-                {focusSessions.length > 0
-                  ? `An average completed session lasts ${averageSession} minutes.`
-                  : 'No completed focus sessions have been recorded yet.'}
+              <p className="text-muted">
+                {tasksPrior === 0
+                  ? tasksThisWeek > 0
+                    ? 'The previous seven days had no recorded completions.'
+                    : 'No completions are recorded in either seven-day window yet.'
+                  : taskDifference === 0
+                    ? 'The same number as the previous seven days.'
+                    : `${taskDifference} ${tasksThisWeek > tasksPrior ? 'more' : 'fewer'} than the previous seven days.`}
               </p>
-              <p className="text-muted">Breaks are recorded but never counted as focus.</p>
             </li>
             <li className="border-b border-line pb-2.5">
               <p className="text-ink">
-                {topProject
-                  ? `Most completed work this week came from “${topProject.project.title}”.`
+                {focusThisWeek > 0
+                  ? `You recorded ${focusThisWeek} focus minutes in the last seven days.`
+                  : 'No focus minutes are recorded in the last seven days.'}
+              </p>
+              <p className="text-muted">
+                {focusPrior === 0
+                  ? focusThisWeek > 0
+                    ? 'The previous seven days had no focus sessions.'
+                    : 'Complete a qualifying focus session to start this comparison.'
+                  : focusDifference === 0
+                    ? 'The same as the previous seven days.'
+                    : `${focusDifference} min ${focusThisWeek > focusPrior ? 'more' : 'less'} than the previous seven days.`}
+              </p>
+            </li>
+            <li className="border-b border-line pb-2.5">
+              <p className="text-ink">
+                {projectsTouched > 0
+                  ? `You completed work across ${projectsTouched} project${projectsTouched === 1 ? '' : 's'} this week.`
                   : 'No project has recorded completed work this week.'}
               </p>
               <p className="text-muted">
-                {topProject ? `${topProject.count} completed step${topProject.count === 1 ? '' : 's'}.` : 'Completed tasks would appear here.'}
+                {completedThisWeek.length > 0
+                  ? `${shortTasks} of ${completedThisWeek.length} completed step${completedThisWeek.length === 1 ? '' : 's'} were planned for 20 minutes or less.`
+                  : 'Project and task-length patterns appear after a completion.'}
               </p>
             </li>
             <li>
@@ -342,8 +359,8 @@ export function StatisticsPage() {
                   : stats.estimateAccuracy.direction === 'balanced'
                     ? `Your estimates are within ${stats.estimateAccuracy.averageDeviation}% across ${stats.estimateAccuracy.samples} tasks.`
                     : stats.estimateAccuracy.direction === 'under'
-                      ? `You tend to underestimate by about ${stats.estimateAccuracy.averageDeviation}%.`
-                      : `You tend to overestimate by about ${stats.estimateAccuracy.averageDeviation}%.`}
+                      ? `Your estimates ran about ${stats.estimateAccuracy.averageDeviation}% shorter than the recorded time.`
+                      : `Your estimates ran about ${stats.estimateAccuracy.averageDeviation}% longer than the recorded time.`}
               </p>
               <p className="text-muted">Based only on tasks with recorded actual minutes.</p>
             </li>

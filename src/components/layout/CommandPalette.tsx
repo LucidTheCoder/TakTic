@@ -10,11 +10,13 @@ import { useNavigate } from 'react-router-dom';
 import {
   Award,
   ArrowUpRight,
+  CalendarClock,
   CalendarRange,
   CheckSquare,
   CornerDownLeft,
   FolderOpen,
   LayoutGrid,
+  LifeBuoy,
   MessageCircle,
   Plus,
   Search,
@@ -50,6 +52,8 @@ interface CommandPaletteProps {
   onCreateProject: () => void;
   onOpenDecompose: () => void;
   onOpenPlanner: () => void;
+  onOpenCatchUp: () => void;
+  onOpenUnstuck: () => void;
 }
 
 export function CommandPalette({
@@ -61,6 +65,8 @@ export function CommandPalette({
   onCreateProject,
   onOpenDecompose,
   onOpenPlanner,
+  onOpenCatchUp,
+  onOpenUnstuck,
 }: CommandPaletteProps) {
   const { state } = useTakTic();
   const navigate = useNavigate();
@@ -203,6 +209,26 @@ export function CommandPalette({
         onSelect: () => {
           onClose();
           onOpenPlanner();
+        },
+      },
+      {
+        id: 'action-unstuck',
+        label: 'I\'m stuck',
+        sublabel: 'Adapt a task around what is blocking you',
+        icon: LifeBuoy,
+        onSelect: () => {
+          onClose();
+          onOpenUnstuck();
+        },
+      },
+      {
+        id: 'action-catchup',
+        label: 'Help me catch up',
+        sublabel: 'Build a realistic recovery plan for today',
+        icon: CalendarClock,
+        onSelect: () => {
+          onClose();
+          onOpenCatchUp();
         },
       },
       {

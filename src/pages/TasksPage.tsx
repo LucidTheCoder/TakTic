@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Filter, ListChecks, Search, SlidersHorizontal, Wand2, X } from 'lucide-react';
+import {
+  CalendarClock,
+  Filter,
+  LifeBuoy,
+  ListChecks,
+  Search,
+  SlidersHorizontal,
+  Wand2,
+  X,
+} from 'lucide-react';
 import type { Difficulty, Priority, Task } from '../types';
 import { useTakTic } from '../store/TakTicProvider';
 import { useAppActions } from '../components/app/AppActionsProvider';
@@ -78,7 +87,7 @@ function compareTasks(a: Task, b: Task, sort: SortKey): number {
 
 export function TasksPage() {
   const { state, stats } = useTakTic();
-  const { openTask, openDecompose, openPlanner } = useAppActions();
+  const { openTask, openDecompose, openPlanner, openCatchUp, openUnstuck } = useAppActions();
   const [searchParams, setSearchParams] = useSearchParams();
   const [view, setView] = useState<View>(() => {
     const fromUrl = searchParams.get('view');
@@ -368,7 +377,18 @@ export function TasksPage() {
         description="Every step in one place. Filter the noise out, or follow the plan you already made."
         actions={
           <>
-            <Button variant="secondary" onClick={() => openDecompose()}>
+            <Button
+              variant="secondary"
+              onClick={() => openUnstuck({ taskId: stats.nextTask?.id ?? null })}
+            >
+              <LifeBuoy size={13} aria-hidden />
+              I&apos;m stuck
+            </Button>
+            <Button variant="ghost" onClick={openCatchUp}>
+              <CalendarClock size={13} aria-hidden />
+              Catch up
+            </Button>
+            <Button variant="ghost" onClick={() => openDecompose()}>
               <Wand2 size={13} aria-hidden />
               Split a big task
             </Button>

@@ -32,7 +32,6 @@ import {
   TaskCount,
 } from '../ui/Badges';
 import { ProgressBar } from '../ui/Feedback';
-import { TroubleModal } from './TroubleModal';
 import { cn } from '../../utils/cn';
 import { formatDuration } from '../../utils/date';
 import {
@@ -65,10 +64,9 @@ export function TaskRow({
 }: TaskRowProps) {
   const { state, stats, dispatch, captureSnapshot, offerUndo } = useTakTic();
   const { toast } = useToast();
-  const { openTask, openDecompose } = useAppActions();
+  const { openTask, openDecompose, openUnstuck } = useAppActions();
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(depth < 1);
-  const [troubleOpen, setTroubleOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [prompt, setPrompt] = useState<CompletionPrompt | null>(null);
 
@@ -211,9 +209,9 @@ export function TaskRow({
     ...(!hasChildren && !completed
       ? [
           {
-            label: 'Having trouble?',
+            label: 'I\'m stuck',
             icon: LifeBuoy,
-            onSelect: () => setTroubleOpen(true),
+            onSelect: () => openUnstuck({ taskId: task.id }),
           },
           {
             label: 'Start focus timer',
@@ -343,12 +341,13 @@ export function TaskRow({
               {!completed && !compact ? (
                 <button
                   type="button"
-                  onClick={() => setTroubleOpen(true)}
-                  className="hidden items-center gap-1 px-1 py-0.5 text-[12px] text-muted transition-colors hover:text-accent md:flex"
-                  title="Having trouble? Adapt this task"
+                  onClick={() => openUnstuck({ taskId: task.id })}
+                  className="flex items-center gap-1 px-1 py-0.5 text-[12px] text-muted transition-colors hover:text-accent"
+                  title="I'm stuck — adapt this task"
+                  aria-label="I'm stuck — adapt this task"
                 >
                   <LifeBuoy size={12} aria-hidden />
-                  Having trouble?
+                  <span className="hidden sm:inline">I&apos;m stuck</span>
                 </button>
               ) : null}
               <Dropdown items={menuItems} label={`Actions for ${task.title}`} />
@@ -441,8 +440,6 @@ export function TaskRow({
           </motion.div>
         ) : null}
       </AnimatePresence>
-
-      <TroubleModal open={troubleOpen} task={task} onClose={() => setTroubleOpen(false)} />
 
       <ConfirmDialog
         open={Boolean(prompt)}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowRight,
+  LifeBuoy,
   MessageCircle,
   Send,
   ShieldCheck,
@@ -35,7 +36,7 @@ import { cn } from '../utils/cn';
 
 export function CompanionPage() {
   const { state, stats, dispatch } = useTakTic();
-  const { openTask } = useAppActions();
+  const { openTask, openUnstuck } = useAppActions();
   const { toast } = useToast();
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -380,7 +381,8 @@ ${adaptations || '- none'}`;
             />
             <div className="mt-1.5 flex items-center justify-between gap-3 border-t border-line pt-2">
               <p className="text-[11px] leading-4 text-muted">
-                Suggestions only. No task changes without your action.
+                Suggestions only. No task changes without your action. If a step feels stuck,
+                choose “I&apos;m stuck” beside it.
               </p>
               <Button
                 variant="primary"
@@ -475,6 +477,10 @@ ${adaptations || '- none'}`;
                 </Link>
                 <Button variant="ghost" size="sm" onClick={() => openTask({ taskId: nextTask.id })}>
                   Open task
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => openUnstuck({ taskId: nextTask.id })}>
+                  <LifeBuoy size={11} aria-hidden />
+                  I&apos;m stuck
                 </Button>
               </div>
             </section>

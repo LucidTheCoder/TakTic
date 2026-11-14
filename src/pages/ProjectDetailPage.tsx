@@ -19,11 +19,18 @@ import { ConfirmDialog } from '../components/ui/Modal';
 import { EmptyState, InlineNote, ProgressBar } from '../components/ui/Feedback';
 import { PriorityBadge, StatusPill } from '../components/ui/Badges';
 import { TaskRow } from '../components/tasks/TaskRow';
+import { DependencySequence } from '../components/tasks/DependencySequence';
 import { FEEDBACK_OPTIONS } from '../data/feedback';
 import { formatDateKey, humanRelative } from '../utils/date';
 import { cn } from '../utils/cn';
 import { formatDuration } from '../utils/date';
-import { orderTasksByDependencies, projectProgress, projectTasks } from '../utils/tasks';
+import {
+  incompleteDependencies,
+  leafTasks,
+  orderTasksByDependencies,
+  projectProgress,
+  projectTasks,
+} from '../utils/tasks';
 
 export function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -42,6 +49,23 @@ export function ProjectDetailPage() {
       tasks,
     );
   }, [state.tasks, project]);
+
+  const actionableLeaves = useMemo(
+    () => (project ? leafTasks(state.tasks, project.id) : []),
+    [state.tasks, project],
+  );
+
+  // The global next step can belong to another project, so use the first
+  // dependency-ready task inside this project for the working-order highlight.
+  const projectNextTaskId = useMemo(() => {
+    const ready = actionableLeaves.filter(
+      (task) =>
+        task.status !== 'completed' &&
+        task.status !== 'blocked' &&
+        incompleteDependencies(task, state.tasks).length === 0,
+    );
+    return orderTasksByDependencies(ready, state.tasks)[0]?.id ?? null;
+  }, [actionableLeaves, state.tasks]);
 
   const adaptations = useMemo(() => {
     if (!project) return [];
@@ -211,6 +235,26 @@ export function ProjectDetailPage() {
         </p>
       </section>
 
+      <section className="mb-6 border border-line bg-paper p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="eyebrow">Working order</p>
+            <h2 className="mt-1 text-[17px]">What can start, and what waits</h2>
+          </div>
+          <p className="max-w-[330px] text-[12px] leading-5 text-muted">
+            Dependencies set the order. Priority only chooses between steps that are ready at the
+            same time.
+          </p>
+        </div>
+        <div className="mt-4 border-t border-line pt-4">
+          <DependencySequence
+            tasks={actionableLeaves}
+            allTasks={state.tasks}
+            nextTaskId={projectNextTaskId}
+          />
+        </div>
+      </section>
+
       <section className="mb-6 border border-line bg-paper">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
           <div>
@@ -274,8 +318,8 @@ export function ProjectDetailPage() {
         </div>
         {adaptations.length === 0 ? (
           <p className="mt-3 border-t border-line pt-3 text-[13px] leading-6 text-muted">
-            No task in this project has been adapted yet. On any difficult step, choose “Having
-            trouble?” and the task can be restructured while completed work is preserved.
+            No task in this project has been adapted yet. On any difficult step, choose “I&apos;m
+            stuck” and the task can be restructured while completed work is preserved.
           </p>
         ) : (
           <ul className="mt-3 divide-y divide-line border-t border-line">
@@ -294,6 +338,12 @@ export function ProjectDetailPage() {
                     </span>
                   </div>
                   <p className="mt-1 text-[13px] leading-5 text-muted">{record.reasoning}</p>
+                  {record.previousEstimateMinutes ? (
+                    <p className="mt-1 font-mono text-[11px] text-muted">
+                      Estimate {record.previousEstimateMinutes} →{' '}
+                      {task?.estimatedMinutes ?? record.previousEstimateMinutes} min
+                    </p>
+                  ) : null}
                   {record.generatedTasks.length > 0 ? (
                     <p className="mt-1 font-mono text-[11px] leading-5 text-muted/80">
                       + {record.generatedTasks.slice(0, 4).join(' · ')}

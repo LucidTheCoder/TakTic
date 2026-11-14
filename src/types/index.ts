@@ -122,6 +122,8 @@ export interface AdaptationRecord {
   userExplanation: string;
   generatedTasks: string[];
   reasoning: string;
+  /** Original estimate before an adaptation changed it. */
+  previousEstimateMinutes?: number;
   createdAt: string;
   isDemo?: boolean;
 }

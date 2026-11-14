@@ -14,6 +14,8 @@ import { TaskModal } from '../tasks/TaskModal';
 import { ProjectModal } from '../projects/ProjectModal';
 import { DecomposeModal } from '../tasks/DecomposeModal';
 import { PlannerModal } from '../dashboard/PlannerModal';
+import { CatchUpModal } from '../dashboard/CatchUpModal';
+import { TroubleModal } from '../tasks/TroubleModal';
 import { ReviewModal } from '../focus/ReviewModal';
 import { CommandPalette } from '../layout/CommandPalette';
 
@@ -34,6 +36,8 @@ interface AppActionsValue {
   openProject: (projectId?: string | null) => void;
   openDecompose: (options?: DecomposeOpenOptions) => void;
   openPlanner: () => void;
+  openCatchUp: () => void;
+  openUnstuck: (options?: { taskId?: string | null }) => void;
   openPalette: (mode?: 'command' | 'search') => void;
 }
 
@@ -64,6 +68,11 @@ export function AppActionsProvider({ children }: { children: ReactNode }) {
   const [projectModal, setProjectModal] = useState<ProjectModalState>(null);
   const [decomposeModal, setDecomposeModal] = useState<DecomposeModalState>(null);
   const [plannerOpen, setPlannerOpen] = useState(false);
+  const [catchUpOpen, setCatchUpOpen] = useState(false);
+  const [unstuck, setUnstuck] = useState<{ open: boolean; taskId: string | null }>({
+    open: false,
+    taskId: null,
+  });
   const [palette, setPalette] = useState<{ open: boolean; mode: 'command' | 'search' }>({
     open: false,
     mode: 'command',
@@ -90,6 +99,12 @@ export function AppActionsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const openPlanner = useCallback(() => setPlannerOpen(true), []);
+  const openCatchUp = useCallback(() => setCatchUpOpen(true), []);
+  const openUnstuck = useCallback(
+    (options?: { taskId?: string | null }) =>
+      setUnstuck({ open: true, taskId: options?.taskId ?? null }),
+    [],
+  );
   const openPalette = useCallback(
     (mode: 'command' | 'search' = 'command') => setPalette({ open: true, mode }),
     [],
@@ -139,9 +154,11 @@ export function AppActionsProvider({ children }: { children: ReactNode }) {
       openProject,
       openDecompose,
       openPlanner,
+      openCatchUp,
+      openUnstuck,
       openPalette,
     }),
-    [openTask, openProject, openDecompose, openPlanner, openPalette],
+    [openTask, openProject, openDecompose, openPlanner, openCatchUp, openUnstuck, openPalette],
   );
 
   return (
@@ -168,6 +185,10 @@ export function AppActionsProvider({ children }: { children: ReactNode }) {
           setTaskModal(null);
           setDecomposeModal({ taskId, projectId: null });
         }}
+        onUnstuck={(taskId) => {
+          setTaskModal(null);
+          setUnstuck({ open: true, taskId });
+        }}
         onStartFocus={(taskId) => {
           setTaskModal(null);
           navigate(`/focus?task=${taskId}`);
@@ -191,6 +212,12 @@ export function AppActionsProvider({ children }: { children: ReactNode }) {
       />
 
       <PlannerModal open={plannerOpen} onClose={() => setPlannerOpen(false)} />
+      <CatchUpModal open={catchUpOpen} onClose={() => setCatchUpOpen(false)} />
+      <TroubleModal
+        open={unstuck.open}
+        task={state.tasks.find((task) => task.id === unstuck.taskId) ?? null}
+        onClose={() => setUnstuck({ open: false, taskId: null })}
+      />
 
       <CommandPalette
         open={palette.open}
@@ -201,6 +228,8 @@ export function AppActionsProvider({ children }: { children: ReactNode }) {
         onCreateProject={() => openProject()}
         onOpenDecompose={() => openDecompose()}
         onOpenPlanner={openPlanner}
+        onOpenCatchUp={openCatchUp}
+        onOpenUnstuck={() => openUnstuck()}
       />
 
       <ReviewModal

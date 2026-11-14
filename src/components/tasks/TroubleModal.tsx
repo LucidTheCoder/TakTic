@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Check, Sparkles, Wand2 } from 'lucide-react';
+import { ArrowLeft, Check, ChevronRight, LifeBuoy, Lock, Sparkles, Wand2 } from 'lucide-react';
 import type { AdaptationRecord, FeedbackType, Task, TaskDraft } from '../../types';
 import { FEEDBACK_OPTIONS } from '../../data/feedback';
 import { useTakTic } from '../../store/TakTicProvider';
@@ -13,7 +13,12 @@ import { uid } from '../../utils/id';
 import { describeAiError, isAiConfigured } from '../../services/ai/client';
 import { adaptTask } from '../../services/ai';
 import { templateAdaptation } from '../../services/ai/templates';
-import { childrenOf } from '../../utils/tasks';
+import {
+  childrenOf,
+  incompleteDependencies,
+  openLeaves,
+  orderTasksByDependencies,
+} from '../../utils/tasks';
 
 interface TroubleModalProps {
   open: boolean;
@@ -33,6 +38,7 @@ interface AdaptationPreview {
 
 export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
   const { state, dispatch, captureSnapshot, offerUndo } = useTakTic();
+  const [pickedTaskId, setPickedTaskId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<FeedbackType | null>(null);
   const [explanation, setExplanation] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,6 +49,7 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
 
   useEffect(() => {
     if (!open) return;
+    setPickedTaskId(task?.id ?? null);
     setFeedback(null);
     setExplanation('');
     setLoading(false);
@@ -52,28 +59,53 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
     setApplyError(null);
   }, [open, task?.id]);
 
+  const effectiveTask = task ?? state.tasks.find((candidate) => candidate.id === pickedTaskId) ?? null;
+  const openTasks = useMemo(() => {
+    const ordered = orderTasksByDependencies(openLeaves(state.tasks), state.tasks);
+    const readyIds = new Set(
+      ordered
+        .filter((candidate) => incompleteDependencies(candidate, state.tasks).length === 0 && candidate.status !== 'blocked')
+        .map((candidate) => candidate.id),
+    );
+    return [...ordered].sort((a, b) => Number(!readyIds.has(a.id)) - Number(!readyIds.has(b.id)));
+  }, [state.tasks]);
+
+  const pickTask = (taskId: string) => {
+    setPickedTaskId(taskId);
+    setFeedback(null);
+    setExplanation('');
+    setError(null);
+    setPreview(null);
+    setSelected([]);
+    setApplyError(null);
+  };
+
   const completedSubtasks = useMemo(
-    () => (task ? childrenOf(state.tasks, task.id).filter((child) => child.status === 'completed') : []),
-    [state.tasks, task],
+    () =>
+      effectiveTask
+        ? childrenOf(state.tasks, effectiveTask.id).filter((child) => child.status === 'completed')
+        : [],
+    [state.tasks, effectiveTask],
   );
-  const projectTitle = state.projects.find((project) => project.id === task?.projectId)?.title ?? '';
+  const projectTitle =
+    state.projects.find((project) => project.id === effectiveTask?.projectId)?.title ?? '';
 
   const aiReady = isAiConfigured(state.settings.ai);
 
   const generateWithAi = async () => {
-    if (!task || !feedback) return;
+    if (!effectiveTask || !feedback) return;
     setLoading(true);
     setError(null);
     try {
       const sessions = state.focusSessions
-        .filter((session) => session.taskId === task.id)
+        .filter((session) => session.taskId === effectiveTask.id)
         .slice(-4)
         .map((session) => ({
           plannedSeconds: session.plannedSeconds,
           actualSeconds: session.actualSeconds,
         }));
       const result = await adaptTask({
-        task,
+        task: effectiveTask,
         projectTitle,
         feedback,
         explanation,
@@ -99,8 +131,8 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
   };
 
   const generateTemplate = () => {
-    if (!task || !feedback) return;
-    const result = templateAdaptation(task, feedback);
+    if (!effectiveTask || !feedback) return;
+    const result = templateAdaptation(effectiveTask, feedback);
     setPreview({
       ...result,
       source: 'template',
@@ -111,7 +143,7 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
   };
 
   const apply = () => {
-    if (!task || !preview) return;
+    if (!effectiveTask || !preview) return;
     const chosen = preview.subtasks.filter((_, index) => selected[index]);
     if (chosen.length === 0) {
       setApplyError('Select at least one step to add.');
@@ -120,16 +152,19 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
     const snapshot = captureSnapshot();
     const record: AdaptationRecord = {
       id: uid('adapt'),
-      taskId: task.id,
+      taskId: effectiveTask.id,
       feedbackType: feedback ?? 'other',
       userExplanation: explanation.trim(),
       generatedTasks: chosen.map((draft) => draft.title),
       reasoning: preview.reasoning,
+      previousEstimateMinutes: preview.revisedEstimateMinutes
+        ? effectiveTask.estimatedMinutes
+        : undefined,
       createdAt: new Date().toISOString(),
     };
     dispatch({
       type: 'APPLY_ADAPTATION',
-      taskId: task.id,
+      taskId: effectiveTask.id,
       record,
       subtasks: chosen,
       revisedEstimateMinutes: preview.revisedEstimateMinutes,
@@ -154,14 +189,20 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
     <Modal
       open={open}
       onClose={onClose}
-      title={preview ? 'Review the new shape' : 'Having trouble?'}
-      eyebrow={task ? 'Adaptive task decomposition' : 'Task'}
+      title={
+        preview
+          ? 'Review the new shape'
+          : effectiveTask
+            ? 'What is in the way?'
+            : 'Help me get unstuck'
+      }
+      eyebrow={effectiveTask ? 'Adaptive task decomposition' : 'Unstuck'}
       description={
         preview
           ? 'Nothing changes until you apply it. Uncheck anything that does not help.'
-          : task
-            ? `“${task.title}” — tell TakTic what is actually making this hard.`
-            : undefined
+          : effectiveTask
+            ? `“${effectiveTask.title}” — tell TakTic what is actually making this hard.`
+            : 'Choose the step that feels stuck. You can adapt it without losing completed work.'
       }
       width="lg"
       footer={
@@ -186,10 +227,27 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
               {selected.filter(Boolean).length === 1 ? '' : 's'}
             </Button>
           </>
+        ) : !effectiveTask ? (
+          <Button variant="ghost" onClick={onClose} className="mr-auto">
+            Not now
+          </Button>
         ) : loading ? null : (
           <>
-            <Button variant="ghost" onClick={onClose} className="mr-auto">
-              Not now
+            <Button
+              variant="ghost"
+              onClick={() => {
+                if (!task) {
+                  setPickedTaskId(null);
+                  setFeedback(null);
+                  setPreview(null);
+                } else {
+                  onClose();
+                }
+              }}
+              className="mr-auto"
+            >
+              <ArrowLeft size={13} aria-hidden />
+              {task ? 'Not now' : 'Choose another task'}
             </Button>
             <Button
               variant="secondary"
@@ -211,7 +269,61 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
         )
       }
     >
-      {loading ? (
+      {!effectiveTask ? (
+        <div className="space-y-4">
+          <div className="border-l-2 border-accent/50 pl-3">
+            <p className="eyebrow mb-1">One step at a time</p>
+            <p className="text-[14px] leading-6 text-ink/85">
+              Pick the task that feels hardest to start. TakTic can shrink it, explain it, or
+              change the approach — but only after you review the proposal.
+            </p>
+          </div>
+          {openTasks.length === 0 ? (
+            <InlineNote>
+              There is no open task to adapt yet. Add one first, or split a large task into a first
+              step.
+            </InlineNote>
+          ) : (
+            <ul className="max-h-[320px] divide-y divide-line overflow-y-auto border border-line">
+              {openTasks.map((candidate) => {
+                const waiting = incompleteDependencies(candidate, state.tasks);
+                const project = state.projects.find((item) => item.id === candidate.projectId);
+                return (
+                  <li key={candidate.id}>
+                    <button
+                      type="button"
+                      onClick={() => pickTask(candidate.id)}
+                      className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-surface2/45"
+                    >
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center border border-line text-muted">
+                        {waiting.length > 0 || candidate.status === 'blocked' ? (
+                          <Lock size={12} aria-hidden />
+                        ) : (
+                          <LifeBuoy size={12} aria-hidden />
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[14px] text-ink">
+                          {candidate.title}
+                        </span>
+                        <span className="mt-0.5 block truncate text-[12px] text-muted">
+                          {project?.title ?? 'No project'} · {candidate.estimatedMinutes} min
+                          {waiting.length > 0
+                            ? ` · waiting on ${waiting.map((item) => item.title).join(', ')}`
+                            : candidate.status === 'blocked'
+                              ? ' · marked blocked'
+                              : ' · ready now'}
+                        </span>
+                      </span>
+                      <ChevronRight size={14} className="shrink-0 text-muted" aria-hidden />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      ) : loading ? (
         <div className="space-y-5 py-2">
           <div className="flex items-center gap-2 text-[14px] text-muted">
             <span className="h-1.5 w-1.5 animate-soft-pulse rounded-full bg-accent" aria-hidden />
@@ -245,7 +357,7 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
             </InlineNote>
           ) : null}
 
-          {preview.reframedTask && preview.reframedTask.title !== task?.title ? (
+          {preview.reframedTask && preview.reframedTask.title !== effectiveTask.title ? (
             <div className="border border-line bg-surface2/40 px-3 py-2.5">
               <p className="eyebrow mb-1">Proposed reframe</p>
               <p className="text-[15px] font-medium text-ink">{preview.reframedTask.title}</p>
@@ -308,7 +420,11 @@ export function TroubleModal({ open, task, onClose }: TroubleModalProps) {
           <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-3 text-[13px] text-muted">
             {preview.revisedEstimateMinutes ? (
               <span>
-                Revised estimate:{' '}
+                Estimate:{' '}
+                <span className="font-mono text-muted line-through decoration-muted/50">
+                  {effectiveTask.estimatedMinutes} min
+                </span>{' '}
+                →{' '}
                 <span className="font-mono text-ink">{preview.revisedEstimateMinutes} min</span>
               </span>
             ) : null}

@@ -97,6 +97,7 @@ const AdaptationSchema = z.object({
   userExplanation: z.string().default(''),
   generatedTasks: z.array(z.string()).default([]),
   reasoning: z.string().default(''),
+  previousEstimateMinutes: z.number().finite().positive().optional(),
   createdAt: isoString,
   isDemo: z.boolean().optional(),
 });
