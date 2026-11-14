@@ -371,7 +371,7 @@ export function CommandPalette({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, transition: { duration: 0.15 } }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="relative flex max-h-[76vh] w-full max-w-xl flex-col border border-line bg-paper shadow-lift"
+            className="paper-panel relative flex max-h-[76vh] w-full max-w-xl flex-col overflow-hidden rounded-[16px] border border-line bg-paper shadow-lift"
           >
             <div className="flex items-center gap-2.5 border-b border-line px-4 py-3">
               <Search size={16} className="shrink-0 text-muted" aria-hidden />
@@ -437,8 +437,8 @@ export function CommandPalette({
                           onMouseEnter={() => setActiveIndex(index)}
                           onClick={item.onSelect}
                           className={cn(
-                            'flex w-full items-center gap-3 px-2.5 py-2 text-left transition-colors',
-                            active ? 'bg-accent-soft' : 'hover:bg-surface2/60',
+                            'flex w-full items-center gap-3 rounded-[8px] px-2.5 py-2 text-left transition-colors',
+                            active ? 'bg-accent-soft/80' : 'hover:bg-surface2/60',
                           )}
                         >
                           <span

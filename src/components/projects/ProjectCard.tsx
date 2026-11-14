@@ -18,7 +18,7 @@ export function ProjectCard({ project, tasks }: { project: Project; tasks: Task[
     <Link
       to={`/projects/${project.id}`}
       className={cn(
-        'group flex h-full flex-col border border-line bg-paper p-5 transition-colors hover:border-ink/25',
+        'group flex h-full flex-col rounded-[14px] border border-line bg-paper p-5 shadow-paper transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-ink/20 hover:shadow-lift sm:p-6',
         completed && 'bg-surface2/25',
       )}
     >
@@ -37,14 +37,14 @@ export function ProjectCard({ project, tasks }: { project: Project; tasks: Task[
         />
       </div>
 
-      <h3 className="mt-2.5 line-clamp-2 text-[18px] leading-snug text-ink">{project.title}</h3>
-      <p className="mt-1.5 line-clamp-2 min-h-[2.6rem] text-[13px] leading-5 text-muted">
+      <h3 className="mt-3 line-clamp-2 text-[20px] leading-[1.25] text-ink">{project.title}</h3>
+      <p className="mt-2 line-clamp-2 min-h-[2.8rem] text-[13px] leading-[1.55] text-muted">
         {project.description || 'No description yet.'}
       </p>
 
       <div className="mt-auto pt-5">
         <div className="mb-1.5 flex items-end justify-between gap-3">
-          <span className="font-mono text-[24px] leading-none tracking-[-0.03em] text-ink">
+          <span className="font-mono text-[27px] leading-none tracking-[-0.04em] text-ink">
             {progress.percent}
             <span className="ml-0.5 text-[13px] text-muted">%</span>
           </span>

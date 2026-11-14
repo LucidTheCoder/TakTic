@@ -43,7 +43,7 @@ export function ProjectsPage() {
         }
       : filter === 'active'
         ? {
-            title: 'No active projects.',
+            title: 'Every big thing starts somewhere.',
             description: 'Create a project for work that still feels vague, then add a first step.',
             action: (
               <div className="flex flex-wrap justify-center gap-2">
@@ -58,7 +58,7 @@ export function ProjectsPage() {
             ),
           }
         : {
-            title: 'No projects yet.',
+            title: 'Every big thing starts somewhere.',
             description: 'Projects gather related steps. Create one first, then add tasks or let AI break it down.',
             action: (
               <Button variant="primary" onClick={() => openProject()}>

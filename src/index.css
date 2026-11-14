@@ -8,13 +8,14 @@
   --surface-2: 238 233 222;
   --ink: 41 43 41;
   --ink-soft: 62 64 59;
-  --muted: 129 125 116;
+  --muted: 112 108 100;
   --line: 220 214 202;
   --stone: 220 214 202;
-  --sage: 125 140 118;
-  --sage-soft: 231 235 226;
+  --sage: 137 149 129;
+  --sage-soft: 232 237 227;
   --accent: 185 75 58;
   --accent-soft: 243 230 224;
+  --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)' opacity='0.045'/%3E%3C/svg%3E");
   color-scheme: light;
 }
 
@@ -24,11 +25,11 @@
   --surface-2: 40 41 37;
   --ink: 237 232 221;
   --ink-soft: 212 207 196;
-  --muted: 154 149 138;
+  --muted: 170 165 154;
   --line: 56 57 50;
   --stone: 56 57 50;
-  --sage: 154 170 145;
-  --sage-soft: 42 48 39;
+  --sage: 166 178 154;
+  --sage-soft: 44 50 41;
   --accent: 205 111 93;
   --accent-soft: 60 41 35;
   color-scheme: dark;
@@ -73,6 +74,10 @@
     font-size: 16px;
     line-height: 1.65;
     min-height: 100vh;
+    background-image:
+      radial-gradient(1100px 680px at 12% -8%, rgb(var(--paper) / 0.7), transparent 64%),
+      radial-gradient(800px 520px at 100% 0%, rgb(var(--surface-2) / 0.24), transparent 62%);
+    background-attachment: fixed;
   }
 
   h1,
@@ -83,6 +88,11 @@
     font-feature-settings: 'palt' 1;
   }
 
+  h1,
+  h2 {
+    letter-spacing: -0.025em;
+  }
+
   ::selection {
     background: rgb(var(--accent) / 0.18);
     color: rgb(var(--ink));
@@ -90,7 +100,7 @@
 
   :focus-visible {
     outline: 2px solid rgb(var(--accent));
-    outline-offset: 2px;
+    outline-offset: 3px;
   }
 
   input,
@@ -117,32 +127,56 @@
 @layer components {
   .card {
     @apply border border-line bg-paper shadow-paper;
+    border-radius: 14px;
+  }
+
+  /* Shared paper language for the many section-based surfaces. */
+  main section[class*='border'] {
+    border-radius: 14px;
+  }
+
+  main article[class*='border'] {
     border-radius: 12px;
   }
 
-  /* Soften the large bordered sections without rounding every inner element. */
-  main section[class*='border'] {
+  /* A barely-there sheet grain, distinct from the page texture. */
+  main section[class*='bg-paper'],
+  main article[class*='bg-paper'] {
+    background-image: var(--paper-noise);
+    background-size: 180px 180px;
+  }
+
+  .paper-panel {
+    background-image: var(--paper-noise),
+      linear-gradient(180deg, rgb(255 255 255 / 0.14), transparent 90px);
+    background-size: 180px 180px, auto;
+  }
+
+  /* Shared stat ledgers keep their hairlines but gain the paper corner language. */
+  main div[class*='gap-px'][class*='bg-line'] {
     border-radius: 12px;
+    overflow: hidden;
   }
 
   .eyebrow {
-    @apply font-mono text-[11px] uppercase text-muted;
-    letter-spacing: 0.18em;
-    line-height: 1.4;
+    @apply font-mono text-[10px] uppercase text-muted;
+    letter-spacing: 0.2em;
+    line-height: 1.45;
   }
 
   .field {
-    @apply min-h-[44px] w-full rounded-[9px] border border-line bg-paper px-3.5 py-2.5 text-[15px] text-ink placeholder:text-muted/70 transition-colors;
+    @apply min-h-[44px] w-full rounded-[9px] border border-line bg-paper/90 px-3.5 py-2.5 text-[15px] text-ink placeholder:text-muted/65 transition-colors;
   }
 
   .field:hover {
-    border-color: rgb(var(--muted) / 0.55);
+    border-color: rgb(var(--muted) / 0.5);
+    background-color: rgb(var(--paper));
   }
 
   .field:focus {
     border-color: rgb(var(--accent));
     outline: none;
-    box-shadow: 0 0 0 1px rgb(var(--accent) / 0.35);
+    box-shadow: 0 0 0 1px rgb(var(--accent) / 0.3);
   }
 
   .seal {
@@ -175,10 +209,32 @@
     background: rgb(var(--line));
   }
 
+  .ink-rule {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      rgb(var(--ink) / 0.26),
+      rgb(var(--ink) / 0.1) 34%,
+      transparent 92%
+    );
+  }
+
   .grain {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.25'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.75'/%3E%3C/svg%3E");
     background-repeat: repeat;
-    opacity: 0.035;
+    background-size: 180px 180px;
+    opacity: 0.052;
+    mix-blend-mode: multiply;
+  }
+
+  .dark .grain {
+    opacity: 0.075;
+    mix-blend-mode: soft-light;
+    filter: invert(1);
+  }
+
+  .timer-halo {
+    animation: timer-breathe 6.5s ease-in-out infinite;
   }
 
   .scroll-thin {
@@ -220,6 +276,18 @@
 
   .border-hair {
     border-color: rgb(var(--line));
+  }
+}
+
+@keyframes timer-breathe {
+  0%,
+  100% {
+    opacity: 0.18;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.34;
+    transform: scale(1.015);
   }
 }
 

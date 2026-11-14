@@ -135,10 +135,10 @@ export function defaultSettings(): AppSettings {
     },
     dashboard: {
       order: [
+        'focusStats',
         'todayTasks',
         'dailyProgress',
         'activeProjects',
-        'focusStats',
         'objectives',
         'deadlines',
         'progression',

@@ -26,34 +26,23 @@ import {
 import { ACHIEVEMENTS } from '../services/gamification/achievements';
 import { toDateKey, todayKey } from '../utils/date';
 
-const LEGACY_DASHBOARD_ORDER = [
-  'dailyProgress',
-  'progression',
-  'todayTasks',
-  'objectives',
-  'activeProjects',
-  'deadlines',
-  'focusStats',
-  'recentAchievements',
-  'companionNote',
-];
-
 /**
- * Moves only untouched old defaults onto the new Matcha, four-panel default.
- * Explicit dashboard arrangements and chosen accents are never overwritten.
+ * Moves untouched workspaces onto the current editorial defaults: vermilion
+ * ink and a focus-first dashboard. Explicit arrangements and chosen accents
+ * are never overwritten.
  */
 function migrateLegacyDefaults(state: TakTicState): TakTicState {
   const dashboard = state.settings.dashboard;
+  const defaults = defaultSettings().dashboard;
   const needsDashboardMigration =
     !dashboard.customized &&
-    dashboard.hidden.length === 0 &&
-    dashboard.order.join('|') === LEGACY_DASHBOARD_ORDER.join('|');
+    (dashboard.order.join('|') !== defaults.order.join('|') ||
+      dashboard.hidden.join('|') !== defaults.hidden.join('|'));
   const needsAccentMigration =
     !state.profile.preferences.accentChanged &&
-    state.profile.preferences.accent === 'vermilion';
+    state.profile.preferences.accent === 'matcha';
   if (!needsDashboardMigration && !needsAccentMigration) return state;
 
-  const defaults = defaultSettings().dashboard;
   return {
     ...state,
     profile: needsAccentMigration
@@ -61,7 +50,7 @@ function migrateLegacyDefaults(state: TakTicState): TakTicState {
           ...state.profile,
           preferences: {
             ...state.profile.preferences,
-            accent: 'matcha',
+            accent: 'vermilion',
             accentChanged: false,
           },
         }

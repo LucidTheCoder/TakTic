@@ -101,7 +101,7 @@ export function StatisticsPage() {
         actions={
           <Link
             to="/achievements"
-            className="inline-flex items-center gap-1.5 border border-line px-3 py-2 text-[13px] text-muted hover:text-ink"
+            className="inline-flex items-center gap-1.5 rounded-[8px] border border-line bg-paper px-3 py-2 text-[13px] text-muted transition-colors hover:border-ink/25 hover:text-ink"
           >
             Achievements
             <ArrowRight size={12} aria-hidden />

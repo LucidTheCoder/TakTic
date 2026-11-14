@@ -68,7 +68,7 @@ export function AppLayout() {
       <Sidebar onOpenPalette={() => openPalette('command')} />
 
       <div className="relative z-10 lg:pl-[264px]">
-        <header className="sticky top-0 z-30 border-b border-line bg-ivory/95 backdrop-blur lg:hidden">
+        <header className="sticky top-0 z-30 border-b border-line bg-ivory/92 backdrop-blur-xl lg:hidden">
           <div className="flex h-[52px] items-center gap-3 px-4">
             <Link to="/" className="flex items-center" aria-label="TakTic home">
               <TakTicLogo
@@ -101,9 +101,9 @@ export function AppLayout() {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1180px] px-4 pb-32 pt-6 sm:px-6 md:px-8 md:pt-8 lg:px-10 lg:pb-20 lg:pt-10">
+        <main className="mx-auto w-full max-w-[1220px] px-4 pb-32 pt-7 sm:px-6 md:px-8 md:pt-9 lg:px-10 lg:pb-20 lg:pt-11">
           {state.demoLoaded ? (
-            <div className="mb-5 flex flex-col gap-2 border border-accent/30 bg-accent-soft/30 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-3">
+            <div className="mb-5 flex flex-col gap-2 rounded-[10px] border border-accent/25 bg-accent-soft/25 px-3.5 py-2.5 sm:flex-row sm:items-center sm:gap-3">
               <span className="w-fit rounded-[6px] border border-accent/40 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-accent">
                 Demo workspace
               </span>
@@ -121,15 +121,15 @@ export function AppLayout() {
           ) : null}
           <motion.div
             key={location.pathname}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
           >
             <Outlet />
           </motion.div>
         </main>
 
-        <footer className="mx-auto hidden w-full max-w-[1180px] items-center justify-between px-10 pb-8 font-mono text-[10px] uppercase tracking-[0.14em] text-muted/70 lg:flex">
+        <footer className="mx-auto hidden w-full max-w-[1220px] items-center justify-between px-10 pb-8 font-mono text-[9px] uppercase tracking-[0.16em] text-muted/65 lg:flex">
           <span>TakTic · one step at a time</span>
           <button
             type="button"

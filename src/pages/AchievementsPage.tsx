@@ -46,7 +46,7 @@ export function AchievementsPage() {
         actions={
           <Link
             to="/statistics"
-            className="inline-flex items-center gap-1.5 border border-line px-3 py-2 text-[13px] text-muted hover:text-ink"
+            className="inline-flex items-center gap-1.5 rounded-[8px] border border-line bg-paper px-3 py-2 text-[13px] text-muted transition-colors hover:border-ink/25 hover:text-ink"
           >
             Statistics
             <ArrowRight size={12} aria-hidden />
@@ -87,7 +87,7 @@ export function AchievementsPage() {
           </span>
           <div className="min-w-0 flex-1">
             <p className="eyebrow">The first mark</p>
-            <h2 className="mt-0.5 text-[19px]">Your collection is just getting started.</h2>
+            <h2 className="mt-0.5 text-[19px]">That&apos;s progress worth recognising.</h2>
             <p className="mt-1 text-[13px] leading-5 text-muted">
               Complete one task or one focus session. The first achievement is designed to be
               reachable today.

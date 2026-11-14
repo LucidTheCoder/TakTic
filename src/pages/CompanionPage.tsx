@@ -264,7 +264,7 @@ ${adaptations || '- none'}`;
                         key={prompt}
                         type="button"
                         onClick={() => void send(prompt)}
-                        className="group flex items-center justify-between gap-3 border border-line px-3 py-2.5 text-left text-[13px] text-ink/80 transition-colors hover:border-ink/25 hover:bg-surface2/40"
+                        className="group flex items-center justify-between gap-3 rounded-[8px] border border-line px-3 py-2.5 text-left text-[13px] text-ink/80 transition-colors hover:border-ink/25 hover:bg-surface2/40"
                       >
                         {prompt}
                         <ArrowRight
@@ -288,7 +288,7 @@ ${adaptations || '- none'}`;
                 {state.companionMessages.map((message) =>
                   message.role === 'user' ? (
                     <li key={message.id} className="flex justify-end">
-                      <div className="max-w-[88%] border border-line bg-surface2/55 px-3.5 py-2.5 sm:max-w-[75%]">
+                      <div className="max-w-[88%] rounded-[12px] rounded-br-[4px] border border-line bg-surface2/55 px-4 py-3 sm:max-w-[75%]">
                         <p className="whitespace-pre-wrap text-[14px] leading-6 text-ink">
                           {message.content}
                         </p>
@@ -299,15 +299,8 @@ ${adaptations || '- none'}`;
                     </li>
                   ) : (
                     <li key={message.id} className="flex items-start gap-2.5">
-                      <span
-                        className={cn(
-                          'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] border font-serif text-[15px]',
-                          message.isError
-                            ? 'border-accent/50 text-accent'
-                            : 'border-line text-accent',
-                        )}
-                      >
-                        T
+                      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center">
+                        <TakTicMark className="h-8 w-8" />
                       </span>
                       <div className="min-w-0 max-w-[92%]">
                         <p
@@ -326,7 +319,7 @@ ${adaptations || '- none'}`;
                                 type="button"
                                 onClick={() => void send(suggestion.label)}
                                 disabled={sending}
-                                className="border border-line px-2 py-1 text-left text-[12px] text-muted transition-colors hover:border-accent/40 hover:text-ink disabled:opacity-50"
+                                className="rounded-[6px] border border-line px-2 py-1 text-left text-[12px] text-muted transition-colors hover:border-accent/40 hover:text-ink disabled:opacity-50"
                               >
                                 {suggestion.label}
                               </button>

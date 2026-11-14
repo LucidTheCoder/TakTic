@@ -261,10 +261,27 @@ export function TaskRow({
     <div id={`task-${task.id}`} className="scroll-mt-24">
       <div
         className={cn(
-          'group flex items-start gap-2 border-b border-line/70 px-2 py-2.5 transition-colors hover:bg-surface2/35 md:gap-2.5 md:px-3',
-          completed && 'bg-surface2/20',
+          'group relative mx-2 my-2 flex items-start gap-2 rounded-[11px] border px-3 py-3 transition-[border-color,background-color,box-shadow] duration-200 md:gap-3 md:px-3.5',
+          completed
+            ? 'border-line/55 bg-surface2/25'
+            : blocked
+              ? 'border-accent/30 bg-accent-soft/20'
+              : 'border-line/75 bg-paper hover:border-ink/20 hover:shadow-paper',
         )}
       >
+        <span
+          className={cn(
+            'absolute inset-y-3 left-0 w-[2px] rounded-full',
+            task.priority === 'urgent'
+              ? 'bg-accent'
+              : task.priority === 'high'
+                ? 'bg-accent/50'
+                : task.priority === 'medium'
+                  ? 'bg-sage/60'
+                  : 'bg-line',
+          )}
+          aria-hidden
+        />
         <div className="flex shrink-0 items-start gap-0.5 pt-0.5">
           {hasChildren && !flat ? (
             <button
@@ -287,13 +304,13 @@ export function TaskRow({
           {hasChildren ? (
             <span
               className={cn(
-                'mt-[3px] flex h-[15px] w-[15px] items-center justify-center border',
+                'mt-[3px] flex h-[17px] w-[17px] items-center justify-center rounded-[4px] border',
                 completed ? 'border-sage bg-sage text-paper' : 'border-line bg-paper',
               )}
               title={completed ? 'All subtasks complete' : `${completedChildren} of ${children.length} subtasks complete`}
               aria-hidden
             >
-              {completed ? <Check size={9} strokeWidth={3} /> : null}
+              {completed ? <Check size={10} strokeWidth={3} /> : null}
             </span>
           ) : (
             <button
@@ -303,22 +320,36 @@ export function TaskRow({
               aria-label={completed ? `Reopen ${task.title}` : `Complete ${task.title}`}
               onClick={handleToggle}
               className={cn(
-                'mt-[3px] flex h-[15px] w-[15px] items-center justify-center border transition-colors',
+                'relative mt-[3px] flex h-[17px] w-[17px] items-center justify-center rounded-[4px] border transition-colors before:absolute before:-inset-3 before:content-[""]',
                 completed
                   ? 'border-sage bg-sage text-paper'
-                  : 'border-muted/45 bg-paper hover:border-accent',
+                  : 'border-muted/45 bg-paper hover:border-accent hover:bg-accent-soft/30',
               )}
             >
               <AnimatePresence>
                 {completed ? (
-                  <motion.span
-                    initial={{ scale: 0.5, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.5, opacity: 0 }}
-                    transition={{ duration: 0.18 }}
+                  <motion.svg
+                    key="completed-check"
+                    viewBox="0 0 12 12"
+                    className="h-[11px] w-[11px]"
+                    fill="none"
+                    initial={{ opacity: 0, scale: 0.7 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.7 }}
+                    transition={{ duration: 0.16 }}
+                    aria-hidden
                   >
-                    <Check size={9} strokeWidth={3} aria-hidden />
-                  </motion.span>
+                    <motion.path
+                      d="M2.2 6.2 4.8 8.8 9.8 3.2"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{ duration: 0.24, ease: 'easeOut' }}
+                    />
+                  </motion.svg>
                 ) : null}
               </AnimatePresence>
             </button>
@@ -331,7 +362,7 @@ export function TaskRow({
               type="button"
               onClick={() => openTask({ taskId: task.id })}
               className={cn(
-                'min-w-0 flex-1 text-left text-[15px] leading-5 transition-colors hover:text-accent md:text-[15px]',
+                'min-w-0 flex-1 text-left text-[14px] leading-5 transition-colors hover:text-accent sm:text-[15px]',
                 completed ? 'text-muted line-through decoration-muted/40' : 'text-ink',
               )}
             >
@@ -354,7 +385,7 @@ export function TaskRow({
             </div>
           </div>
 
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
             {showProject && project ? (
               <Link
                 to={`/projects/${project.id}`}
@@ -426,7 +457,7 @@ export function TaskRow({
             transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <div className="ml-[25px] border-l border-line/80 sm:ml-[33px]">
+            <div className="ml-4 border-l border-line/60 pl-0.5 sm:ml-6">
               {children.map((child) => (
                 <TaskRow
                   key={child.id}

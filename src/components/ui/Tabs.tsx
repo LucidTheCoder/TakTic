@@ -17,7 +17,7 @@ export function TabBar<T extends string>({
 }: TabBarProps<T>) {
   return (
     <div
-      className={cn('no-scrollbar flex gap-5 overflow-x-auto border-b border-line', className)}
+      className={cn('no-scrollbar flex gap-6 overflow-x-auto border-b border-line', className)}
       role="tablist"
       aria-label={ariaLabel}
     >
@@ -31,9 +31,9 @@ export function TabBar<T extends string>({
             aria-selected={active}
             onClick={() => onChange(item.value)}
             className={cn(
-              'relative -mb-px flex shrink-0 items-center gap-1.5 border-b-[1.5px] pb-2.5 pt-1 text-[14px] transition-colors',
+              'relative -mb-px flex shrink-0 items-center gap-1.5 border-b-[1.5px] pb-3 pt-1 text-[13px] tracking-[0.01em] transition-colors',
               active
-                ? 'border-accent text-ink'
+                ? 'border-accent font-medium text-ink'
                 : 'border-transparent text-muted hover:border-line hover:text-ink/80',
             )}
           >
@@ -72,7 +72,7 @@ export function Segmented<T extends string>({
 }: SegmentedProps<T>) {
   return (
     <div
-      className={cn('inline-flex border border-line bg-paper p-[2px]', className)}
+      className={cn('inline-flex rounded-[8px] border border-line bg-paper p-[3px] shadow-paper', className)}
       role="group"
     >
       {items.map((item) => {
@@ -84,11 +84,11 @@ export function Segmented<T extends string>({
             aria-pressed={active}
             onClick={() => onChange(item.value)}
             className={cn(
-              'px-3 transition-colors',
+              'rounded-[6px] px-3 transition-colors',
               size === 'sm' ? 'py-1 text-[12px]' : 'py-1.5 text-[13px]',
               active
-                ? 'bg-accent text-paper'
-                : 'text-muted hover:bg-surface2 hover:text-ink',
+                ? 'bg-accent text-paper shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]'
+                : 'text-muted hover:bg-surface2/70 hover:text-ink',
             )}
           >
             {item.label}

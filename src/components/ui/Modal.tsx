@@ -115,7 +115,7 @@ export function Modal({
             exit={{ opacity: 0, y: 16, transition: { duration: 0.16 } }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
-              'relative flex max-h-[94dvh] w-full flex-col overflow-hidden border border-line bg-paper shadow-lift sm:max-h-[88vh]',
+              'paper-panel relative flex max-h-[94dvh] w-full flex-col overflow-hidden border border-line bg-paper shadow-lift sm:max-h-[88vh]',
               'rounded-t-[18px] border-b-0 sm:rounded-[16px] sm:border-b',
               widths[width],
               className,

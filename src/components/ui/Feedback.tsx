@@ -11,9 +11,9 @@ interface ProgressBarProps {
 }
 
 const heights = {
-  sm: 'h-[4px]',
-  md: 'h-2',
-  lg: 'h-3',
+  sm: 'h-[3px]',
+  md: 'h-[6px]',
+  lg: 'h-[8px]',
 };
 
 const tones = {
@@ -32,7 +32,7 @@ export function ProgressBar({
   const clamped = Math.max(0, Math.min(100, Math.round(value)));
   return (
     <div
-      className={cn('w-full overflow-hidden rounded-full bg-stone/60', heights[height], className)}
+      className={cn('w-full overflow-hidden rounded-full bg-stone/65', heights[height], className)}
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
@@ -40,7 +40,7 @@ export function ProgressBar({
       aria-label={label ?? 'Progress'}
     >
       <motion.div
-        className={cn('h-full origin-left', tones[tone])}
+        className={cn('h-full origin-left rounded-full', tones[tone])}
         initial={{ width: 0 }}
         animate={{ width: `${clamped}%` }}
         transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
@@ -58,6 +58,22 @@ interface EmptyStateProps {
   compact?: boolean;
 }
 
+/** A small stationery illustration: layered sheets, an ink mark and one seal. */
+function PaperStack({ icon }: { icon?: ReactNode }) {
+  return (
+    <div className="relative mb-5 h-[58px] w-[68px]" aria-hidden>
+      <span className="absolute left-1 top-1.5 h-[44px] w-[50px] -rotate-6 rounded-[3px] border border-line/80 bg-surface2/40" />
+      <span className="absolute left-3 top-0.5 h-[44px] w-[50px] rotate-3 rounded-[3px] border border-line/80 bg-surface2/25" />
+      <span className="relative flex h-[46px] w-[52px] items-center justify-center overflow-hidden rounded-[3px] border border-line bg-paper text-muted shadow-paper">
+        <span className="absolute inset-x-0 top-0 h-px bg-accent/45" />
+        {icon ?? <span className="h-1.5 w-1.5 rounded-full bg-accent/60" />}
+        <span className="absolute bottom-1.5 right-1.5 h-[3px] w-3 bg-line" />
+      </span>
+      <span className="absolute -right-0.5 top-1 h-1.5 w-1.5 bg-accent/80" />
+    </div>
+  );
+}
+
 export function EmptyState({
   icon,
   eyebrow,
@@ -69,17 +85,13 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center rounded-[12px] border border-dashed border-line bg-paper/40 px-6 text-center',
-        compact ? 'py-9' : 'py-14',
+        'paper-panel flex flex-col items-center justify-center rounded-[14px] border border-line bg-paper/70 px-6 text-center',
+        compact ? 'py-8' : 'py-12 sm:py-14',
       )}
     >
-      {icon ? (
-        <div className="mb-4 flex h-11 w-11 items-center justify-center border border-line bg-paper text-muted">
-          {icon}
-        </div>
-      ) : null}
+      <PaperStack icon={icon} />
       {eyebrow ? <p className="eyebrow mb-2">{eyebrow}</p> : null}
-      <h3 className={cn('text-balance', compact ? 'text-[19px]' : 'text-[23px]')}>{title}</h3>
+      <h3 className={cn('text-balance', compact ? 'text-[20px]' : 'text-[24px]')}>{title}</h3>
       {description ? (
         <p className="mt-2 max-w-md text-[14px] leading-6 text-muted">{description}</p>
       ) : null}

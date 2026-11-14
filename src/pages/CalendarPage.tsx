@@ -189,7 +189,7 @@ export function CalendarPage() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex h-8 w-8 items-center justify-center border border-line bg-paper text-muted hover:text-ink"
+            className="flex h-8 w-8 items-center justify-center rounded-[8px] border border-line bg-paper text-muted transition-colors hover:border-ink/25 hover:text-ink"
             aria-label="Previous"
           >
             <ChevronLeft size={15} aria-hidden />
@@ -200,7 +200,7 @@ export function CalendarPage() {
           <button
             type="button"
             onClick={() => navigate(1)}
-            className="flex h-8 w-8 items-center justify-center border border-line bg-paper text-muted hover:text-ink"
+            className="flex h-8 w-8 items-center justify-center rounded-[8px] border border-line bg-paper text-muted transition-colors hover:border-ink/25 hover:text-ink"
             aria-label="Next"
           >
             <ChevronRight size={15} aria-hidden />

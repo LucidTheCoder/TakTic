@@ -15,6 +15,8 @@ import {
   FolderOpen,
   LifeBuoy,
   MessageCircle,
+  PenLine,
+  Play,
   Plus,
   RotateCcw,
   SlidersHorizontal,
@@ -53,14 +55,77 @@ const WIDGETS: Array<{ id: DashboardWidgetId; label: string; description: string
 const SPANS: Record<DashboardWidgetId, string> = {
   dailyProgress: 'lg:col-span-5',
   progression: 'lg:col-span-4',
-  todayTasks: 'lg:col-span-7',
+  todayTasks: 'lg:col-span-5',
   objectives: 'lg:col-span-4',
   activeProjects: 'lg:col-span-7',
   deadlines: 'lg:col-span-4',
-  focusStats: 'lg:col-span-5',
+  focusStats: 'lg:col-span-7',
   recentAchievements: 'lg:col-span-6',
   companionNote: 'lg:col-span-6',
 };
+
+function DailyReflection() {
+  const storageKey = `taktic.reflection.v1.${todayKey()}`;
+  const [note, setNote] = useState(() => {
+    try {
+      return window.localStorage.getItem(storageKey) ?? '';
+    } catch {
+      return '';
+    }
+  });
+
+  const updateNote = (value: string) => {
+    setNote(value);
+    try {
+      if (value.trim()) window.localStorage.setItem(storageKey, value);
+      else window.localStorage.removeItem(storageKey);
+    } catch {
+      // A private browser can refuse storage; the note remains editable.
+    }
+  };
+
+  return (
+    <details className="group mt-6 overflow-hidden rounded-[14px] border border-line bg-paper/75">
+      <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-4 sm:px-6 [&::-webkit-details-marker]:hidden">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] border border-line bg-ivory/60 text-accent">
+          <PenLine size={14} aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="eyebrow block">Close the page</span>
+          <span className="mt-0.5 block font-serif text-[18px] leading-tight text-ink">
+            A note for today
+          </span>
+        </span>
+        <span className="hidden font-mono text-[9px] uppercase tracking-[0.1em] text-muted sm:block">
+          {note.trim() ? 'Saved on this device' : 'Optional'}
+        </span>
+        <span
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-line text-[16px] leading-none text-muted transition-transform duration-200 group-open:rotate-45"
+          aria-hidden
+        >
+          +
+        </span>
+      </summary>
+      <div className="border-t border-line px-5 pb-5 pt-4 sm:px-6">
+        <label htmlFor="daily-reflection" className="text-[14px] font-medium text-ink/80">
+          What moved today?
+        </label>
+        <textarea
+          id="daily-reflection"
+          value={note}
+          onChange={(event) => updateNote(event.target.value)}
+          rows={3}
+          placeholder="One sentence is enough. What should tomorrow begin with?"
+          className="field mt-2 min-h-[104px] resize-y bg-ivory/30 leading-6"
+        />
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 font-mono text-[9px] uppercase tracking-[0.08em] text-muted/80">
+          <span>Private · stays in this browser</span>
+          <span>{note.trim().length} characters</span>
+        </div>
+      </div>
+    </details>
+  );
+}
 
 function companionNote(
   stats: ReturnType<typeof import('../store/selectors').derive>,
@@ -201,7 +266,19 @@ export function DashboardPage() {
         )
       : 0;
   const maxWeekFocus = Math.max(25, ...stats.weekDays.map((day) => day.focusMinutes));
+  const focusCycleTarget = state.settings.focus.sessionsBeforeLongBreak;
+  const focusCycleDone = Math.min(focusCycleTarget, state.focusCycle);
   const objectivesDone = state.objectives.filter((objective) => objective.completed).length;
+  const nextDeadline = stats.upcomingDeadlines[0] ?? null;
+  const nextDeadlineLabel = nextDeadline
+    ? deadlineInfo(nextDeadline.deadline, nextDeadline.deadlineHasTime, false).label
+    : null;
+  const dailyLine =
+    stats.todayProgress.total === 0
+      ? 'Nothing is scheduled yet. Choose one clear step, or leave the page deliberately open.'
+      : stats.todayProgress.percent >= 100
+        ? 'Everything scheduled for today is complete. The rest of the page can stay quiet.'
+        : `${stats.todayProgress.remaining} of ${stats.todayProgress.total} steps remain. Start with the one that would make the rest easier.`;
 
   const renderWidget = (id: DashboardWidgetId) => {
     switch (id) {
@@ -600,47 +677,98 @@ export function DashboardPage() {
 
       case 'focusStats':
         return (
-          <section className="flex h-full flex-col border border-line bg-paper p-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="eyebrow">Focus timer</p>
-                <h2 className="mt-1 text-[20px]">Focus timer</h2>
-              </div>
-              <Timer size={15} className="text-muted" aria-hidden />
-            </div>
-            <div className="mt-4 flex items-end gap-4">
-              <span className="font-mono text-[36px] leading-none tracking-[-0.04em] text-ink">
-                {stats.todayFocusMinutes}
-                <span className="ml-1 text-[13px] text-muted">min</span>
-              </span>
-              <span className="pb-1 font-mono text-[12px] text-muted">
-                {stats.todayFocusSessions} sessions today
-              </span>
-            </div>
-            <div className="mt-4 flex items-end justify-between gap-1.5" aria-hidden>
-              {stats.weekDays.map((day) => {
-                const height = Math.max(2, Math.round((day.focusMinutes / maxWeekFocus) * 44));
-                const isToday = day.date === today;
-                return (
-                  <div key={day.date} className="flex flex-1 flex-col items-center gap-1">
-                    <div
-                      className={cn('w-full', day.focusMinutes > 0 ? 'bg-accent/75' : 'bg-stone/60')}
-                      style={{ height }}
-                    />
-                    <span className={cn('font-mono text-[10px]', isToday ? 'text-accent' : 'text-muted')}>
-                      {formatDateKey(day.date, { weekday: 'narrow' })}
+          <section className="relative flex h-full flex-col overflow-hidden border border-line bg-paper">
+            <span className="absolute inset-y-0 left-0 w-[3px] bg-accent/80" aria-hidden />
+            <div className="flex flex-1 flex-col p-6 sm:p-7">
+              <div className="flex flex-wrap items-start justify-between gap-5">
+                <div className="min-w-0 max-w-[440px]">
+                  <p className="eyebrow">Focus room / The next block</p>
+                  <h2 className="mt-2 line-clamp-3 text-[26px] leading-[1.14] text-ink sm:text-[31px]">
+                    {stats.nextTask?.title ?? 'One clear step is enough.'}
+                  </h2>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                    {stats.nextTask ? (
+                      <PriorityBadge priority={stats.nextTask.priority} />
+                    ) : (
+                      <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
+                        No task attached
+                      </span>
+                    )}
+                    {stats.nextTask ? (
+                      <span className="inline-flex items-center gap-1 font-mono text-[11px] text-muted">
+                        <Clock3 size={10} aria-hidden />
+                        {formatDuration(stats.nextTask.estimatedMinutes)}
+                      </span>
+                    ) : null}
+                    <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
+                      {state.settings.focus.focusMinutes}-minute block
                     </span>
                   </div>
-                );
-              })}
-            </div>
-            <div className="mt-auto flex items-center justify-between border-t border-line pt-3">
-              <p className="font-mono text-[11px] text-muted">
-                {stats.weekFocusMinutes} min this week · avg {averageFocus} min
-              </p>
-              <Link to="/focus" className="text-[12px] text-muted underline decoration-line underline-offset-2 hover:text-ink">
-                Open
-              </Link>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="eyebrow">Focused today</p>
+                  <p className="mt-1 font-serif text-[48px] leading-none tracking-[-0.05em] text-ink">
+                    {stats.todayFocusMinutes}
+                    <span className="ml-1 font-mono text-[11px] tracking-normal text-muted">min</span>
+                  </p>
+                  <p className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
+                    {stats.todayFocusSessions} session{stats.todayFocusSessions === 1 ? '' : 's'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <Link
+                  to={stats.nextTask ? `/focus?task=${stats.nextTask.id}` : '/focus'}
+                  className={buttonClass('primary', 'lg', 'min-w-[150px]')}
+                >
+                  <Play size={14} aria-hidden />
+                  Start focus
+                </Link>
+                <Link
+                  to="/focus"
+                  className="inline-flex h-10 items-center gap-2 px-1 text-[13px] text-muted transition-colors hover:text-ink"
+                >
+                  Open room
+                  <ArrowRight size={12} aria-hidden />
+                </Link>
+                <span className="ml-auto hidden font-mono text-[9px] uppercase tracking-[0.08em] text-muted sm:block">
+                  Cycle {focusCycleDone}/{focusCycleTarget}
+                </span>
+              </div>
+
+              <div className="mt-auto pt-7">
+                <div className="flex items-end justify-between gap-2 border-t border-line pt-3.5">
+                  <p className="eyebrow">This week</p>
+                  <p className="font-mono text-[10px] text-muted">
+                    {stats.weekFocusMinutes} min · avg {averageFocus} min
+                  </p>
+                </div>
+                <div className="mt-2 flex items-end justify-between gap-1.5" aria-hidden>
+                  {stats.weekDays.map((day) => {
+                    const height = Math.max(2, Math.round((day.focusMinutes / maxWeekFocus) * 34));
+                    const isToday = day.date === today;
+                    return (
+                      <div key={day.date} className="flex flex-1 flex-col items-center gap-1">
+                        <span
+                          className={cn(
+                            'w-full rounded-t-[1px]',
+                            day.focusMinutes > 0
+                              ? isToday
+                                ? 'bg-accent'
+                                : 'bg-accent/55'
+                              : 'bg-stone/60',
+                          )}
+                          style={{ height }}
+                        />
+                        <span className={cn('font-mono text-[9px]', isToday ? 'text-accent' : 'text-muted')}>
+                          {formatDateKey(day.date, { weekday: 'narrow' })}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </section>
         );
@@ -732,43 +860,65 @@ export function DashboardPage() {
 
   return (
     <div>
-      <section className="mb-6 overflow-hidden border border-line bg-paper shadow-paper">
-        <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-end sm:justify-between sm:p-7">
-          <div className="min-w-0">
-            <p className="eyebrow">Dashboard</p>
-            <h1 className="mt-2 text-balance text-[34px] leading-[1.1] sm:text-[44px]">
-              {greetingForHour(now.getHours())}, {firstName}.
+      <section className="relative mb-7 overflow-hidden border border-line bg-paper shadow-paper">
+        <span
+          className="pointer-events-none absolute inset-y-0 right-0 hidden w-[33%] border-l border-line/60 bg-surface2/10 lg:block"
+          aria-hidden
+        />
+        <span className="pointer-events-none absolute right-6 top-4 font-mono text-[8px] uppercase tracking-[0.24em] text-muted/50 sm:right-8 sm:top-5 lg:right-10">
+          No. 01 / Daily edition
+        </span>
+        <div className="relative flex flex-col gap-8 p-6 pt-9 sm:p-8 sm:pt-10 lg:flex-row lg:items-end lg:justify-between lg:p-10 lg:pt-11">
+          <div className="min-w-0 max-w-[700px]">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="eyebrow">The daily edition</span>
+              <span className="h-px w-8 bg-accent/50" aria-hidden />
+              <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-muted">
+                {formatDateKey(today, { weekday: 'long', day: 'numeric', month: 'long' })}
+              </span>
+            </div>
+            <h1 className="mt-4 text-balance text-[40px] leading-[0.98] tracking-[-0.04em] sm:text-[56px] lg:text-[64px]">
+              {greetingForHour(now.getHours())},{' '}
+              <span className="text-accent italic">{firstName}.</span>
             </h1>
-            <p className="mt-2 text-[15px] leading-6 text-muted">
-              {now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
-              {' · '}One step at a time.
+            <p className="mt-4 max-w-[540px] text-[15px] leading-7 text-ink/60 sm:text-[16px]">
+              {dailyLine}
             </p>
+            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line pt-4 font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+              <span>
+                <span className="text-ink">{stats.todayProgress.completed}/{stats.todayProgress.total}</span>{' '}
+                steps today
+              </span>
+              <span className="hidden h-3 w-px bg-line sm:block" aria-hidden />
+              <span>Level {stats.level.level}</span>
+              <span className="hidden h-3 w-px bg-line sm:block" aria-hidden />
+              <span>{state.streak.currentStreak} day streak</span>
+              <span className="hidden h-3 w-px bg-line sm:block" aria-hidden />
+              <span>{nextDeadlineLabel ?? 'No deadline pressure'}</span>
+            </div>
           </div>
-          <div className="flex shrink-0 items-end gap-4 self-start rounded-[12px] border border-line bg-ivory/60 px-4 py-3 sm:self-auto">
-            <div className="text-right">
-              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">Today</p>
-              <p className="font-serif text-[40px] leading-none tracking-[-0.04em] text-ink">
+          <div className="hidden shrink-0 items-end gap-4 self-start sm:flex lg:self-auto lg:border-l lg:border-line/70 lg:pb-1 lg:pl-8">
+            <div className="text-left lg:text-right">
+              <p className="eyebrow">Today</p>
+              <p className="mt-1 font-serif text-[64px] leading-[0.8] tracking-[-0.055em] text-ink">
                 {formatDateKey(today, { day: 'numeric' })}
               </p>
-              <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.12em] text-muted">
-                {formatDateKey(today, { month: 'long' })} {now.getFullYear()}
+              <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-muted">
+                {formatDateKey(today, { month: 'long' })} <span className="text-ink/50">{now.getFullYear()}</span>
               </p>
             </div>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 border-t border-line bg-ivory/40 px-6 py-4 sm:px-7">
+        <div className="relative flex flex-wrap items-center gap-2 border-t border-line bg-ivory/35 px-6 py-4 sm:px-8 lg:px-10">
           <Button variant="primary" onClick={() => openTask()}>
             <Plus size={14} aria-hidden />
             New task
           </Button>
-          <Button variant="secondary" onClick={() => openProject()}>
-            <FolderOpen size={13} aria-hidden />
-            New project
+          <Button variant="secondary" onClick={() => navigate('/focus')}>
+            <Timer size={13} aria-hidden />
+            Focus timer
           </Button>
-          <Button
-            variant="secondary"
-            onClick={openUnstuckWithContext}
-          >
+          <Button variant="ghost" onClick={openUnstuckWithContext}>
             <LifeBuoy size={13} aria-hidden />
             I&apos;m stuck
           </Button>
@@ -776,23 +926,23 @@ export function DashboardPage() {
             <CalendarClock size={13} aria-hidden />
             Help me catch up
           </Button>
-          <Button variant="ghost" onClick={() => navigate('/focus')}>
-            <Timer size={13} aria-hidden />
-            Focus timer
-          </Button>
           <Button variant="ghost" onClick={openPlannerWithContext}>
             <CalendarRange size={13} aria-hidden />
             Plan my day
+          </Button>
+          <Button variant="ghost" onClick={() => openProject()}>
+            <FolderOpen size={13} aria-hidden />
+            New project
           </Button>
         </div>
       </section>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="eyebrow">Dashboard</span>
-          <span className="h-px w-6 bg-line" aria-hidden />
-          <span className="font-mono text-[11px] text-muted">
-            {visibleWidgets.length} of {WIDGETS.length} panels
+          <span className="eyebrow">The daily board</span>
+          <span className="h-px w-7 bg-line" aria-hidden />
+          <span className="font-mono text-[10px] text-muted">
+            {visibleWidgets.length} of {WIDGETS.length} sections
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -879,46 +1029,57 @@ export function DashboardPage() {
       ) : null}
 
       {state.projects.length === 0 && state.tasks.length === 0 && !state.demoLoaded ? (
-        <section className="mb-4 flex flex-col gap-4 border border-line bg-paper p-5 sm:flex-row sm:items-center">
-          <div className="flex-1">
-            <p className="eyebrow">Start here</p>
-            <h2 className="mt-1 text-[24px]">Start with one overwhelming thing.</h2>
-            <p className="mt-1 max-w-[620px] text-[15px] leading-7 text-muted">
-              Describe the assignment in one sentence. TakTic splits it into phases, shows what
-              comes first, and changes the plan when you get stuck.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 font-mono text-[10px] uppercase tracking-[0.08em] text-muted">
-              <span>01 Describe it</span>
-              <span>02 See the steps</span>
-              <span>03 Start where it makes sense</span>
+        <section className="paper-panel relative mb-4 overflow-hidden border border-line bg-paper p-6 sm:p-8">
+          <span className="absolute inset-y-0 left-0 w-[3px] bg-accent/75" aria-hidden />
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-[650px]">
+              <p className="eyebrow">Start here / A blank page</p>
+              <h2 className="mt-2 text-balance text-[28px] leading-[1.08] sm:text-[34px]">
+                Start with one overwhelming thing.
+              </h2>
+              <p className="mt-2 max-w-[560px] text-[15px] leading-7 text-muted">
+                Describe the assignment in one sentence. TakTic splits it into phases, shows what
+                comes first, and changes the plan when you get stuck.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-t border-line pt-3 font-mono text-[9px] uppercase tracking-[0.1em] text-muted">
+                <span><span className="text-accent">01</span> Describe it</span>
+                <span><span className="text-accent">02</span> See the steps</span>
+                <span><span className="text-accent">03</span> Start where it makes sense</span>
+              </div>
             </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="primary" onClick={() => openTask()}>
-              Add a task
-            </Button>
-            <Button variant="secondary" onClick={openTour}>
-              Take a quick tour
-            </Button>
-            <Button variant="ghost" onClick={() => openProject()}>
-              Create a project
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                dispatch({ type: 'LOAD_DEMO' });
-                toast({ title: 'Demo workspace loaded', description: 'A Biology assignment, exam revision and weeks of history.', tone: 'success' });
-              }}
-            >
-              Try demo workspace
-            </Button>
+            <div className="flex flex-wrap gap-2 lg:justify-end">
+              <Button variant="primary" onClick={() => openTask()}>
+                Add a task
+              </Button>
+              <Button variant="secondary" onClick={openTour}>
+                Take a quick tour
+              </Button>
+              <Button variant="ghost" onClick={() => openProject()}>
+                Create a project
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  dispatch({ type: 'LOAD_DEMO' });
+                  toast({ title: 'Demo workspace loaded', description: 'A Biology assignment, exam revision and weeks of history.', tone: 'success' });
+                }}
+              >
+                Try demo workspace
+              </Button>
+            </div>
           </div>
         </section>
       ) : null}
 
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
         {visibleWidgets.map((id) => (
-          <div key={id} className={SPANS[id]}>
+          <div
+            key={id}
+            className={cn(
+              SPANS[id],
+              (id === 'dailyProgress' || id === 'activeProjects') && 'lg:self-stretch',
+            )}
+          >
             {renderWidget(id)}
           </div>
         ))}
@@ -936,6 +1097,8 @@ export function DashboardPage() {
           }
         />
       ) : null}
+
+      <DailyReflection />
 
       <div className="mt-8 hidden items-center justify-between border-t border-line pt-4 font-mono text-[10px] uppercase tracking-[0.12em] text-muted lg:flex">
         <span>{formatDateKey(today, { weekday: 'long', day: 'numeric', month: 'long' })}</span>

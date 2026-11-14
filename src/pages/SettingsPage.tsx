@@ -380,7 +380,7 @@ export function SettingsPage() {
                         })
                       }
                       className={cn(
-                        'flex items-center gap-2 border px-2.5 py-2 text-left transition-colors',
+                        'flex items-center gap-2 rounded-[9px] border px-2.5 py-2 text-left transition-colors',
                         active
                           ? 'border-ink/40 bg-surface2'
                           : 'border-line hover:border-ink/25 hover:bg-surface2',
@@ -1240,7 +1240,7 @@ function ThemeCard({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'group border p-2.5 text-left transition-colors',
+        'group rounded-[10px] border p-2.5 text-left transition-colors',
         active ? 'border-ink/40 bg-surface2' : 'border-line hover:border-ink/25',
       )}
     >

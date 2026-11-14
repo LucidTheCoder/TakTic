@@ -39,7 +39,7 @@ export function MobileNav({ onOpenPalette }: MobileNavProps) {
         className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
         aria-label="Primary mobile"
       >
-        <div className="mx-auto grid max-w-lg grid-cols-5">
+        <div className="mx-auto grid max-w-2xl grid-cols-6">
           {primary.map((item) => {
             const Icon = item.icon;
             return (
@@ -49,7 +49,7 @@ export function MobileNav({ onOpenPalette }: MobileNavProps) {
                 end={item.path === '/'}
                 className={({ isActive }) =>
                   cn(
-                    'flex h-[58px] flex-col items-center justify-center gap-1 text-[11px] tracking-wide transition-colors',
+                    'flex h-[58px] flex-col items-center justify-center gap-1 text-[10px] tracking-wide transition-colors',
                     isActive ? 'text-accent' : 'text-muted',
                   )
                 }
@@ -70,21 +70,25 @@ export function MobileNav({ onOpenPalette }: MobileNavProps) {
               </NavLink>
             );
           })}
+          <button
+            type="button"
+            onClick={() => setSheetOpen(true)}
+            className={cn(
+              'flex h-[58px] flex-col items-center justify-center gap-1 text-[10px] tracking-wide transition-colors',
+              moreActive || sheetOpen ? 'text-accent' : 'text-muted',
+            )}
+            aria-label="More sections"
+            aria-expanded={sheetOpen}
+          >
+            <Menu size={17} strokeWidth={moreActive || sheetOpen ? 2 : 1.5} aria-hidden />
+            <span>More</span>
+            <span
+              className={cn('h-[2px] w-4', moreActive || sheetOpen ? 'bg-accent' : 'bg-transparent')}
+              aria-hidden
+            />
+          </button>
         </div>
       </nav>
-
-      <button
-        type="button"
-        onClick={() => setSheetOpen(true)}
-        className={cn(
-          'fixed bottom-[calc(58px+env(safe-area-inset-bottom))] right-3 z-30 flex h-8 items-center gap-1.5 border border-line bg-paper px-2.5 font-mono text-[11px] uppercase tracking-[0.1em] text-muted shadow-sm lg:hidden',
-          moreActive && 'text-accent',
-        )}
-        aria-label="More sections"
-      >
-        <Menu size={12} aria-hidden />
-        More
-      </button>
 
       <AnimatePresence>
         {sheetOpen ? (

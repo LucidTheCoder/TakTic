@@ -327,7 +327,7 @@ export function FocusRoomPage() {
             variant="primary"
             size="lg"
             onClick={() => startSession(tab)}
-            className="h-12 min-w-[210px]"
+            className="h-14 min-w-[230px] rounded-[10px] text-[14px]"
           >
             <Play size={15} aria-hidden />
             Start {tab === 'focus' ? `${durations.focus}-minute focus` : `${durations[tab]}-minute break`}
@@ -342,22 +342,22 @@ export function FocusRoomPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-4">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5 sm:pb-6">
         <div>
           <div className="flex items-center gap-3">
             <span className="font-mono text-[12px] tracking-[0.18em] text-accent">04</span>
-            <span className="h-px w-6 bg-line" aria-hidden />
+            <span className="h-px w-8 bg-accent/35" aria-hidden />
             <span className="eyebrow">Focus room</span>
           </div>
-          <h1 className="mt-2 text-[26px] leading-tight sm:text-[30px]">A single block of time.</h1>
-          <p className="mt-1 text-[14px] leading-6 text-muted">
+          <h1 className="mt-3 text-[32px] leading-[1.02] sm:text-[44px]">A single block of time.</h1>
+          <p className="mt-2 hidden max-w-[520px] text-[15px] leading-7 text-ink/60 sm:block">
             One step at a time. The timer keeps running even if you look away.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Link
             to="/settings#focus"
-            className="inline-flex items-center gap-1.5 border border-line bg-paper px-2.5 py-1.5 text-[12px] text-muted transition-colors hover:text-ink"
+            className="inline-flex h-9 items-center gap-1.5 rounded-[8px] border border-line bg-paper px-3 text-[12px] text-muted transition-colors hover:border-ink/25 hover:text-ink"
           >
             <Settings2 size={12} aria-hidden />
             Session settings
@@ -369,65 +369,84 @@ export function FocusRoomPage() {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-7 lg:grid-cols-[minmax(0,1fr)_290px]">
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_304px] lg:gap-7">
         <section className="min-w-0">
-          <div className="mx-auto flex max-w-[560px] flex-col items-center">
-            <div className="flex w-full items-stretch border border-line bg-paper" role="tablist" aria-label="Session type">
-              {(Object.keys(TYPE_LABEL) as SessionType[]).map((type) => {
-                const isActive = (active?.type ?? tab) === type;
-                return (
-                  <button
-                    key={type}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
-                    disabled={Boolean(active)}
-                    onClick={() => setTab(type)}
+          <div
+            className={cn(
+              'relative overflow-hidden rounded-[16px] border border-line bg-paper shadow-paper',
+              active && active.type !== 'focus' && 'bg-sage-soft/20',
+            )}
+          >
+            <span
+              className="pointer-events-none absolute inset-0"
+              style={{
+                backgroundImage:
+                  'radial-gradient(56% 48% at 50% 38%, rgb(var(--accent) / 0.055), transparent 72%)',
+              }}
+              aria-hidden
+            />
+            <div className="relative mx-auto flex max-w-[620px] flex-col items-center px-4 py-5 sm:px-8 sm:py-8">
+              <div className="flex w-full border-b border-line" role="tablist" aria-label="Session type">
+                {(Object.keys(TYPE_LABEL) as SessionType[]).map((type) => {
+                  const isActive = (active?.type ?? tab) === type;
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      disabled={Boolean(active)}
+                      onClick={() => setTab(type)}
+                      className={cn(
+                        'relative flex flex-1 flex-col items-center gap-1 border-b-2 px-2 pb-3 pt-1 transition-colors',
+                        isActive
+                          ? 'border-accent text-ink'
+                          : 'border-transparent text-muted hover:text-ink',
+                        active && !isActive && 'opacity-40',
+                      )}
+                    >
+                      <span className="text-[13px] font-medium">{TYPE_LABEL[type]}</span>
+                      <span className="font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+                        {durations[type]} min
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-5 w-full sm:mt-6">{dial}</div>
+              {controls}
+
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                {Array.from({ length: cycleTarget }).map((_, index) => (
+                  <span
+                    key={index}
                     className={cn(
-                      'flex flex-1 flex-col items-center gap-0.5 border-r border-line px-2 py-2.5 transition-colors last:border-r-0',
-                      isActive ? 'bg-accent-soft/60 text-ink' : 'text-muted hover:bg-surface2/50',
-                      active && !isActive && 'opacity-40',
+                      'h-[3px] w-5 rounded-full',
+                      index < cycleDone ? 'bg-accent' : 'bg-line',
                     )}
-                  >
-                    <span className="text-[13px] font-medium">{TYPE_LABEL[type]}</span>
-                    <span className="font-mono text-[10px] text-muted">{durations[type]} min</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-6 w-full">{dial}</div>
-            {controls}
-
-            <div className="mt-6 flex items-center gap-2">
-              {Array.from({ length: cycleTarget }).map((_, index) => (
-                <span
-                  key={index}
-                  className={cn(
-                    'h-1.5 w-1.5 rounded-full',
-                    index < cycleDone ? 'bg-accent' : 'border border-line bg-paper',
-                  )}
-                  aria-hidden
-                />
-              ))}
-              <span className="ml-1 font-mono text-[10px] uppercase tracking-[0.1em] text-muted">
-                Cycle {cycleDone}/{cycleTarget} · long break after {cycleTarget}
-              </span>
+                    aria-hidden
+                  />
+                ))}
+                <span className="ml-1 font-mono text-[9px] uppercase tracking-[0.1em] text-muted">
+                  Cycle {cycleDone}/{cycleTarget} · long break after {cycleTarget}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="mx-auto mt-8 grid max-w-[560px] gap-px border border-line bg-line sm:grid-cols-3">
-            <div className="bg-paper px-4 py-3">
+          <div className="mx-auto mt-5 grid max-w-[620px] gap-px overflow-hidden rounded-[12px] border border-line bg-line sm:grid-cols-3">
+            <div className="bg-paper px-4 py-3.5">
               <p className="eyebrow mb-1">Today</p>
-              <p className="font-mono text-[18px] text-ink">{todayMinutes} min</p>
+              <p className="font-mono text-[20px] text-ink">{todayMinutes} min</p>
             </div>
-            <div className="bg-paper px-4 py-3">
+            <div className="bg-paper px-4 py-3.5">
               <p className="eyebrow mb-1">Sessions</p>
-              <p className="font-mono text-[18px] text-ink">{todaySessions.length}</p>
+              <p className="font-mono text-[20px] text-ink">{todaySessions.length}</p>
             </div>
-            <div className="bg-paper px-4 py-3">
+            <div className="bg-paper px-4 py-3.5">
               <p className="eyebrow mb-1">This week</p>
-              <p className="font-mono text-[18px] text-ink">{stats.weekFocusMinutes} min</p>
+              <p className="font-mono text-[20px] text-ink">{stats.weekFocusMinutes} min</p>
             </div>
           </div>
         </section>
@@ -447,8 +466,8 @@ export function FocusRoomPage() {
               <EmptyState
                 compact
                 icon={<Timer size={16} aria-hidden />}
-                title="No open tasks."
-                description="You can still focus without a task attached."
+                title="Your first focused session is waiting."
+                description="You can focus without attaching a task, or add one first."
                 action={
                   <Button size="sm" variant="quiet" onClick={() => openTask()}>
                     Add a task
@@ -658,7 +677,13 @@ export function FocusRoomPage() {
       </div>
 
       {quiet ? (
-        <div className="fixed inset-0 z-[85] flex flex-col bg-ivory">
+        <div
+          className="fixed inset-0 z-[85] flex flex-col bg-ivory"
+          style={{
+            backgroundImage:
+              'radial-gradient(60% 48% at 50% 46%, rgb(var(--accent) / 0.06), transparent 72%)',
+          }}
+        >
           <div className="grain pointer-events-none absolute inset-0" aria-hidden />
           <div className="relative flex items-center justify-between px-5 py-4 sm:px-8">
             <div className="flex min-w-0 items-center gap-2">
@@ -757,7 +782,16 @@ function TimerDial({
 
   return (
     <div className={cn('relative mx-auto w-full', large ? 'max-w-[540px]' : 'max-w-[500px]')}>
-      <svg viewBox="0 0 320 320" className="h-auto w-full" aria-hidden>
+      {running ? (
+        <span
+          className={cn(
+            'timer-halo pointer-events-none absolute inset-[7%] rounded-full border',
+            breakSession ? 'border-sage/30 bg-sage/[0.035]' : 'border-accent/25 bg-accent/[0.025]',
+          )}
+          aria-hidden
+        />
+      ) : null}
+      <svg viewBox="0 0 320 320" className="relative h-auto w-full" aria-hidden>
         {Array.from({ length: 60 }).map((_, index) => {
           const major = index % 5 === 0;
           return (
@@ -785,9 +819,17 @@ function TimerDial({
           cx="160"
           cy="160"
           r="126"
+          fill="rgb(var(--paper) / 0.78)"
+          stroke="rgb(var(--line) / 0.65)"
+          strokeWidth="0.7"
+        />
+        <circle
+          cx="160"
+          cy="160"
+          r="112"
           fill="none"
-          stroke="rgb(var(--line) / 0.5)"
-          strokeWidth="0.6"
+          stroke="rgb(var(--line) / 0.45)"
+          strokeWidth="0.5"
         />
         <circle
           cx="160"
@@ -802,14 +844,23 @@ function TimerDial({
           transform="rotate(-90 160 160)"
           style={{ transition: 'stroke-dashoffset 0.7s linear' }}
         />
-        <circle cx="160" cy="18" r="2.2" fill="rgb(var(--accent))" />
+        <circle
+          cx="160"
+          cy="18"
+          r="2.4"
+          fill={breakSession ? 'rgb(var(--sage))' : 'rgb(var(--accent))'}
+        />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center px-12 text-center">
-        <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted">
+        <span className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.2em] text-muted">
           <span
             className={cn(
               'h-1 w-1 rounded-full',
-              running ? 'animate-soft-pulse bg-accent' : paused ? 'bg-muted' : 'bg-line',
+              running
+                ? cn('animate-soft-pulse', breakSession ? 'bg-sage' : 'bg-accent')
+                : paused
+                  ? 'bg-muted'
+                  : 'bg-line',
             )}
             aria-hidden
           />
@@ -817,16 +868,19 @@ function TimerDial({
         </span>
         <span
           className={cn(
-            'mt-2 font-mono leading-none tracking-[-0.05em] text-ink tabular',
-            large ? 'text-[76px] sm:text-[92px]' : 'text-[60px] sm:text-[72px]',
+            'mt-2 font-mono leading-none tracking-[-0.06em] text-ink tabular',
+            large ? 'text-[78px] sm:text-[94px]' : 'text-[62px] sm:text-[74px]',
           )}
         >
           {formatClock(remainingSeconds)}
         </span>
-        <span className="mt-3 max-w-[240px] text-[12px] leading-4 text-muted">
+        <span className="mt-4 font-mono text-[8px] uppercase tracking-[0.18em] text-muted/70">
+          {taskTitle ? 'Working on' : breakSession ? 'Break' : 'Session'}
+        </span>
+        <span className="mt-1 line-clamp-2 max-w-[250px] text-[13px] leading-5 text-ink/75">
           {taskTitle ?? (breakSession ? 'Step away from the desk.' : 'No task attached')}
         </span>
-        <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-muted/70">
+        <span className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.1em] text-muted/70">
           {plannedMinutes} minute block
         </span>
       </div>

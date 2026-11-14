@@ -119,7 +119,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               exit={{ opacity: 0, x: 20, transition: { duration: 0.18 } }}
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
               className={cn(
-                'pointer-events-auto border border-line border-l-2 bg-paper px-3.5 py-3 shadow-lift',
+                'pointer-events-auto rounded-[10px] border border-line border-l-2 bg-paper px-3.5 py-3 shadow-lift',
                 toneStyles[item.tone].border,
               )}
               role="status"

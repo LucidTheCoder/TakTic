@@ -19,20 +19,29 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   return (
-    <header className={cn('mb-8 border-b border-line pb-6 md:mb-10 md:pb-7', className)}>
+    <header className={cn('relative mb-8 border-b border-line pb-7 md:mb-10 md:pb-9', className)}>
       <div className="flex items-center gap-3">
-        <span className="font-mono text-[13px] tracking-[0.16em] text-accent">{index}</span>
-        <span className="h-px w-7 bg-line" aria-hidden />
-        <span className="eyebrow">TakTic workspace</span>
+        <span className="font-mono text-[12px] tracking-[0.18em] text-accent">{index}</span>
+        <span className="h-px w-8 bg-accent/35" aria-hidden />
+        <span className="eyebrow">TakTic journal</span>
+        <span className="ml-auto hidden font-mono text-[9px] uppercase tracking-[0.24em] text-muted/70 sm:block">
+          One step at a time
+        </span>
       </div>
-      <div className="mt-3 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
-        <div className="min-w-0">
-          <h1 className="text-balance text-[34px] leading-[1.12] md:text-[42px]">{title}</h1>
+      <div className="mt-4 flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-8">
+        <div className="min-w-0 flex-1 lg:max-w-[620px]">
+          <h1 className="text-balance text-[38px] leading-[1.02] tracking-[-0.035em] md:text-[50px]">
+            {title}
+          </h1>
           {description ? (
-            <p className="mt-2 max-w-2xl text-[15px] leading-7 text-muted">{description}</p>
+            <p className="mt-3 max-w-[620px] text-[15px] leading-7 text-ink/60 md:text-[16px]">
+              {description}
+            </p>
           ) : null}
         </div>
-        {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+        {actions ? (
+          <div className="flex flex-wrap items-center gap-2 md:justify-end">{actions}</div>
+        ) : null}
       </div>
     </header>
   );
@@ -52,8 +61,8 @@ export function SectionHeading({
   return (
     <div className={cn('mb-4 flex items-start justify-between gap-4', className)}>
       <div>
-        {eyebrow ? <p className="eyebrow mb-1">{eyebrow}</p> : null}
-        <h2 className="text-[21px] leading-snug text-ink">{title}</h2>
+        {eyebrow ? <p className="eyebrow mb-1.5">{eyebrow}</p> : null}
+        <h2 className="text-[23px] leading-snug text-ink">{title}</h2>
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>

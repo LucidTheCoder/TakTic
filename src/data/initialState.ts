@@ -19,7 +19,7 @@ export function createInitialState(): TakTicState {
       createdAt: now,
       preferences: {
         theme: 'light',
-        accent: 'matcha',
+        accent: 'vermilion',
         accentChanged: false,
         reducedMotion: false,
       },

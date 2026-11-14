@@ -351,7 +351,7 @@ export function TasksPage() {
       case 'all':
       default:
         return {
-          title: 'A clear desk.',
+          title: 'A blank page. A fresh start.',
           description: 'No tasks exist yet. Start with one sentence describing what needs doing.',
           action: (
             <div className="flex flex-wrap justify-center gap-2">

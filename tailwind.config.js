@@ -19,7 +19,7 @@ export default {
         'accent-soft': 'rgb(var(--accent-soft) / <alpha-value>)',
       },
       fontFamily: {
-        serif: ['"Noto Serif JP"', 'Georgia', 'serif'],
+        serif: ['"Noto Serif Display"', '"Noto Serif JP"', 'Georgia', 'serif'],
         sans: ['Inter', '"Noto Sans JP"', 'system-ui', 'sans-serif'],
         mono: ['"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
@@ -34,8 +34,8 @@ export default {
         modal: '16px',
       },
       boxShadow: {
-        paper: '0 1px 2px rgba(30, 31, 28, 0.05), 0 12px 30px -26px rgba(30, 31, 28, 0.28)',
-        lift: '0 24px 70px -34px rgba(30, 31, 28, 0.42)',
+        paper: '0 1px 2px rgba(41, 43, 41, 0.035), 0 18px 44px -36px rgba(41, 43, 41, 0.3)',
+        lift: '0 30px 80px -36px rgba(30, 31, 28, 0.45)',
       },
       keyframes: {
         'fade-up': {

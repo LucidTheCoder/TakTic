@@ -88,7 +88,7 @@ export function Dropdown({
             exit={{ opacity: 0, y: -2, transition: { duration: 0.12 } }}
             transition={{ duration: 0.16 }}
             className={cn(
-              'scroll-thin absolute z-40 mt-1 max-h-[320px] min-w-[200px] overflow-y-auto border border-line bg-paper p-1 shadow-lift',
+              'scroll-thin absolute z-40 mt-1 max-h-[320px] min-w-[200px] overflow-y-auto rounded-[10px] border border-line bg-paper p-1 shadow-lift',
               align === 'right' ? 'right-0' : 'left-0',
             )}
           >
@@ -110,7 +110,7 @@ export function Dropdown({
                       item.onSelect();
                     }}
                     className={cn(
-                      'flex w-full items-center gap-2.5 px-2.5 py-2 text-left text-[14px] transition-colors disabled:opacity-40',
+                      'flex w-full items-center gap-2.5 rounded-[7px] px-2.5 py-2 text-left text-[13px] transition-colors disabled:opacity-40',
                       item.danger
                         ? 'text-accent hover:bg-accent-soft'
                         : 'text-ink/85 hover:bg-surface2 hover:text-ink',
