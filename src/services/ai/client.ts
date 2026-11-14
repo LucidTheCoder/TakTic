@@ -2,6 +2,7 @@ import type { ZodType } from 'zod';
 
 export type AiErrorCode =
   | 'missing-key'
+  | 'deployment'
   | 'timeout'
   | 'network'
   | 'auth'
@@ -28,10 +29,19 @@ export interface AiConfig {
 }
 
 const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
+const PROXY_ENDPOINT = '/api/ai';
 const REQUEST_TIMEOUT_MS = 55_000;
 
+/**
+ * Production builds use the Vercel function at /api/ai, which holds the
+ * deployment's key server-side. Local development uses a key entered in Settings.
+ */
+export function managedAiEnabled(): boolean {
+  return import.meta.env.PROD;
+}
+
 export function isAiConfigured(config: AiConfig): boolean {
-  return config.apiKey.trim().length > 0;
+  return managedAiEnabled() || config.apiKey.trim().length > 0;
 }
 
 export function describeAiError(error: unknown): string {
@@ -39,6 +49,11 @@ export function describeAiError(error: unknown): string {
     switch (error.code) {
       case 'missing-key':
         return 'Add your OpenRouter API key in Settings to use the AI features.';
+      case 'deployment':
+        return (
+          error.message ||
+          'This deployment’s AI connection is not configured. The site owner needs to add an OpenRouter key.'
+        );
       case 'timeout':
         return 'The AI request took too long. Your work is safe — try again.';
       case 'network':
@@ -96,7 +111,7 @@ interface ChatRequest {
 
 interface OpenRouterResponse {
   choices?: Array<{ message?: { content?: string } }>;
-  error?: { message?: string; code?: number };
+  error?: { message?: string; code?: number | string };
 }
 
 async function requestOnce(
@@ -104,14 +119,18 @@ async function requestOnce(
   apiKey: string,
   signal: AbortSignal,
 ): Promise<OpenRouterResponse> {
-  const response = await fetch(ENDPOINT, {
+  const managed = managedAiEnabled();
+  const response = await fetch(managed ? PROXY_ENDPOINT : ENDPOINT, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://taktic.local',
-      'X-Title': 'TakTic',
-    },
+    headers: managed
+      ? { 'Content-Type': 'application/json' }
+      : {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer':
+            typeof window !== 'undefined' ? window.location.origin : 'https://taktic.local',
+          'X-Title': 'TakTic',
+        },
     body: JSON.stringify(body),
     signal,
   });
@@ -125,6 +144,12 @@ async function requestOnce(
 
   if (!response.ok) {
     const detail = data.error?.message ?? '';
+    if (managed && data.error?.code === 'deployment') {
+      throw new AiError('deployment', detail);
+    }
+    if (managed && data.error?.code === 'timeout') {
+      throw new AiError('timeout', detail || 'The AI request timed out.');
+    }
     if (response.status === 401 || response.status === 403) {
       throw new AiError('auth', detail || 'The OpenRouter API key was rejected.');
     }
@@ -230,17 +255,21 @@ export async function testOpenRouterConnection(config: AiConfig): Promise<string
   if (!isAiConfigured(config)) {
     throw new AiError('missing-key', 'An OpenRouter API key is required.');
   }
+  const managed = managedAiEnabled();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30_000);
   try {
-    const response = await fetch(ENDPOINT, {
+    const response = await fetch(managed ? PROXY_ENDPOINT : ENDPOINT, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${config.apiKey.trim()}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://taktic.local',
-        'X-Title': 'TakTic',
-      },
+      headers: managed
+        ? { 'Content-Type': 'application/json' }
+        : {
+            Authorization: `Bearer ${config.apiKey.trim()}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer':
+              typeof window !== 'undefined' ? window.location.origin : 'https://taktic.local',
+            'X-Title': 'TakTic',
+          },
       body: JSON.stringify({
         model: config.model,
         max_tokens: 16,
@@ -250,11 +279,19 @@ export async function testOpenRouterConnection(config: AiConfig): Promise<string
     });
     if (!response.ok) {
       let detail = '';
+      let code = '';
       try {
         const data = (await response.json()) as OpenRouterResponse;
         detail = data.error?.message ?? '';
+        code = String(data.error?.code ?? '');
       } catch {
         // The status code below is enough to explain the failure.
+      }
+      if (managed && code === 'deployment') {
+        throw new AiError('deployment', detail);
+      }
+      if (managed && code === 'timeout') {
+        throw new AiError('timeout', detail || 'The connection test timed out.');
       }
       if (response.status === 401 || response.status === 403) {
         throw new AiError('auth', detail || 'The API key was rejected.');
@@ -270,7 +307,9 @@ export async function testOpenRouterConnection(config: AiConfig): Promise<string
       }
       throw new AiError('server', detail || `OpenRouter returned ${response.status}.`);
     }
-    return `Connected to ${config.model}.`;
+    return managed
+      ? 'Connected through this deployment’s OpenRouter connection (openrouter/free).'
+      : `Connected to ${config.model}.`;
   } catch (error) {
     if (controller.signal.aborted) {
       throw new AiError('timeout', 'The connection test timed out.');

@@ -35,6 +35,7 @@ import {
 } from '../services/notifications';
 import {
   describeAiError,
+  managedAiEnabled,
   testOpenRouterConnection,
 } from '../services/ai/client';
 import { defaultSettings } from '../services/gamification/xp';
@@ -75,6 +76,7 @@ export function SettingsPage() {
   } = useTakTic();
   const { toast } = useToast();
   const settings = state.settings;
+  const managedAi = managedAiEnabled();
 
   const [nameDraft, setNameDraft] = useState(state.profile.displayName);
   const [nameError, setNameError] = useState('');
@@ -140,13 +142,13 @@ export function SettingsPage() {
   };
 
   const testConnection = async () => {
-    if (!apiKeyDraft.trim()) return;
+    if (!managedAi && !apiKeyDraft.trim()) return;
     setTesting(true);
     setTestResult(null);
     try {
       const message = await testOpenRouterConnection({
-        apiKey: apiKeyDraft.trim(),
-        model: modelDraft.trim(),
+        apiKey: managedAi ? '' : apiKeyDraft.trim(),
+        model: managedAi ? 'openrouter/free' : modelDraft.trim(),
       });
       setTestResult({ tone: 'success', message });
     } catch (error) {
@@ -547,8 +549,41 @@ export function SettingsPage() {
             index="03"
             jp="知能"
             title="AI connection"
-            description="TakTic uses OpenRouter for AI features. The key is stored in this browser only. Manual tasks, focus sessions and statistics work without it."
+            description={
+              managedAi
+                ? 'AI is provided by this deployment through a server-side OpenRouter key. Visitors never need their own key, and every request uses openrouter/free.'
+                : 'TakTic uses OpenRouter for AI features. The key is stored in this browser only. Manual tasks, focus sessions and statistics work without it.'
+            }
           >
+            {managedAi ? (
+              <div className="border border-line bg-surface2/40 px-4 py-3">
+                <p className="flex items-center gap-1.5 text-[11.5px] font-medium text-ink">
+                  <Lock size={13} className="text-accent" aria-hidden /> AI is provided by this
+                  deployment
+                </p>
+                <p className="mt-1 text-[11px] leading-5 text-ink/75">
+                  The owner’s OpenRouter key stays in the server function and is never sent to
+                  visitors. Every AI request uses the zero-cost openrouter/free router.
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={testConnection}
+                    disabled={testing}
+                  >
+                    {testing ? <Loader2 size={13} className="animate-spin" aria-hidden /> : null}
+                    {testing ? 'Testing…' : 'Test deployment connection'}
+                  </Button>
+                  <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-muted">
+                    Server-side key · openrouter/free
+                  </span>
+                </div>
+              </div>
+            ) : null}
+
+            {!managedAi ? (
+              <>
             <div className="border-l-2 border-accent/70 bg-accent-soft/30 px-3 py-2.5">
               <p className="flex items-center gap-1.5 text-[11.5px] font-medium text-ink">
                 <KeyRound size={13} className="text-accent" aria-hidden /> Browser-side keys are for a
@@ -654,6 +689,8 @@ export function SettingsPage() {
                 OpenRouter keys <ExternalLink size={10} aria-hidden />
               </a>
             </div>
+              </>
+            ) : null}
 
             {testResult ? (
               <InlineNote tone={testResult.tone === 'success' ? 'sage' : 'accent'}>
@@ -661,9 +698,11 @@ export function SettingsPage() {
               </InlineNote>
             ) : (
               <p className="font-mono text-[8.5px] uppercase tracking-[0.08em] text-muted">
-                {settings.ai.apiKey
-                  ? 'A key is saved · AI features available'
-                  : 'No key saved · AI features show a setup note, manual features continue'}
+                {managedAi
+                  ? 'Server-managed key · AI features available to every visitor'
+                  : settings.ai.apiKey
+                    ? 'A key is saved · AI features available'
+                    : 'No key saved · AI features show a setup note, manual features continue'}
               </p>
             )}
 
