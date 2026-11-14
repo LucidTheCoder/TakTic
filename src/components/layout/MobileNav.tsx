@@ -151,7 +151,6 @@ export function MobileNav({ onOpenPalette, onOpenTour }: MobileNavProps) {
                     >
                       <Icon size={16} className="text-muted" aria-hidden />
                       <span className="flex-1">{item.label}</span>
-                      <span className="font-mono text-[10px] text-muted/60">{item.index}</span>
                     </Link>
                   );
                 })}

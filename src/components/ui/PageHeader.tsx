@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { cn } from '../../utils/cn';
 
 interface PageHeaderProps {
-  index: string;
   title: string;
   /** Kept for compatibility with older page call sites; not rendered. */
   jp?: string;
@@ -12,7 +11,6 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({
-  index,
   title,
   description,
   actions,
@@ -21,7 +19,6 @@ export function PageHeader({
   return (
     <header className={cn('relative mb-6 border-b border-line pb-5 md:mb-7 md:pb-6', className)}>
       <div className="flex items-center gap-3">
-        <span className="font-mono text-[11px] tracking-[0.16em] text-accent">{index}</span>
         <span className="h-px w-8 bg-accent/35" aria-hidden />
         <span className="eyebrow">TakTic journal</span>
         <span className="ml-auto hidden font-mono text-[9px] uppercase tracking-[0.24em] text-muted/70 sm:block">

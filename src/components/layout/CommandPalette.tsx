@@ -246,8 +246,8 @@ export function CommandPalette({
       },
       {
         id: 'action-focus',
-        label: 'Start the focus timer',
-        sublabel: 'Work in a quiet view',
+        label: 'Open the focus room',
+        sublabel: 'Choose a task and start a timed block',
         icon: Timer,
         onSelect: go('/focus'),
       },
@@ -277,7 +277,6 @@ export function CommandPalette({
       label: item.label,
       sublabel: `Go to ${item.label}`,
       icon: item.icon,
-      trailing: item.index,
       onSelect: go(item.path),
     }));
 

@@ -81,7 +81,7 @@ export function AppLayout() {
               />
             </Link>
             <span className="ml-1 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
-              {meta.index} / {meta.label}
+              {meta.label}
             </span>
             <div className="ml-auto flex items-center gap-1">
               <button

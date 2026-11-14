@@ -26,7 +26,6 @@ export function ProgressPage() {
   return (
     <div>
       <PageHeader
-        index="06"
         title="Progress"
         description="A factual record of completed work, focus time and the marks you have earned. No comparisons and no invented trends."
       />

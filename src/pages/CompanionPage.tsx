@@ -194,7 +194,6 @@ ${adaptations || '- none'}`;
   return (
     <div>
       <PageHeader
-        index="05"
         jp=""
         title="Ask AI"
         description="Ask about your work and get a practical next step. It can read your workspace, but cannot change tasks or award XP."

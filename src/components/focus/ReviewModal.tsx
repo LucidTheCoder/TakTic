@@ -9,7 +9,7 @@ import { Button } from '../ui/Button';
 import { Field, Textarea } from '../ui/Form';
 import { InlineNote } from '../ui/Feedback';
 import { formatTime } from '../../utils/date';
-import { childrenOf } from '../../utils/tasks';
+import { childrenOf, incompleteDependencies } from '../../utils/tasks';
 
 interface ReviewModalProps {
   session: FocusSession | null;
@@ -33,6 +33,9 @@ export function ReviewModal({ session, onClose }: ReviewModalProps) {
     : undefined;
   const completed = session.status === 'completed';
   const isLeaf = task ? childrenOf(state.tasks, task.id).length === 0 : false;
+  const dependencies = task ? incompleteDependencies(task, state.tasks) : [];
+  const canCompleteTask =
+    Boolean(task) && task?.status !== 'completed' && isLeaf && dependencies.length === 0;
   const actualMinutes = Math.max(1, Math.round(session.actualSeconds / 60));
   const nextBreakType =
     state.focusCycle >= state.settings.focus.sessionsBeforeLongBreak ? 'long' : 'short';
@@ -129,7 +132,7 @@ export function ReviewModal({ session, onClose }: ReviewModalProps) {
                 <Coffee size={13} aria-hidden />
                 {breakMinutes} min break
               </Button>
-              {task && task.status !== 'completed' && isLeaf ? (
+              {canCompleteTask ? (
                 <Button variant="primary" onClick={completeTask}>
                   <Check size={13} aria-hidden />
                   Complete task
@@ -185,6 +188,14 @@ export function ReviewModal({ session, onClose }: ReviewModalProps) {
         ) : (
           <InlineNote>This session was not attached to a task.</InlineNote>
         )}
+
+        {completed && task && task.status !== 'completed' && dependencies.length > 0 ? (
+          <InlineNote>
+            This task is still waiting on{' '}
+            {dependencies.map((dependency) => `“${dependency.title}”`).join(', ')}. The focus time is
+            recorded; complete the prerequisite first.
+          </InlineNote>
+        ) : null}
 
         {completed ? (
           <Field

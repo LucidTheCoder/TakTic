@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   CheckCircle2,
@@ -43,6 +43,12 @@ const TYPE_LABEL: Record<SessionType, string> = {
   long: 'Long break',
 };
 
+const TYPE_DESCRIPTION: Record<SessionType, string> = {
+  focus: 'A timed block for one task. Completed focus sessions are tracked and earn XP.',
+  short: 'A quick rest between focus blocks. Break time is never counted as focus.',
+  long: 'A longer rest after a full focus cycle. Break time is never counted as focus.',
+};
+
 export function FocusRoomPage() {
   const { state, stats, dispatch } = useTakTic();
   const { openTask } = useAppActions();
@@ -50,6 +56,7 @@ export function FocusRoomPage() {
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState<SessionType>('focus');
   const [quiet, setQuiet] = useState(state.settings.focus.distractionFree);
+  const hadActiveSession = useRef(false);
   const [now, setNow] = useState(Date.now());
   const [confirm, setConfirm] = useState<'reset' | 'end' | 'skip' | null>(null);
 
@@ -74,11 +81,28 @@ export function FocusRoomPage() {
   }, [active?.taskId]);
 
   useEffect(() => {
+    if (!selectedTaskId) return;
+    const selected = state.tasks.find((task) => task.id === selectedTaskId);
+    if (selected && selected.status !== 'completed') return;
+    setSelectedTaskId(stats.nextTask?.id ?? null);
+  }, [selectedTaskId, state.tasks, stats.nextTask?.id]);
+
+  useEffect(() => {
     if (!active) return;
     setTab(active.type);
     const interval = window.setInterval(() => setNow(Date.now()), 400);
     return () => window.clearInterval(interval);
   }, [active?.id, active?.status]);
+
+  useEffect(() => {
+    if (active) {
+      hadActiveSession.current = true;
+      return;
+    }
+    if (!hadActiveSession.current || state.pendingReviewSessionId) return;
+    hadActiveSession.current = false;
+    setQuiet(false);
+  }, [active?.id, active?.status, state.pendingReviewSessionId]);
 
   useEffect(() => {
     if (!quiet) return;
@@ -166,11 +190,10 @@ export function FocusRoomPage() {
     dispatch({
       type: 'START_SESSION',
       sessionType: type,
-      taskId: type === 'focus' ? selectedTaskId : null,
+      taskId: type === 'focus' ? selectedTask?.id ?? null : null,
       plannedSeconds: durations[type] * 60,
     });
     setTab(type);
-    if (type === 'focus') setQuiet(true);
   };
 
   const toggleTimer = () => {
@@ -345,13 +368,13 @@ export function FocusRoomPage() {
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5 sm:pb-6">
         <div>
           <div className="flex items-center gap-3">
-            <span className="font-mono text-[12px] tracking-[0.18em] text-accent">04</span>
             <span className="h-px w-8 bg-accent/35" aria-hidden />
             <span className="eyebrow">Focus room</span>
           </div>
           <h1 className="mt-3 text-[32px] leading-[1.02] sm:text-[44px]">A single block of time.</h1>
-          <p className="mt-2 hidden max-w-[520px] text-[15px] leading-7 text-ink/75 sm:block">
-            One step at a time. The timer keeps running even if you look away.
+          <p className="mt-2 max-w-[620px] text-[13px] leading-6 text-ink/75 sm:text-[15px] sm:leading-7">
+            TakTic&apos;s built-in workspace for timed task focus. Choose a task, start or pause
+            the timer, take scheduled breaks, and keep a record of completed sessions.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -414,7 +437,14 @@ export function FocusRoomPage() {
                 })}
               </div>
 
-              <div className="mt-5 w-full sm:mt-6">{dial}</div>
+              <p
+                className="mt-3 min-h-10 max-w-[430px] text-center text-[12px] leading-5 text-muted sm:min-h-0 sm:text-[13px]"
+                aria-live="polite"
+              >
+                {TYPE_DESCRIPTION[active?.type ?? tab]}
+              </p>
+
+              <div className="mt-4 w-full sm:mt-6">{dial}</div>
               {controls}
 
               <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
@@ -705,12 +735,14 @@ export function FocusRoomPage() {
               Leave quiet view
             </button>
           </div>
-          <div className="relative flex flex-1 flex-col items-center justify-center px-4 pb-16">
-            <div className="w-full max-w-[600px]">{dial}</div>
-            <div className="mt-6">{controls}</div>
-            <p className="mt-6 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
-              Esc to leave · Space to pause
-            </p>
+          <div className="relative flex min-h-0 flex-1 flex-col items-center overflow-y-auto px-4 pb-16 pt-6">
+            <div className="my-auto w-full max-w-[600px]">
+              {dial}
+              <div className="mt-6">{controls}</div>
+              <p className="mt-6 text-center font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
+                Esc to leave · Space to pause
+              </p>
+            </div>
           </div>
         </div>
       ) : null}
@@ -781,7 +813,12 @@ function TimerDial({
   const breakSession = type !== 'focus';
 
   return (
-    <div className={cn('relative mx-auto w-full', large ? 'max-w-[540px]' : 'max-w-[500px]')}>
+    <div
+      className={cn(
+        'relative mx-auto w-full',
+        large ? 'max-w-[540px]' : 'max-w-[300px] sm:max-w-[500px]',
+      )}
+    >
       {running ? (
         <span
           className={cn(

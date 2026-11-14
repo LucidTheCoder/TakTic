@@ -99,7 +99,6 @@ export function StatisticsPage({ embedded = false }: { embedded?: boolean }) {
     <div>
       {embedded ? null : (
         <PageHeader
-          index="06"
           title="Statistics"
           description="A factual record of what you actually did. No comparisons with other people, and no invented trends."
           actions={

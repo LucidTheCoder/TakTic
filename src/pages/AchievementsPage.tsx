@@ -40,7 +40,6 @@ export function AchievementsPage({ embedded = false }: { embedded?: boolean }) {
     <div>
       {embedded ? null : (
         <PageHeader
-          index="06"
           title="Achievements"
           description="Marks of real progress. Unlocks happen once, are never removed, and carry XP through the transaction ledger."
           actions={

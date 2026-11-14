@@ -83,14 +83,6 @@ export function Sidebar({ onOpenPalette, onOpenTour }: SidebarProps) {
                             aria-hidden
                           />
                           <span className="flex-1">{item.label}</span>
-                          <span
-                            className={cn(
-                              'font-mono text-[9px] tracking-[0.08em]',
-                              isActive ? 'text-accent/80' : 'text-muted/50',
-                            )}
-                          >
-                            {item.index}
-                          </span>
                         </>
                       )}
                     </NavLink>

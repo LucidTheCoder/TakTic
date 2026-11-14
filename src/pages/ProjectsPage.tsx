@@ -70,7 +70,6 @@ export function ProjectsPage() {
   return (
     <div>
       <PageHeader
-        index="03"
         jp=""
         title="Projects"
         description="A project is the larger goal; its tasks are the steps. Progress counts real completed work."

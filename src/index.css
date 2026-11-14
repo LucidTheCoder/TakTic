@@ -43,6 +43,15 @@
   color-scheme: dark;
 }
 
+[data-accent='vermilion'] {
+  --accent: 185 75 58;
+  --accent-soft: 246 230 226;
+}
+.dark[data-accent='vermilion'] {
+  --accent: 222 137 118;
+  --accent-soft: 58 38 33;
+}
+
 [data-accent='indigo'] {
   --accent: 63 90 107;
   --accent-soft: 228 233 236;

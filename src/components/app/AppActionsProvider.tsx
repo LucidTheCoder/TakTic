@@ -139,9 +139,10 @@ export function AppActionsProvider({ children }: { children: ReactNode }) {
       if (!state.settings.shortcutsEnabled) return;
       if (modifier || event.altKey) return;
       if (event.key.toLowerCase() !== 'n') return;
-      const target = event.target as HTMLElement | null;
+      const target = event.target;
       const isTyping =
-        target?.matches('input, textarea, select, [contenteditable="true"]') ?? false;
+        target instanceof Element &&
+        target.matches('input, textarea, select, [contenteditable="true"]');
       const dialogOpen = document.querySelector('[role="dialog"]');
       if (isTyping || dialogOpen || paletteOpenRef.current) return;
       event.preventDefault();

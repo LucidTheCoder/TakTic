@@ -158,7 +158,6 @@ export function CalendarPage() {
   return (
     <div>
       <PageHeader
-        index="06"
         jp=""
         title="Calendar"
         description="Deadlines, scheduled tasks and focus sessions on a local calendar. Select a day to inspect it."

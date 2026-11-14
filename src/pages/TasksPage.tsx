@@ -378,7 +378,6 @@ export function TasksPage() {
   return (
     <div>
       <PageHeader
-        index="02"
         jp=""
         title="My tasks"
         description="A task is one action. A project groups related tasks — and a task can stand alone in Personal."

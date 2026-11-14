@@ -131,7 +131,6 @@ export function ProjectDetailPage() {
       </div>
 
       <PageHeader
-        index="03"
         jp=""
         title={project.title}
         description={project.description || undefined}

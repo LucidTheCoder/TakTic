@@ -53,13 +53,13 @@ import { formatDateKey, todayKey } from '../utils/date';
 import { cn } from '../utils/cn';
 
 const SECTIONS = [
-  { id: 'appearance', index: '01', label: 'Appearance' },
-  { id: 'focus', index: '02', label: 'Focus' },
-  { id: 'ai', index: '03', label: 'AI connection' },
-  { id: 'profile', index: '04', label: 'Profile' },
-  { id: 'notifications', index: '05', label: 'Notifications' },
-  { id: 'shortcuts', index: '06', label: 'Shortcuts' },
-  { id: 'data', index: '07', label: 'Data & demo' },
+  { id: 'appearance', label: 'Appearance' },
+  { id: 'focus', label: 'Focus' },
+  { id: 'ai', label: 'AI connection' },
+  { id: 'profile', label: 'Profile' },
+  { id: 'notifications', label: 'Notifications' },
+  { id: 'shortcuts', label: 'Shortcuts' },
+  { id: 'data', label: 'Data & demo' },
 ];
 
 const ACCENTS: Array<{ value: AccentName; label: string; hex: string }> = [
@@ -298,7 +298,6 @@ export function SettingsPage() {
   return (
     <div>
       <PageHeader
-        index="09"
         jp=""
         title="Settings"
         description="Adjust the workspace to fit you. Everything is stored locally in this browser; nothing is sent anywhere except the AI requests you explicitly make."
@@ -317,9 +316,6 @@ export function SettingsPage() {
                 href={`#${section.id}`}
                 className="group flex shrink-0 items-baseline gap-2 px-2 py-1.5 text-[13px] text-muted transition-colors hover:bg-surface2 hover:text-ink lg:px-2.5"
               >
-                <span className="font-mono text-[10px] tracking-[0.12em] text-muted/70 group-hover:text-accent">
-                  {section.index}
-                </span>
                 {section.label}
               </a>
             ))}
@@ -334,7 +330,6 @@ export function SettingsPage() {
         <div className="min-w-0 space-y-5">
           <SettingsSection
             id="appearance"
-            index="01"
             jp=""
             title="Appearance"
             description="The Japanese editorial light theme is the default. Dark mode keeps the same paper logic rather than inverting to neon."
@@ -443,7 +438,6 @@ export function SettingsPage() {
 
           <SettingsSection
             id="focus"
-            index="02"
             jp=""
             title="Focus room"
             description="Default session lengths and ambient sound. Changes apply to the next session; a running timer is never altered mid-session."
@@ -587,7 +581,6 @@ export function SettingsPage() {
 
           <SettingsSection
             id="ai"
-            index="03"
             jp=""
             title="AI connection"
             description={
@@ -771,7 +764,6 @@ export function SettingsPage() {
 
           <SettingsSection
             id="profile"
-            index="04"
             jp=""
             title="Profile"
             description="The name and mark used in the sidebar and greetings. No account exists; this profile lives only in this browser."
@@ -871,7 +863,6 @@ export function SettingsPage() {
 
           <SettingsSection
             id="notifications"
-            index="05"
             jp=""
             title="Notifications"
             description="Quiet, optional nudges. TakTic never uses guilt, countdown pressure or streak-loss warnings."
@@ -922,7 +913,6 @@ export function SettingsPage() {
 
           <SettingsSection
             id="shortcuts"
-            index="06"
             jp=""
             title="Keyboard"
             description="Shortcuts stay out of the way: they never fire while you are typing in a field, and can be turned off entirely."
@@ -964,7 +954,6 @@ export function SettingsPage() {
 
           <SettingsSection
             id="data"
-            index="07"
             jp=""
             title="Data and demonstration"
             description="The workspace is a single LocalStorage record. Export before clearing site data, switching browsers or resetting."
@@ -1186,13 +1175,11 @@ export function SettingsPage() {
 
 function SettingsSection({
   id,
-  index,
   title,
   description,
   children,
 }: {
   id: string;
-  index: string;
   jp: string;
   title: string;
   description?: string;
@@ -1205,11 +1192,7 @@ function SettingsSection({
       aria-labelledby={`${id}-title`}
     >
       <header className="border-b border-line px-4 py-4 sm:px-5">
-        <div className="flex items-baseline gap-3">
-          <span className="font-mono text-[11px] tracking-[0.16em] text-accent">{index}</span>
-          <span className="h-px flex-1 bg-line" aria-hidden />
-        </div>
-        <h2 id={`${id}-title`} className="mt-1.5 text-[19px] leading-snug">
+        <h2 id={`${id}-title`} className="text-[19px] leading-snug">
           {title}
         </h2>
         {description ? (

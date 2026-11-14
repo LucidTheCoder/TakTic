@@ -13,7 +13,6 @@ import {
 export interface NavItem {
   path: string;
   label: string;
-  index: string;
   icon: LucideIcon;
 }
 
@@ -26,24 +25,24 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Main',
     items: [
-      { path: '/', label: 'Dashboard', index: '01', icon: LayoutGrid },
-      { path: '/tasks', label: 'Tasks', index: '02', icon: ListChecks },
-      { path: '/projects', label: 'Projects', index: '03', icon: FolderOpen },
-      { path: '/focus', label: 'Focus', index: '04', icon: Timer },
-      { path: '/calendar', label: 'Calendar', index: '05', icon: CalendarDays },
+      { path: '/', label: 'Dashboard', icon: LayoutGrid },
+      { path: '/tasks', label: 'Tasks', icon: ListChecks },
+      { path: '/projects', label: 'Projects', icon: FolderOpen },
+      { path: '/focus', label: 'Focus', icon: Timer },
+      { path: '/calendar', label: 'Calendar', icon: CalendarDays },
     ],
   },
   {
     label: 'Progress',
-    items: [{ path: '/progress', label: 'Progress', index: '06', icon: BarChart3 }],
+    items: [{ path: '/progress', label: 'Progress', icon: BarChart3 }],
   },
   {
     label: 'Assistant',
-    items: [{ path: '/companion', label: 'AI Companion', index: '07', icon: MessageCircle }],
+    items: [{ path: '/companion', label: 'AI Companion', icon: MessageCircle }],
   },
   {
     label: 'Utilities',
-    items: [{ path: '/settings', label: 'Settings', index: '08', icon: Settings }],
+    items: [{ path: '/settings', label: 'Settings', icon: Settings }],
   },
 ];
 
@@ -55,7 +54,7 @@ const ALIASES: Record<string, string> = {
   '/companion': '/companion',
 };
 
-export function pageMeta(pathname: string): { index: string; label: string } {
+export function pageMeta(pathname: string): { label: string } {
   const exact = NAV_ITEMS.find((item) => item.path === pathname);
   if (exact) return exact;
   const alias = ALIASES[pathname];
