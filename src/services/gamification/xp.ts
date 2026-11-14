@@ -1,4 +1,5 @@
 import type { AppSettings, Difficulty, XpConfig } from '../../types';
+import { DEFAULT_AI_MODEL } from '../ai/models';
 
 export const DEFAULT_XP: XpConfig = {
   easy: 15,
@@ -73,8 +74,8 @@ export function defaultSettings(): AppSettings {
     },
     ai: {
       apiKey: '',
-      // OpenRouter's Free Models Router: selects an available zero-cost model per request.
-      model: 'openrouter/free',
+      // A fast zero-cost model with free fallbacks when a provider is unavailable.
+      model: DEFAULT_AI_MODEL,
       companionStyle: 'concise',
     },
     notifications: {

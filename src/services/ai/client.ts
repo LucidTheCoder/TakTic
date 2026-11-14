@@ -1,4 +1,5 @@
 import type { ZodType } from 'zod';
+import { DEFAULT_AI_MODEL, FREE_AI_MODELS } from './models';
 
 export type AiErrorCode =
   | 'missing-key'
@@ -190,11 +191,20 @@ export async function requestStructured<T>({
   const onExternalAbort = () => controller.abort();
   signal?.addEventListener('abort', onExternalAbort);
 
+  const fallbackModels =
+    config.model === DEFAULT_AI_MODEL
+      ? FREE_AI_MODELS.filter((model) => model !== config.model)
+      : undefined;
   const body = {
     model: config.model,
+    ...(fallbackModels ? { models: fallbackModels } : {}),
     temperature,
     max_tokens: maxTokens,
     response_format: { type: 'json_object' },
+    // Free routing can select reasoning models that spend the entire output
+    // budget thinking and return no JSON. These requests do not need reasoning.
+    reasoning: { effort: 'none', exclude: true },
+    provider: { sort: 'throughput' },
     messages: [
       {
         role: 'system',
@@ -272,7 +282,12 @@ export async function testOpenRouterConnection(config: AiConfig): Promise<string
           },
       body: JSON.stringify({
         model: config.model,
-        max_tokens: 16,
+        ...(config.model === DEFAULT_AI_MODEL
+          ? { models: FREE_AI_MODELS.filter((model) => model !== config.model) }
+          : {}),
+        max_tokens: 64,
+        reasoning: { effort: 'none', exclude: true },
+        provider: { sort: 'throughput' },
         messages: [{ role: 'user', content: 'Reply with the single word: ready' }],
       }),
       signal: controller.signal,
@@ -308,7 +323,7 @@ export async function testOpenRouterConnection(config: AiConfig): Promise<string
       throw new AiError('server', detail || `OpenRouter returned ${response.status}.`);
     }
     return managed
-      ? 'Connected through this deployment’s OpenRouter connection (openrouter/free).'
+      ? 'Connected through this deployment’s OpenRouter connection (zero-cost free models).'
       : `Connected to ${config.model}.`;
   } catch (error) {
     if (controller.signal.aborted) {

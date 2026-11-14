@@ -38,6 +38,7 @@ import {
   managedAiEnabled,
   testOpenRouterConnection,
 } from '../services/ai/client';
+import { DEFAULT_AI_MODEL } from '../services/ai/models';
 import { defaultSettings } from '../services/gamification/xp';
 import type {
   AccentName,
@@ -148,7 +149,7 @@ export function SettingsPage() {
     try {
       const message = await testOpenRouterConnection({
         apiKey: managedAi ? '' : apiKeyDraft.trim(),
-        model: managedAi ? 'openrouter/free' : modelDraft.trim(),
+        model: managedAi ? DEFAULT_AI_MODEL : modelDraft.trim(),
       });
       setTestResult({ tone: 'success', message });
     } catch (error) {
@@ -551,7 +552,7 @@ export function SettingsPage() {
             title="AI connection"
             description={
               managedAi
-                ? 'AI is provided by this deployment through a server-side OpenRouter key. Visitors never need their own key, and every request uses openrouter/free.'
+                ? 'AI is provided by this deployment through a server-side OpenRouter key. Visitors never need their own key, and every request uses zero-cost free models.'
                 : 'TakTic uses OpenRouter for AI features. The key is stored in this browser only. Manual tasks, focus sessions and statistics work without it.'
             }
           >
@@ -563,7 +564,7 @@ export function SettingsPage() {
                 </p>
                 <p className="mt-1 text-[11px] leading-5 text-ink/75">
                   The owner’s OpenRouter key stays in the server function and is never sent to
-                  visitors. Every AI request uses the zero-cost openrouter/free router.
+                  visitors. Every AI request uses zero-cost free models with automatic fallbacks.
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <Button
@@ -576,7 +577,7 @@ export function SettingsPage() {
                     {testing ? 'Testing…' : 'Test deployment connection'}
                   </Button>
                   <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-muted">
-                    Server-side key · openrouter/free
+                    Server-side key · free models
                   </span>
                 </div>
               </div>
@@ -626,13 +627,13 @@ export function SettingsPage() {
               <Field
                 label="Model"
                 htmlFor="openrouter-model"
-                hint="Defaults to OpenRouter's Free Models Router, which picks an available zero-cost model for each request."
+                hint="Defaults to a fast zero-cost model, with other free models as fallbacks."
               >
                 <Input
                   id="openrouter-model"
                   value={modelDraft}
                   onChange={(event) => setModelDraft(event.target.value)}
-                  placeholder="openrouter/free"
+                  placeholder={DEFAULT_AI_MODEL}
                   spellCheck={false}
                   className="font-mono text-[11px]"
                 />
@@ -642,18 +643,19 @@ export function SettingsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => setModelDraft('openrouter/free')}
+                onClick={() => setModelDraft(DEFAULT_AI_MODEL)}
+                title={DEFAULT_AI_MODEL}
                 className={cn(
                   'border px-2 py-1 font-mono text-[9px] transition-colors',
-                  modelDraft === 'openrouter/free'
+                  modelDraft === DEFAULT_AI_MODEL
                     ? 'border-accent/50 bg-accent-soft/40 text-accent'
                     : 'border-line text-muted hover:border-ink/25 hover:text-ink',
                 )}
               >
-                openrouter/free
+                Free default
               </button>
               <span className="font-mono text-[8px] uppercase tracking-[0.08em] text-muted">
-                Free Models Router · zero cost · model may vary per request
+                Zero cost · free fallbacks · no reasoning overhead
               </span>
             </div>
 

@@ -1,6 +1,13 @@
 const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL = 'openrouter/free';
-const MAX_TOKENS = 1600;
+// Zero-cost models only. Keep in sync with src/services/ai/models.ts.
+const MODELS = [
+  'particle-ai/particle-1:free',
+  'google/gemma-4-26b-a4b-it:free',
+  'google/gemma-4-31b-it:free',
+  'nvidia/nemotron-3.5-super-vl:free',
+];
+const MODEL = MODELS[0];
+const MAX_TOKENS = 2000;
 const MAX_BODY_BYTES = 1_000_000;
 const TIMEOUT_MS = 55_000;
 
@@ -124,9 +131,14 @@ export default async function handler(req, res) {
 
   const payload = {
     model: MODEL,
+    models: MODELS.slice(1),
     messages: body.messages,
     temperature: clamp(body.temperature, 0, 1.5) ?? 0.35,
     max_tokens: Math.round(clamp(body.max_tokens, 1, MAX_TOKENS) ?? MAX_TOKENS),
+    // Free routing can select reasoning models that consume the whole token
+    // budget on hidden reasoning and return an empty message.
+    reasoning: { effort: 'none', exclude: true },
+    provider: { sort: 'throughput' },
   };
 
   if (body.response_format && body.response_format.type === 'json_object') {

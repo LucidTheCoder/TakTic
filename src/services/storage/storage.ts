@@ -280,8 +280,11 @@ export function mergeSettings(input: unknown): AppSettings {
   const parsed = SettingsSchema.safeParse(input ?? {});
   if (!parsed.success) return defaults;
 
-  // Migrate the original default to the zero-cost Free Models Router.
-  if (parsed.data.ai.model === 'google/gemini-2.5-flash') {
+  // Migrate old defaults to the current zero-cost model with free fallbacks.
+  if (
+    parsed.data.ai.model === 'google/gemini-2.5-flash' ||
+    parsed.data.ai.model === 'openrouter/free'
+  ) {
     return {
       ...parsed.data,
       ai: { ...parsed.data.ai, model: defaults.ai.model },
